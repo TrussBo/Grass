@@ -1096,7 +1096,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 (() => {
 'use strict';
 // The version: shown in SETTINGS and on the cover of the guide book. Raise it with every update, then rebuild the guide.
-const VERSION = '9.2';
+const VERSION = '9.2.1';
 const $ = (id) => document.getElementById(id);
 const errBox = $('err');
 function showError(msg) { errBox.textContent = msg; errBox.hidden = false; }
@@ -5596,7 +5596,23 @@ window.addEventListener('blur', releaseAll);
 document.addEventListener('visibilitychange', () => { if (document.hidden && !G.demo && G.phase !== 'over' && !G.panel) togglePause(true); });
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 document.addEventListener('pointerdown', () => { audioInit(); if (G.replay) endReplay(); }, true);
-$('btnReplay').addEventListener('click', (e) => { e.stopPropagation(); playMyReplay(); });
+// Buttons you tap in a match (MENU, EXIT, REPLAY, the pause menu and its boxes) act straight off the touch: a phone
+// sends no click for a tap while your other thumb is still on the screen (on the stick, say). Mouse and keys still click.
+function onTap(el, fn) {
+  let tid = null;
+  el.addEventListener('touchstart', (e) => { tid = e.changedTouches[0].identifier; }, { passive: true });
+  el.addEventListener('touchcancel', () => { tid = null; });
+  el.addEventListener('touchend', (e) => {
+    const t = [...e.changedTouches].find((x) => x.identifier === tid);
+    if (!t) return;
+    tid = null;
+    if (e.cancelable) e.preventDefault();   // (so no click follows it)
+    const r = el.getBoundingClientRect(), m = 12;   // let go on it (or just off its edge): slid away, it doesn't count
+    if (t.clientX >= r.left - m && t.clientX <= r.right + m && t.clientY >= r.top - m && t.clientY <= r.bottom + m) fn(e);
+  }, { passive: false });
+  el.addEventListener('click', fn);
+}
+onTap($('btnReplay'), (e) => { e.stopPropagation(); playMyReplay(); });
 
 /* =====================================================================
    SOUND: synthesized hits, digs, sets, blocks, bounces and net (no audio files)
@@ -6166,8 +6182,8 @@ function confirmBox(title, text, yes, no) {
   });
 }
 function closeConfirm(v) { $('confirm').hidden = true; const r = confirmResolve; confirmResolve = null; if (r) r(v); }
-$('cfYes').addEventListener('click', () => closeConfirm(true));
-$('cfNo').addEventListener('click', () => closeConfirm(false));
+onTap($('cfYes'), () => closeConfirm(true));
+onTap($('cfNo'), () => closeConfirm(false));
 // Full screen where the browser allows it, asked for on the first press of a play button. Not on iPhone or iPad:
 // Safari's full screen there ends with any swipe down (and the stick swipes down all the time), and a page can't
 // switch that off, so the game stays in the browser window; Add to Home Screen gives real full screen, no Safari at all.
@@ -6651,10 +6667,10 @@ $('dgDone').addEventListener('click', () => {
 });
 $('wtLeave').addEventListener('click', () => { watchStop(); showMenu(); openPanel('friendsPanel'); });
 $('howDone').addEventListener('click', closePanel);
-$('btnPauseTricks').addEventListener('click', () => openPanel('tricksPanel'));
-$('tricksDone').addEventListener('click', closePanel);
-$('btnPauseSettings').addEventListener('click', () => openPanel('settingsPanel'));
-$('settingsDone').addEventListener('click', closePanel);
+onTap($('btnPauseTricks'), () => openPanel('tricksPanel'));
+onTap($('tricksDone'), () => closePanel());
+onTap($('btnPauseSettings'), () => openPanel('settingsPanel'));
+onTap($('settingsDone'), () => closePanel());
 $('creatorDone').addEventListener('click', () => {
   saveProfile();
   if (creatingLegend) {
@@ -6672,18 +6688,18 @@ $('btnReset').addEventListener('click', async () => {
   panelStack.length = 0;
   showMenu();
 });
-$('btnMenu').addEventListener('click', () => togglePause(true));
-$('btnResume').addEventListener('click', () => togglePause(false));
-$('btnQuit').addEventListener('click', exitMatch);
-$('btnExit').addEventListener('click', exitMatch);
+onTap($('btnMenu'), () => togglePause(true));
+onTap($('btnResume'), () => togglePause(false));
+onTap($('btnQuit'), () => exitMatch());
+onTap($('btnExit'), () => exitMatch());
 let lastWon = false;
-$('btnAgain').addEventListener('click', () => {
+onTap($('btnAgain'), () => {   // (a thumb's often still down when a match ends)
   const M = G.match || {};
   if (G.online) { if (G.host) netBackToLobby(); return; }
   if (M.kind === 'story') { if (lastWon) storyContinue(); else startStory(M.crew); return; }
   startMatch(G.mode, { kind: 'pickup', diff: M.diff, park: M.park });
 });
-$('btnModes').addEventListener('click', () => {
+onTap($('btnModes'), () => {
   const M = G.match || {};
   if (G.online) { showMenu(); return; }
   if (M.kind === 'story') { if (lastWon) startStory(M.crew); else { showMenu(); openStory(); } return; }
@@ -8998,7 +9014,7 @@ window.__grass = {
   humanTouch, contactPoint, PT, checkSlide, assign, other, EV, eventsNewPoint, maybeDogRun, matchPointNow, dogOnCourt, stopRally,
   get NET() { return NET; }, netSnapshotSize: () => JSON.stringify(netSnapshot()).length, IN_CLAUDE, VERSION, STAT_INFO, SHOP_GEAR,
   coach, coachUi, coachSay, coachCall, coachShowGrade, COACH_AT, GRADES, coachCheck, coachSnatch, coachPath, coachD1,
-  pressCall, makeCall, canCall, defaultSetOf, toss, CALL_TYPES, aiSetPlan, togglePause, resumePlay,
+  pressCall, makeCall, canCall, defaultSetOf, toss, CALL_TYPES, aiSetPlan, togglePause, resumePlay, endRally,
   PAL, WATCH, FR, CDOG, watchStart, watchStop, addFriend, removeFriend, friendsPoll, palPeek, openDogPanel, dogTrick, dogTumble, makeWatchDog, disposeWatchDog, dogPose, placeDog,
   DOG_BREEDS, DOG_TRICKS, unpackRig, packRig, palConfig, courtDogSet, get dogPreview() { return dogPreview; },
   poseKit: { celebratePose, idlePose, poseTarget, BASE_POSE, CELEBRATIONS, IDLES },
