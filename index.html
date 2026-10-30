@@ -407,6 +407,8 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 .chipset button[aria-pressed="true"] { background: var(--sun); color: var(--ink); }
 /* friends (v9) */
 .card.friends { width: min(600px, 100%); max-height: 100%; min-height: 0; grid-template-rows: auto auto minmax(0, 1fr) auto auto; gap: 7px; padding: clamp(10px, 2.4vmin, 20px); }
+/* (each in its own row: with no message, the list still gets the row that scrolls, and PLAYED ONLINE WITH stays above the buttons) */
+.card.friends > .ctop { grid-row: 1; } #frMsg { grid-row: 2; } #frBoard { grid-row: 3; } #frRecentBox { grid-row: 4; } .card.friends > .row { grid-row: 5; }
 .addrow { display: flex; gap: 6px; align-items: center; }
 #frAdd { width: 8.6em; font: 800 17px var(--font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink); background: var(--chalk); border: 3px solid var(--ink); border-radius: 10px; padding: 4px 8px; user-select: text; -webkit-user-select: text; }
 #frAdd::placeholder { color: #8a8076; letter-spacing: 0.06em; }
@@ -417,7 +419,11 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 .fcode span { font-weight: 800; font-size: 11px; letter-spacing: 0.16em; color: var(--chalk); }
 .fcode b { font-family: var(--font-display); font-weight: 400; font-size: clamp(22px, 5.4vmin, 30px); letter-spacing: 0.08em; color: var(--sun); text-shadow: 2px 2px 0 var(--ink); user-select: text; -webkit-user-select: text; }
 .board { list-style: none; margin: 0; padding: 0 2px 0 0; display: grid; gap: 5px; overflow-y: auto; min-height: 0; overscroll-behavior: contain; touch-action: pan-y; }
-.board li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto auto auto; align-items: center; gap: 8px; padding: 3px 8px; border-radius: 10px; background: var(--glass); border: 2px solid var(--ink); }
+.board li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto auto; align-items: center; gap: 8px; padding: 3px 8px; border-radius: 10px; background: var(--glass); border: 2px solid var(--ink); }
+.board .acts { display: flex; gap: 5px; justify-content: end; }
+.board li.req .acts, .board li.inv .acts, .board li.sent .acts { grid-column: 3 / -1; }
+.board li.req, .board li.inv { border-color: var(--hot); background: rgba(255, 122, 47, 0.16); }
+.board li.sent { opacity: 0.8; }
 .board li.me { background: rgba(255, 210, 63, 0.18); }
 .board .rk { font-family: var(--font-display); font-weight: 400; font-size: 18px; color: var(--sun); text-align: center; }
 .board .who { display: grid; min-width: 0; line-height: 1.1; }
@@ -430,6 +436,15 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 .board .chip.x { padding: 3px 8px; background: var(--glass); color: var(--chalk); }
 .board .chip:disabled { opacity: 0.4; cursor: default; }
 .board li.me .w { grid-column: 3 / -1; justify-self: end; }
+.big.hot { background: var(--hot); }
+/* v10.1: a count on FRIENDS (friend requests and party invites waiting) */
+.ibtn { position: relative; }
+.ndot { position: absolute; top: -7px; right: -7px; min-width: 19px; height: 19px; padding: 0 4px; border-radius: 10px; border: 2px solid var(--ink); background: var(--fire); color: #fff; font: normal 800 11px/15px var(--font-ui); text-align: center; pointer-events: none; }
+.ndot[hidden] { display: none; }
+/* v10.1: the party screen */
+#onKindRow .seg button { padding: 6px 10px; font-size: 14px; }
+.onhead #onKindRow { margin-left: auto; justify-content: flex-end; }   /* the party's game, in the title row */
+#onCrew { padding: 5px 12px; font-size: 14px; }
 .recent { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
 .recent .chip { padding: 3px 10px; font-size: 13px; }
 /* the Watch Dog panel */
@@ -480,6 +495,10 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 .sidehead { font-family: var(--font-display); font-size: 18px; }
 .side.home .sidehead { color: var(--home); }
 .side.away .sidehead { color: var(--away); }
+/* v10.1: PLAY HOME / PLAY AWAY beside the side's name (a party's PICKUP screen fits a short phone) */
+.sidetop { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+.sidetop .sidehead { min-width: 0; }
+.sidetop .chip { flex: none; }
 .side ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; min-height: 44px; }
 .side li { font-weight: 700; font-size: 16px; line-height: 1.15; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .side li.ai { opacity: 0.55; font-weight: 600; }
@@ -489,6 +508,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 .onopts { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 .onopts .seg button { padding: 6px 10px; font-size: 14px; }
 .onopts.readonly { pointer-events: none; opacity: 0.75; }
+.seg.readonly { pointer-events: none; opacity: 0.75; }
 /* settings */
 .card.settings { width: min(560px, 100%); }
 /* tall cards scroll inside on a short landscape phone (the overlay row is exactly the screen) */
@@ -597,6 +617,15 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 .btile em { position: absolute; top: 0; left: 4px; font-style: normal; font-size: 12px; color: var(--sun); text-shadow: 1px 1px 0 var(--ink); }
 .blmsg { min-height: 1.2em; }
 @media (max-width: 640px) { .ballcols { grid-template-columns: 1fr; } .ballgrid { max-height: 40vh; } }
+/* v10.1: bags in the loot panel */
+.lootcol { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 5px; min-height: 0; min-width: 0; }
+.loottabs { justify-self: start; }
+.loottabs button { padding: 3px 10px; font-size: 13px; }
+.balldetail canvas.bagpic { animation: bagSway 2.6s ease-in-out infinite; transform-origin: 50% 14%; }
+@keyframes bagSway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+#boxOpen.isbag.open #boBall { animation: ballUp 0.7s cubic-bezier(.2, 1.5, .4, 1) forwards, bagSwayUp 2.6s 0.7s ease-in-out infinite; transform-origin: 50% 14%; }
+@keyframes bagSwayUp { 0%, 100% { transform: scale(1) rotate(-4deg); } 50% { transform: scale(1) rotate(4deg); } }
+@media (prefers-reduced-motion: reduce) { .balldetail canvas.bagpic, #boxOpen.isbag.open #boBall { animation: none; opacity: 1; transform: none; } }
 /* trading */
 .card.trade { width: min(720px, 100%); max-height: 100%; min-height: 0; grid-template-rows: auto minmax(0, 1fr) auto auto; gap: clamp(5px, 1.3vmin, 10px); padding: clamp(10px, 2.2vmin, 20px); }
 .tdpick { display: grid; gap: 6px; min-height: 0; grid-template-rows: auto minmax(0, 1fr); }
@@ -737,7 +766,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 .picks .chip { padding: 4px 10px; font-size: 13px; }
 .picks .chip small { color: var(--ink); opacity: 1; font-size: 14px; }
 .picks .chip.me { background: var(--sun); color: var(--ink); }
-.onopts .lbl { align-self: center; }
+.onopts .lbl, #onAiRow { align-self: center; }
 .card.roster { width: min(560px, 100%); max-height: 100%; grid-template-rows: auto minmax(0, 1fr) auto; }
 .rosterlist { list-style: none; margin: 0; padding: 4px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; overflow-y: auto; min-height: 0; overscroll-behavior: contain; touch-action: pan-y; }
 .rosterlist button {
@@ -879,9 +908,9 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
         <span class="lcname" id="lcName">#7 YOU</span>
         <span class="lcmeta" id="lcMeta">LEVEL 0 · 0 PTS</span>
       </button>
-      <button class="plate ballplate" id="btnBalls" type="button" aria-label="Balls: ball boxes and your balls">
+      <button class="plate ballplate" id="btnBalls" type="button" aria-label="Loot: boxes, your balls and your bags">
         <canvas id="bpBall" width="76" height="76" aria-hidden="true"></canvas>
-        <span class="lcname">BALLS</span>
+        <span class="lcname">LOOT</span>
         <span class="lcmeta" id="bpMeta">BOX · 3,000</span>
         <i class="bpdot" id="bpDot" hidden></i>
       </button>
@@ -894,7 +923,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
         <button class="ibtn" id="btnMyLegend" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20v-8M12 20V5M19 20v-5"/></svg><span>STATS</span></button>
         <button class="ibtn" id="btnPlayer" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 4 6.5l2 3.5 2-1V21h8V9l2 1 2-3.5L15 3c-.6 1.6-1.6 2.5-3 2.5S9.6 4.6 9 3z"/></svg><span>LOOK</span></button>
         <button class="ibtn" id="btnTricks" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"/></svg><span>TRICKS</span></button>
-        <button class="ibtn" id="btnFriends" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19.5c.6-3.4 2.8-5.3 5.5-5.3s4.9 1.9 5.5 5.3"/><circle cx="16.8" cy="9" r="2.5"/><path d="M15.6 14.3c2.6-.5 4.5 1.2 5 4.4"/></svg><span>FRIENDS</span></button>
+        <button class="ibtn" id="btnFriends" type="button"><i class="ndot" id="frDot" hidden></i><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19.5c.6-3.4 2.8-5.3 5.5-5.3s4.9 1.9 5.5 5.3"/><circle cx="16.8" cy="9" r="2.5"/><path d="M15.6 14.3c2.6-.5 4.5 1.2 5 4.4"/></svg><span>FRIENDS</span></button>
         <button class="ibtn" id="btnHow" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="7" width="19" height="11" rx="5.5"/><path d="M7.5 10.5v4M5.5 12.5h4M15.5 11.5h.01M18 13.5h.01"/></svg><span>CONTROLS</span></button>
         <button class="ibtn" id="btnSettings" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg><span>SETTINGS</span></button>
       </div>
@@ -1072,7 +1101,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 
   <div class="overlay" id="onlinePanel" hidden>
     <div class="card online">
-      <div class="onhead"><h2 class="h2" id="onTitle">PLAY ONLINE</h2><div class="codebox" id="onCodeBox" hidden><span>GAME CODE</span><b id="onCodeShow">----</b></div></div>
+      <div class="onhead"><h2 class="h2" id="onTitle">PLAY ONLINE</h2><div class="onopts" id="onKindRow" hidden><div class="seg" id="onKind" role="group" aria-label="What the party plays"><button type="button" data-v="pickup">PICKUP</button><button type="button" data-v="story">BE A LEGEND</button><button type="button" data-v="prac">PRACTICE</button></div><button class="chip" id="onCrew" type="button" hidden>VS</button></div><div class="codebox" id="onCodeBox" hidden><span>GAME CODE</span><b id="onCodeShow">----</b></div></div>
       <div class="stack" id="onStart">
         <p class="sub left">Everyone plays on their own phone. Create a game and share the code, or type in a friend's code.</p>
         <div class="row"><button class="big" id="onCreate" type="button">CREATE GAME</button></div>
@@ -1081,8 +1110,8 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
       <div class="stack" id="onLobby" hidden>
         <p class="sub" id="onStory" hidden></p>
         <div class="sides">
-          <div class="side home"><div class="sidehead">HOME</div><ul id="onHome"></ul><button class="chip" id="onPickHome" type="button">PLAY HOME</button></div>
-          <div class="side away"><div class="sidehead">AWAY</div><ul id="onAway"></ul><button class="chip" id="onPickAway" type="button">PLAY AWAY</button></div>
+          <div class="side home"><div class="sidetop"><div class="sidehead">HOME</div><button class="chip" id="onPickHome" type="button">PLAY HOME</button></div><ul id="onHome"></ul></div>
+          <div class="side away"><div class="sidetop"><div class="sidehead">AWAY</div><button class="chip" id="onPickAway" type="button">PLAY AWAY</button></div><ul id="onAway"></ul></div>
         </div>
         <div class="onopts" id="onOpts">
           <div class="seg" id="onMode" role="group" aria-label="Mode"><button type="button" data-v="2">2V2</button><button type="button" data-v="3">3V3</button><button type="button" data-v="p">PRACTICE</button></div>
@@ -1090,11 +1119,10 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
           <div class="seg" id="onRecv" role="group" aria-label="What Chai T sends" hidden><button type="button" data-v="serve">SERVES</button><button type="button" data-v="down">DOWN BALLS</button><button type="button" data-v="mix">MIX</button></div>
           <div class="seg" id="onDiff" role="group" aria-label="AI skill"><button type="button" data-v="easy">EASY AI</button><button type="button" data-v="normal">NORMAL AI</button><button type="button" data-v="hard">HARD AI</button></div>
         </div>
-        <div class="onopts" id="onPosRow"><span class="lbl">YOUR SPOT</span><div class="seg" id="onPos" role="group" aria-label="Your spot on the court"><button type="button" data-pos="left">LEFT</button><button type="button" data-pos="setter">SETTER</button><button type="button" data-pos="right">RIGHT</button></div></div>
-        <div class="onopts" id="onAiRow" hidden><button class="chip" id="onAiPick" type="button">AI TEAMMATE <small id="onAiName">MILO</small></button></div>
+        <div class="onopts" id="onPosRow"><span class="lbl">YOUR SPOT</span><div class="seg" id="onPos" role="group" aria-label="Your spot on the court"><button type="button" data-pos="left">LEFT</button><button type="button" data-pos="setter">SETTER</button><button type="button" data-pos="right">RIGHT</button></div><span id="onAiRow" hidden><button class="chip" id="onAiPick" type="button">AI TEAMMATE <small id="onAiName">MILO</small></button></span></div>
       </div>
       <p class="sub left" id="onMsg" aria-live="polite"></p>
-      <div class="row"><button class="big" id="onGo" type="button" hidden>START</button><button class="big alt" id="onBack" type="button">BACK</button><button class="chip" id="onHelp" type="button">HOW IT WORKS</button></div>
+      <div class="row"><button class="big" id="onGo" type="button" hidden>START</button><button class="big alt" id="onInvite" type="button" hidden>INVITE</button><button class="big alt" id="onBack" type="button">BACK</button><button class="big alt" id="onLeave" type="button" hidden>LEAVE</button><button class="chip" id="onHelp" type="button">HOW IT WORKS</button></div>
     </div>
   </div>
 
@@ -1125,7 +1153,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
       <p class="sub left" id="frMsg" aria-live="polite"></p>
       <ol class="board" id="frBoard" aria-label="Leaderboard: wins"></ol>
       <div class="recent" id="frRecentBox" hidden><span class="lbl">PLAYED ONLINE WITH</span><div class="chips" id="frRecent"></div></div>
-      <div class="row"><button class="big alt" id="frDog" type="button">WATCH DOG</button><button class="big" id="frDone" type="button">DONE</button></div>
+      <div class="row"><button class="big alt" id="frDog" type="button">WATCH DOG</button><button class="big hot" id="frParty" type="button" hidden>PARTY</button><button class="big" id="frDone" type="button">DONE</button></div>
     </div>
   </div>
 
@@ -1174,6 +1202,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
       <div class="setrow"><span>Screen shake</span><div class="seg" data-set="shake"><button type="button" data-v="true">ON</button><button type="button" data-v="false">OFF</button></div></div>
       <div class="setrow"><span>Friends can watch your games</span><div class="seg" data-set="palWatch"><button type="button" data-v="true">ON</button><button type="button" data-v="false">OFF</button></div></div>
       <div class="setrow"><span>Your Watch Dog gets knocked over by balls</span><div class="seg" data-set="dogBonk"><button type="button" data-v="true">ON</button><button type="button" data-v="false">OFF</button></div></div>
+      <div class="setrow"><span>Your bag in a game</span><div class="seg" data-set="bagMode"><button type="button" data-v="wear">WEAR IT</button><button type="button" data-v="side">SIDELINE</button></div></div>
       <div class="setrow" id="fsRow" hidden><span>Full screen</span><button class="chip" id="btnFS" type="button">GO FULL SCREEN</button></div>
       <div class="setrow"><span id="saveWhere">Your legend is saved on this device</span><button class="chip danger" id="btnReset" type="button">RESET LEGEND</button></div>
       <div class="setrow"><span>Version</span><b class="vernum" id="verNum"></b></div>
@@ -1225,17 +1254,17 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
     </div>
   </div>
 
-  <!-- v10: BALLS: open ball boxes, your balls, the one you play with; sell spares to Chai T, trade with friends -->
+  <!-- v10: BALLS (v10.1: LOOT): open boxes, your balls and bags, the ones you use; sell spares to Chai T, trade with friends -->
   <div class="overlay" id="ballsPanel" hidden>
     <div class="card balls">
-      <div class="ctop"><h2 class="h2">BALLS</h2><div class="pts"><b id="blPts">0</b>PTS</div></div>
+      <div class="ctop"><h2 class="h2">LOOT</h2><div class="pts"><b id="blPts">0</b>PTS</div></div>
       <div class="ballcols">
         <div class="ballside">
           <div class="boxview" id="blBoxView">
-            <button class="crate" id="blCrate" type="button" aria-label="Open a ball box"><svg viewBox="0 0 120 112" aria-hidden="true"><g class="lid"><rect x="5" y="17" width="110" height="25" rx="5" fill="#dca05a" stroke="#17110d" stroke-width="4"/><rect x="51" y="17" width="18" height="25" fill="#ffd23f" stroke="#17110d" stroke-width="3"/></g><g class="body"><rect x="11" y="40" width="98" height="67" rx="5" fill="#c8894a" stroke="#17110d" stroke-width="4"/><path d="M19 53h82" stroke="rgba(23,17,13,0.25)" stroke-width="3"/><rect x="51" y="40" width="18" height="67" fill="#ffd23f" stroke="#17110d" stroke-width="3"/><circle cx="60" cy="76" r="16" fill="#fff7ea" stroke="#17110d" stroke-width="3"/><text x="60" y="85" text-anchor="middle" font-family="Bungee, Arial Black, sans-serif" font-size="23" fill="#17110d">?</text></g></svg></button>
+            <button class="crate" id="blCrate" type="button" aria-label="Open a loot box"><svg viewBox="0 0 120 112" aria-hidden="true"><g class="lid"><rect x="5" y="17" width="110" height="25" rx="5" fill="#dca05a" stroke="#17110d" stroke-width="4"/><rect x="51" y="17" width="18" height="25" fill="#ffd23f" stroke="#17110d" stroke-width="3"/></g><g class="body"><rect x="11" y="40" width="98" height="67" rx="5" fill="#c8894a" stroke="#17110d" stroke-width="4"/><path d="M19 53h82" stroke="rgba(23,17,13,0.25)" stroke-width="3"/><rect x="51" y="40" width="18" height="67" fill="#ffd23f" stroke="#17110d" stroke-width="3"/><circle cx="60" cy="76" r="16" fill="#fff7ea" stroke="#17110d" stroke-width="3"/><text x="60" y="85" text-anchor="middle" font-family="Bungee, Arial Black, sans-serif" font-size="23" fill="#17110d">?</text></g></svg></button>
             <div class="boxinfo">
-              <b class="boxname">BALL BOX</b>
-              <span class="boxsub">One of 19 balls inside. Repeats happen.</span>
+              <b class="boxname">LOOT BOX</b>
+              <span class="boxsub" id="blBoxSub">One of 31 balls and bags inside. Repeats happen.</span>
               <button class="big" id="blOpen" type="button">OPEN · 3,000</button>
             </div>
             <ul class="odds" id="blOdds" aria-label="The chances in each box"></ul>
@@ -1251,7 +1280,10 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
             </div>
           </div>
         </div>
-        <div class="ballgrid" id="blGrid" role="list" aria-label="Your balls"></div>
+        <div class="lootcol">
+          <div class="seg loottabs" role="group" aria-label="Your balls or your bags"><button type="button" id="blTabBalls" aria-pressed="true">BALLS</button><button type="button" id="blTabBags" aria-pressed="false">BAGS</button></div>
+          <div class="ballgrid" id="blGrid" role="list" aria-label="Your balls"></div>
+        </div>
       </div>
       <p class="sub left small blmsg" id="blMsg" aria-live="polite"></p>
       <div class="row"><button class="big alt" id="blTrade" type="button">TRADE</button><button class="big alt" id="blSellAll" type="button">SELL SPARES</button><button class="big" id="blDone" type="button">DONE</button></div>
@@ -1303,7 +1335,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 (() => {
 'use strict';
 // The version: shown in SETTINGS and on the cover of the guide book. Raise it with every update, then rebuild the guide.
-const VERSION = '10.0';
+const VERSION = '10.1';
 const $ = (id) => document.getElementById(id);
 const errBox = $('err');
 function showError(msg) { errBox.textContent = msg; errBox.hidden = false; }
@@ -1323,7 +1355,7 @@ function readJSON(key) { try { const raw = localStorage.getItem(key); return raw
 function loadJSON(key, def) { const v = readJSON(key); return Object.assign({}, def, v && typeof v === 'object' ? v : {}); }
 function saveJSON(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (_) { /* storage blocked */ } }
 const SETTINGS_V = 7;
-const settings = loadJSON('grass.settings', { camera: 'behind', blockTouch: false, autoSwitch: false, sound: true, shake: true, difficulty: 'normal', pickupMode: 3, position: 'left', dogBonk: true, palWatch: true, defaultSet: 'auto', resumeCount: 0 });
+const settings = loadJSON('grass.settings', { camera: 'behind', blockTouch: false, autoSwitch: false, sound: true, shake: true, difficulty: 'normal', pickupMode: 3, position: 'left', dogBonk: true, palWatch: true, defaultSet: 'auto', resumeCount: 0, bagMode: 'side' });
 // v7: auto-switch is off unless you turn it on (saves from before held the old default, so it goes off once)
 if ((settings.sv || 0) < SETTINGS_V) { settings.autoSwitch = false; settings.sv = SETTINGS_V; saveJSON('grass.settings', settings); }
 const TEAM_COLORS = [0xf2433a, 0xff8a1f, 0xf2c014, 0x2fbf71, 0x17b3a3, 0x8b5cf6, 0xec4899, 0x3a3a44];
@@ -1508,10 +1540,32 @@ const BALLS = [
 ];
 const BALL_BY = Object.fromEntries(BALLS.map((b) => [b.id, b]));
 const BOX_BALLS = BALLS.filter((b) => b.box !== false);
+// v10.1: bags (Truss: "a bunch of other bags too that become part of the loot boxes"). BLACKOUT, the MYTHIC, is our own
+// drawstring bag after Truss's: black, the cords, a stripe that catches the light, white print and five round badges
+// (ours, not anybody's insignia). They come out of the same boxes as the balls, by the same tier odds.
+const BAGS = [
+  { id: 'gym', name: 'GYM SACK', tier: 'basic', about: 'Heather grey, white cords' },
+  { id: 'redsack', name: 'RED SACK', tier: 'basic', about: 'Red, with a white ball on it' },
+  { id: 'canvas', name: 'CANVAS', tier: 'basic', about: 'Sand canvas, stamped by the Block' },
+  { id: 'sky', name: 'SKY', tier: 'basic', about: 'Sky blue, white waves' },
+  { id: 'tiedye', name: 'TIE-DYE', tier: 'rare', about: 'Swirls of every color' },
+  { id: 'checker', name: 'CHECKERS', tier: 'rare', about: 'Black and white checks' },
+  { id: 'camo', name: 'CAMO', tier: 'rare', about: 'Green camo, olive cords' },
+  { id: 'neon', name: 'NEON', tier: 'epic', about: 'Black, with lines that glow' },
+  { id: 'cosmic', name: 'COSMIC', tier: 'epic', about: 'Deep space and glowing stars' },
+  { id: 'goldbag', name: 'GOLD RUSH', tier: 'legendary', about: 'Shiny gold, gold cords' },
+  { id: 'inferno', name: 'INFERNO', tier: 'legendary', about: 'Black, with flames that glow' },
+  { id: 'blackout', name: 'BLACKOUT', tier: 'mythic', about: 'Black drawstring, white print, five badges and a stripe that catches the light' },
+];
+const BAG_BY = Object.fromEntries(BAGS.map((b) => [b.id, b]));
+const BAG_IDS = BAGS.map((b) => b.id);   // (online play sends a bag by its place here: add new ones at the end)
+const isBag = (id) => Object.prototype.hasOwnProperty.call(BAG_BY, id);
+const LOOT_BY = Object.assign({}, BALL_BY, BAG_BY);
+const BOX_LOOT = BOX_BALLS.concat(BAGS);   // everything a box can hold
 const BOX_PRICE = 3000;
 const PRAC_PTS = 5, PRAC_DAY = 300;   // v10: practice pays 5 points a good rep, up to 300 a day
 const tierOf = (b) => BALL_TIERS.find((t) => t.id === (b && b.tier)) || BALL_TIERS[0];
-const ballSell = (id) => tierOf(BALL_BY[id]).sell;
+const ballSell = (id) => tierOf(LOOT_BY[id]).sell;   // (balls and bags: by tier)
 const DEFAULT_DOG ={ made: false, breed: 'beagle', fur: 'short', coat: 2, spots: 'none', spot: 5, nose: 0, paws: 0, name: 'BUDDY' };
 const DOG_LABEL = { short: 'SHORT', fluffy: 'FLUFFY', curly: 'CURLY', none: 'NONE', spots: 'SPOTS', patch: 'EYE PATCH', saddle: 'SADDLE' };
 const tagName = (v, d) => String(v || '').toUpperCase().replace(/[^A-Z0-9 .'-]/g, '').slice(0, 10).trim() || d;
@@ -1681,7 +1735,9 @@ function freshLegend() {
     story: { beaten: [], seen: [] }, record: { w: 0, l: 0 },
     fc: '', friends: [], recent: [], dog: Object.assign({}, DEFAULT_DOG), dogTricks: [], courtDog: false,   // v9
     balls: {}, ball: 'classic', boxes: 0,   // v10: how many of each ball you have, the one you play with, boxes opened
+    bags: {}, bag: '',                      // v10.1: how many of each bag you have, the one you bring (none at first)
     prac: { day: '', pts: 0 },              // v10: practice points today (300 a day)
+    sent: [], reqs: [], nope: [],           // v10.1: friend requests you've sent, ones waiting for you, ones you said no to
   };
 }
 // Anything read back (this device or the cloud) is checked field by field
@@ -1718,6 +1774,10 @@ function cleanLegend(src) {
     return out;
   };
   L.friends = pals(src.friends, 40); L.recent = pals(src.recent, 12);
+  // v10.1: friend requests (yours, waiting for an answer; theirs, waiting for you; codes you've turned down)
+  L.sent = pals(src.sent, 40).filter((f) => !L.friends.some((x) => x.c === f.c));
+  L.reqs = pals(src.reqs, 40).filter((f) => !L.friends.some((x) => x.c === f.c));
+  L.nope = Array.isArray(src.nope) ? [...new Set(src.nope.filter((c) => isFriendCode(c) && c !== L.fc))].slice(-60) : [];
   L.dog = cleanDog(src.dog);
   L.dogTricks = strs(src.dogTricks, (x) => DOG_TRICKS.some((t) => t.id === x));
   L.courtDog = src.courtDog === true;
@@ -1726,6 +1786,10 @@ function cleanLegend(src) {
   for (const b of BOX_BALLS) { const n = Math.round(Number(sb[b.id]) || 0); if (n > 0) L.balls[b.id] = Math.min(n, 999); }
   L.ball = BALL_BY[src.ball] && (src.ball === 'classic' || L.balls[src.ball] > 0) ? src.ball : 'classic';
   L.boxes = Math.max(0, Math.round(Number(src.boxes) || 0));
+  // v10.1: bags
+  const sg = src.bags && typeof src.bags === 'object' ? src.bags : {};
+  for (const b of BAGS) { const n = Math.round(Number(sg[b.id]) || 0); if (n > 0) L.bags[b.id] = Math.min(n, 999); }
+  L.bag = isBag(src.bag) && L.bags[src.bag] > 0 ? src.bag : '';
   const pr = src.prac && typeof src.prac === 'object' ? src.prac : {};
   L.prac = { day: typeof pr.day === 'string' ? pr.day.slice(0, 10) : '', pts: clamp(Math.round(Number(pr.pts) || 0), 0, PRAC_DAY) };
   return L;
@@ -5999,6 +6063,7 @@ function startDemo(park) {
   buildTeams(3, false); G.mode = 3; G.demo = true; G.autoplay = false; G.paused = false;
   teams[0].ai = DIFF.normal; teams[1].ai = DIFF.normal;
   resetScores(); setupServe(); resetRec(); eventsReset(); G.replay = null;
+  clearBags();   // v10.1: the AI's game behind the menus: no bags
 }
 const parkFor = (id) => (PARKS[id] ? id : 'hood');
 // A match on this device. opts: { kind: 'pickup' | 'story', diff, park, crew, setup } (setup: see buildTeams)
@@ -6027,6 +6092,7 @@ function startMatch(n, opts) {
   showPanel(null);
   $('hud').hidden = false; $('controls').hidden = false;
   releaseAll(); hudCache = {};
+  matchBags(soloBags(localCtl.p));   // v10.1: your bag
 }
 // Be a Legend, solo: you and your two picks against a crew on its home court
 function storySetup(crew, home) {
@@ -6091,7 +6157,8 @@ function gameOver() {
   for (const u of res.unlocks) { const s = document.createElement('span'); s.textContent = u; un.append(s); }
   renderRecruits(res.recruits);
   // Buttons: story -> continue (the crew's last word the first time you beat them) or run it back; pickup -> again / menu
-  if (G.online) { $('btnAgain').textContent = 'BACK TO LOBBY'; $('btnAgain').hidden = !G.host; $('btnModes').textContent = 'LEAVE'; }
+  if (G.online && NET.party) { $('btnAgain').textContent = 'BACK TO PARTY'; $('btnAgain').hidden = !G.host; $('btnModes').textContent = G.host ? 'MENU' : 'PARTY'; }   // v10.1
+  else if (G.online) { $('btnAgain').textContent = 'BACK TO LOBBY'; $('btnAgain').hidden = !G.host; $('btnModes').textContent = 'LEAVE'; }
   else if (M.kind === 'story') { $('btnAgain').hidden = false; $('btnAgain').textContent = won ? 'CONTINUE' : 'TRY AGAIN'; $('btnModes').textContent = won ? 'REMATCH' : 'BACK'; }
   else { $('btnAgain').hidden = false; $('btnAgain').textContent = 'PLAY AGAIN'; $('btnModes').textContent = 'MENU'; }
   if (G.host) { NET.state = 'over'; netPresence({ L: netLobbyInfo() }); }
@@ -6132,7 +6199,8 @@ function showPanel(id) {
 }
 function hideGameUi() { $('hud').hidden = true; $('controls').hidden = true; setHidden(callBar, true); setHidden($('hostPause'), true); $('prompt').hidden = true; $('tossMeter').hidden = true; $('replayTag').hidden = true; $('btnReplay').hidden = true; }
 function showMenu() {
-  if (NET.room) netLeave();
+  if (NET.room && !NET.party) netLeave();
+  else if (NET.room && (NET.state === 'play' || NET.state === 'over')) netBackToLobby();   // v10.1: the party stays; out of the game
   if (WATCH.room || G.spectate) watchStop(true);
   showPanel('menu');
   hideGameUi();
@@ -6143,6 +6211,12 @@ function showMenu() {
 async function exitMatch() {
   if (G.spectate) { watchStop(); showMenu(); openPanel('friendsPanel'); return; }   // watching: straight out
   if (PRAC.on && !G.online) { practiceStop(); G.paused = false; G.countdown = null; showMenu(); openPracticePanel(); return; }   // v10: practice: straight out
+  if (G.online && NET.party) {   // v10.1: a party game: back to the party (the leader ends it for everyone)
+    const sure = G.phase === 'over' || await confirmBox(G.host ? 'END THE GAME?' : 'LEAVE THE GAME?', G.host ? 'Everyone goes back to the party.' : 'You go back to the party. The AI plays for you until the game ends.', G.host ? 'END IT' : 'LEAVE', 'KEEP PLAYING');
+    if (!sure) return;
+    leaveFullscreen(); G.paused = false; G.countdown = null;
+    netBackToLobby(); return;
+  }
   const M = G.match || {};
   const ok = G.phase === 'over' || await confirmBox(G.online ? 'LEAVE THE GAME?' : 'LEAVE THE MATCH?',
     G.host ? 'You\'re the host: this ends the game for everyone.' : G.online ? 'The AI takes over your player for everyone else.' : 'You won\'t get any points for this one.', 'LEAVE', 'KEEP PLAYING');
@@ -6910,7 +6984,16 @@ const legendLevel = (L) => STAT_KEYS.reduce((s, k) => s + (L || legend).stats[k]
 const hexCss = (c) => '#' + c.toString(16).padStart(6, '0');
 // The parks you can pick for a pickup game: the Block, then each court once you reach it in the story
 const parkOpen = (i) => i === 0 || CREWS.some((c) => c.court === i && crewOpen(c));
+// v10.1: the menu's ONLINE button says PARTY while you're in one (with how many), and FRIENDS shows what's waiting
+function syncPartyBits() {
+  const n = Math.max(1, netPeople().length), on = inParty();
+  $('btnMenuOnline').querySelector('b').textContent = on ? 'PARTY · ' + n : 'ONLINE';
+  $('btnMenuOnline').classList.toggle('party', on);
+  if (G.panel === 'friendsPanel') { $('frParty').hidden = !on; if (on) $('frParty').textContent = 'PARTY · ' + n; }
+  syncFriendDot();
+}
 function syncMenus() {
+  syncPartyBits();
   document.querySelectorAll('#diffSeg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.diff === settings.difficulty)));
   document.querySelectorAll('[data-set]').forEach((seg) => {
     const key = seg.dataset.set;
@@ -7134,7 +7217,7 @@ function pickPos(pos) {
   if (NET.room) { netPresence({ pos: settings.position }); renderOnline(); }
 }
 document.querySelectorAll('#posSeg button, #onPos button').forEach((b) => b.addEventListener('click', () => pickPos(b.dataset.pos)));
-$('pkPlay').addEventListener('click', () => startMatch(settings.pickupMode, { kind: 'pickup', diff: settings.difficulty, park: settings.pickupPark }));
+$('pkPlay').addEventListener('click', partyGuard(() => startMatch(settings.pickupMode, { kind: 'pickup', diff: settings.difficulty, park: settings.pickupPark })));
 $('pkBack').addEventListener('click', showMenu);
 
 // ---- Be a Legend: the ladder
@@ -7219,7 +7302,7 @@ function renderStory() {
   $('pick1').firstChild.textContent = open[1] + ' '; $('pick1').querySelector('small').textContent = p1 ? p1.name : '—';
   $('stPlay').disabled = $('stFriends').disabled = !crewOpen(c);
 }
-$('stPlay').addEventListener('click', () => { if (storyCrew && crewOpen(storyCrew)) startStory(storyCrew); });
+$('stPlay').addEventListener('click', partyGuard(() => { if (storyCrew && crewOpen(storyCrew)) startStory(storyCrew); }));
 $('stBack').addEventListener('click', showMenu);
 $('pick0').addEventListener('click', () => openRoster(0));
 $('pick1').addEventListener('click', () => openRoster(1));
@@ -7439,6 +7522,7 @@ document.querySelectorAll('[data-set] button').forEach((b) => b.addEventListener
   settings[key] = v === 'true' ? true : v === 'false' ? false : v;
   if (key === 'sound' && master) master.gain.value = settings.sound ? 0.75 : 0;
   saveSettings(); syncMenus();
+  if (key === 'bagMode') bagChanged();   // v10.1
 }));
 $('btnStory').addEventListener('click', async () => {
   playTap();
@@ -7451,7 +7535,7 @@ $('btnStory').addEventListener('click', async () => {
   openStory();
 });
 $('btnPickup').addEventListener('click', () => { playTap(); openPickup(); });
-$('btnMenuOnline').addEventListener('click', () => { playTap(); NET.msg = ''; NET.story = null; openOnline('menu'); });
+$('btnMenuOnline').addEventListener('click', () => { playTap(); if (inParty()) { openOnline('party'); return; } NET.msg = ''; NET.story = null; openOnline('menu'); });
 $('btnMyLegend').addEventListener('click', () => openPanel('legendPanel'));
 $('btnLegendCard').addEventListener('click', () => openPanel('legendPanel'));
 $('btnPlayer').addEventListener('click', () => openPanel('creator'));
@@ -7490,7 +7574,7 @@ $('creatorDone').addEventListener('click', () => {
   closePanel();
 });
 $('btnReset').addEventListener('click', async () => {
-  const sure = await confirmBox('RESET YOUR LEGEND?', 'Your look, stats, ' + fmtPts(legend.points) + ' points, tricks, gear, balls, roster and story progress all go. This can\'t be undone.', 'RESET IT', 'KEEP IT');
+  const sure = await confirmBox('RESET YOUR LEGEND?', 'Your look, stats, ' + fmtPts(legend.points) + ' points, tricks, gear, balls, bags, roster and story progress all go. This can\'t be undone.', 'RESET IT', 'KEEP IT');
   if (!sure) return;
   resetLegend(); rollRookie();
   if (!G.demo) { G.paused = false; }
@@ -7510,6 +7594,7 @@ onTap($('btnAgain'), () => {   // (a thumb's often still down when a match ends)
 });
 onTap($('btnModes'), () => {
   const M = G.match || {};
+  if (G.online && NET.party) { if (G.host) { netBackToLobby(); showMenu(); } else netBackToLobby(); return; }   // v10.1: the party stays together
   if (G.online) { showMenu(); return; }
   if (M.kind === 'story') { if (lastWon) startStory(M.crew); else { showMenu(); openStory(); } return; }
   showMenu();
@@ -7629,10 +7714,12 @@ function buildShowcase() {
   applyRig(showcase, showcase.pose);
   // your name over your head (with the gold flames once you've mastered a stat); the menu has it on the plate instead
   if (G.panel !== 'menu') { showcase.tag = nameTag('#' + profile.number + ' ' + profile.name, '#ffd23f', !!legend.mastery); scene.add(showcase.tag); }
+  showcaseBag();   // v10.1
 }
 function hideShowcase() {
   if (!showcase) return;
   if (showcase.tag) { scene.remove(showcase.tag); showcase.tag.material.map.dispose(); showcase.tag.material.dispose(); }
+  if (showcase.bag) disposeBag(showcase.bag);
   disposeRig(showcase); showcase = null;
 }
 const SHOW_POSE = Object.assign({}, BASE_POSE);
@@ -8258,6 +8345,7 @@ const NET = {
   // guest
   snap: null, snapNew: false, lastF: -1, evSeen: -1, ball: null, q: 0, actSeq: 0, cnt: [0, 0, 0, 0, 0, 0, 0, 0], tossCharge: 0,
 };
+const PARTY = { invites: new Map(), creating: null };   // v10.1: party invites waiting for you; a party being started
 // ---- Online outside Claude (this file on GitHub Pages or any web host): the phones connect to each other directly
 // (WebRTC) through PeerJS, whose free public server only introduces them. The host's phone is the hub: everyone
 // connects to it, and it passes each person's presence on to the others, so the game sees the same thing as
@@ -8556,17 +8644,17 @@ async function netOpen(code, role) {
       renderOnline(); return;
     }
   }
-  Object.assign(NET, { room, code, role, state: 'lobby', msg: '', ep: 0, cfg: null, hostSeen: false, hostSeenT: performance.now(), joinedAt: Date.now(), side: role === 'host' ? 0 : 1, peers: [] });
+  Object.assign(NET, { room, code, role, state: 'lobby', msg: '', ep: 0, cfg: null, hostSeen: false, hostSeenT: performance.now(), joinedAt: Date.now(), side: role === 'host' || NET.party ? 0 : 1, peers: [] });   // (a party starts on one side together)
   NET.unsubs.push(room.onPeers(onNetPeers, onNetError));
   netHello();
   renderOnline();
 }
 function netHello() {
-  const patch = { v: NET_V, r: NET.role === 'host' ? 'h' : 'g', n: cleanName(profile.name), side: NET.side, look: packLook(), st: packStats(), tr: packTricks(), at: NET.joinedAt, pos: posOf(settings.position), fc: legend.fc };
+  const patch = { v: NET_V, r: NET.role === 'host' ? 'h' : 'g', n: cleanName(profile.name), side: NET.side, look: packLook(), st: packStats(), tr: packTricks(), at: NET.joinedAt, pos: posOf(settings.position), fc: legend.fc, bg: bagPack() };
   if (NET.role === 'host') patch.L = netLobbyInfo();
   netPresence(patch);
 }
-function onNetError() { netLeave(); NET.msg = 'Lost the connection to the game.'; showMenu(); openOnline(); }
+function onNetError() { const party = NET.party; netLeave(); if (party) { showMenu(); flash('LOST THE CONNECTION TO THE PARTY', true); return; } NET.msg = 'Lost the connection to the game.'; showMenu(); openOnline(); }
 function netLeave() {
   for (const u of NET.unsubs) { try { u(); } catch (_) { /* gone */ } }
   NET.unsubs = [];
@@ -8575,9 +8663,11 @@ function netLeave() {
     try { room.presence({ bye: 1 }).catch(() => { /* gone */ }); } catch (_) { /* gone */ }
     setTimeout(() => { room.leave().catch(() => { /* gone */ }); }, 400);
   } else if (room) room.leave().catch(() => { /* gone */ });
-  Object.assign(NET, { room: null, code: '', role: null, state: 'off', peers: [], cfg: null, snap: null, snapNew: false, ball: null, ev: [] });
+  const wasParty = NET.party;
+  Object.assign(NET, { room: null, code: '', role: null, state: 'off', peers: [], cfg: null, snap: null, snapNew: false, ball: null, ev: [], party: false, hostSt: '' });
   setHostWait(null);
   G.online = G.host = G.client = false;
+  if (wasParty) { PAL.key = ''; syncMenus(); }   // (friends see you're out of it)
 }
 // Everyone in the room who has said hello: the host first, then in the order they arrived
 function netPeople() {
@@ -8597,12 +8687,19 @@ function onNetPeers(ch) {
     if (key !== NET.aiKey) { NET.aiKey = key; netPresence({ L: netLobbyInfo() }); }
   }
   if (G.panel === 'onlinePanel') renderOnline();
+  if (NET.party) syncPartyBits();
 }
 // A guest reads the host's lobby (mode, who sits where, when it starts) and its latest snapshot
 function netFromHost(hp) {
-  if (hp.bye) { const was = NET.state; netLeave(); NET.msg = was === 'play' || was === 'over' ? 'The host ended the game.' : 'The host left the game.'; showMenu(); openOnline(); return; }
+  if (hp.bye) {
+    const was = NET.state, party = NET.party, who = partyLeaderName();
+    netLeave();
+    if (party) { showMenu(); flash((who || 'THE LEADER') + ' ENDED THE PARTY', true); return; }
+    NET.msg = was === 'play' || was === 'over' ? 'The host ended the game.' : 'The host left the game.'; showMenu(); openOnline(); return;
+  }
   const L = hp.L;
   if (L && typeof L === 'object') {
+    NET.party = !!L.party || NET.party; NET.kind = L.kind === 'story' || L.kind === 'prac' ? L.kind : 'pickup'; NET.hostSt = String(L.st || ''); NET.pLeader = cleanName(hp.n);
     NET.mode = L.mode === 3 ? 3 : 2; NET.diff = DIFF[L.diff] ? L.diff : 'normal'; NET.prac = DRILLS[L.prac] ? L.prac : null; NET.recv = RECV[L.recv] ? L.recv : 'mix';
     NET.story = crewById(L.story) ? L.story : null; NET.park = PARKS[L.park] ? L.park : 'hood';
     NET.aiPlan = Array.isArray(L.aiPlan) ? L.aiPlan.filter(isRecruitId).slice(0, 2) : [];
@@ -8617,7 +8714,7 @@ function netFromHost(hp) {
 }
 function netLobbyInfo() {
   const live = NET.state === 'play' || NET.state === 'over';
-  return { st: live ? NET.state : 'lobby', mode: NET.story ? 3 : NET.mode, diff: NET.diff, ep: NET.ep, seed: NET.cfg ? NET.cfg.seed : 0, seat: live && NET.cfg ? NET.cfg.seat : null,
+  return { st: live ? NET.state : 'lobby', party: NET.party ? 1 : 0, kind: NET.kind || 'pickup', mode: NET.story ? 3 : NET.mode, diff: NET.diff, ep: NET.ep, seed: NET.cfg ? NET.cfg.seed : 0, seat: live && NET.cfg ? NET.cfg.seat : null,
     prac: NET.story ? null : NET.prac || null, recv: NET.prac === 'pass' ? NET.recv || 'mix' : null, shag: live && NET.cfg ? NET.cfg.shag || null : null,
     story: NET.story, park: NET.park, ai: live && NET.cfg ? NET.cfg.ai : null, aiPlan: NET.story && !live ? netAiPlan(netPeople().length) : null };
 }
@@ -8638,7 +8735,7 @@ function netStart() {
     let spot = roleIdxFor(n, pr.pos);
     if (taken[side].has(spot)) spot = ROLES[n].findIndex((_, i) => !taken[side].has(i));
     taken[side].add(spot); count[side]++;
-    seat.push([p.peer, side, spot, cleanName(pr.n), Array.isArray(pr.look) ? pr.look.slice(0, LOOK_LEN) : [], Array.isArray(pr.st) ? pr.st.slice(0, 9) : [], pr.tr | 0]);
+    seat.push([p.peer, side, spot, cleanName(pr.n), Array.isArray(pr.look) ? pr.look.slice(0, LOOK_LEN) : [], Array.isArray(pr.st) ? pr.st.slice(0, 9) : [], pr.tr | 0, Array.isArray(pr.bg) ? [pr.bg[0] | 0, pr.bg[1] ? 1 : 0] : null]);
   }
   if (!seat.some((x) => x[0] === NET.me)) { NET.msg = 'Still connecting… try again in a second.'; renderOnline(); return; }
   const ai = crew ? netAiPlan(count[0]) : [];   // the open spots: your picks (with two people, the AI teammate you chose)
@@ -8682,6 +8779,7 @@ function startOnline(cfg) {
     assign(c, t.players[x[2]]);
     addTag(nameTag(c.name, local ? '#ffd23f' : '#fff7ea', !!t.players[x[2]].mastery), { ctl: c });
   });
+  matchBags(seat.map((x) => Object.assign({ p: teams[x[1]].players[x[2]] }, unbag(x[7]))));   // v10.1: everyone's bag
   for (const p of allPlayers) if (p.name && !seat.some((x) => teams[x[1]].players[x[2]] === p)) addTag(nameTag(p.name, '#fff7ea', !!p.mastery), { p, quiet: true });
   G.mode = n; G.demo = false; G.autoplay = false; G.paused = false; G.countdown = null; G.scene = null;
   G.match = { kind: crew ? 'story' : 'online', crew, diff: crew ? crew.ai : cfg.diff, n, park: G.park };
@@ -8700,6 +8798,7 @@ function startOnline(cfg) {
 }
 function netBackToLobby() {
   NET.state = 'lobby'; NET.cfg = null; NET.msg = '';
+  practiceStop();
   G.online = G.host = G.client = false;
   $('hud').hidden = true; $('controls').hidden = true; $('prompt').hidden = true; $('tossMeter').hidden = true;
   startDemo();
@@ -8738,15 +8837,18 @@ function netPump(dt) {
   if (asleep) { NET.snapAt = now; NET.hostSeenT = now; }   // this phone was the one asleep: the host gets a fresh wait
   NET.pumpAt = now;
   if (G.client && NET.snapNew) { NET.snapNew = false; netApplySnap(NET.snap); }
+  // v10.1: a party that isn't there any more (the invite was old)
+  if (NET.party && NET.role === 'guest' && !NET.hostSeen && Date.now() - NET.joinedAt > 12000) { netLeave(); showMenu(); flash('THAT PARTY HAS ENDED', true); return; }
   // Outside a match, a guest waits up to 30 s for a host who's gone quiet (texting the code, say)
   if (NET.role === 'guest' && NET.state !== 'play' && NET.hostSeen && now - NET.hostSeenT > 30000 && !netPeople().some((p) => p.presence.r === 'h')) {
-    netLeave(); NET.msg = 'The host left the game.'; showMenu(); openOnline(); return;
+    const party = NET.party; netLeave(); if (party) { showMenu(); flash('THE PARTY ENDED', true); return; }
+    NET.msg = 'The host left the game.'; showMenu(); openOnline(); return;
   }
   // In a match, a guest waits up to 20 s for a host who's gone quiet (asleep, lost signal) before giving up
   if (NET.role === 'guest' && NET.state === 'play') {
     const gap = performance.now() - (NET.snapAt || performance.now());
     setHostWait(gap > 1800 ? Math.max(0, Math.ceil(20 - gap / 1000)) : null);
-    if (gap > 20000) { setHostWait(null); netLeave(); NET.msg = 'The host left the game.'; showMenu(); openOnline(); return; }
+    if (gap > 20000) { setHostWait(null); const party = NET.party; netLeave(); if (party) { showMenu(); flash('THE PARTY ENDED', true); return; } NET.msg = 'The host left the game.'; showMenu(); openOnline(); return; }
   } else setHostWait(null);
   if (G.host && (NET.state === 'play' || NET.state === 'over')) {
     const here = new Set(NET.peers.map((p) => p.peer));
@@ -9131,15 +9233,23 @@ function netAiPlan(peopleCount) {
 function renderOnline() {
   if (G.panel !== 'onlinePanel') return;
   const inRoom = !!NET.room && (NET.state === 'lobby' || NET.state === 'play' || NET.state === 'over');
-  const crew = crewById(NET.story), fromStory = NET.from === 'story';
-  $('onTitle').textContent = crew || (fromStory && !inRoom) ? 'BE A LEGEND · WITH FRIENDS' : 'PLAY ONLINE';
-  $('onStart').hidden = inRoom; $('onLobby').hidden = !inRoom; $('onCodeBox').hidden = !inRoom;
+  const crew = crewById(NET.story), fromStory = NET.from === 'story', party = !!NET.party, host = NET.role === 'host';
+  $('onTitle').textContent = party ? (host ? 'YOUR PARTY' : (partyLeaderName() || 'A FRIEND') + '\'S PARTY') : crew || (fromStory && !inRoom) ? 'BE A LEGEND · WITH FRIENDS' : 'PLAY ONLINE';
+  $('onStart').hidden = inRoom || party; $('onLobby').hidden = !inRoom; $('onCodeBox').hidden = !inRoom || party;   // (a party: friends JOIN from FRIENDS, no code)
   $('onCreate').disabled = $('onJoin').disabled = NET.state === 'connecting';
   $('onCreate').hidden = fromStory;   // a story game is hosted from the crew you pick on the ladder
   let msg = NET.msg;
-  const host = NET.role === 'host';
   $('onGo').hidden = !(inRoom && host);
-  $('onBack').textContent = inRoom ? 'LEAVE' : 'BACK';
+  $('onBack').textContent = party ? 'MENU' : inRoom ? 'LEAVE' : 'BACK';
+  // v10.1: a party: the leader picks the game (PICKUP, BE A LEGEND, PRACTICE); anyone can INVITE; LEAVE leaves it
+  $('onKindRow').hidden = !(party && inRoom); $('onInvite').hidden = !(party && inRoom); $('onLeave').hidden = !(party && inRoom); $('onHelp').hidden = party;
+  document.querySelector('#onMode button[data-v="p"]').hidden = party;
+  if (party && inRoom) {
+    document.querySelectorAll('#onKind button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === (NET.kind || 'pickup'))));
+    $('onKind').classList.toggle('readonly', !host);
+    $('onCrew').hidden = !(crew && host);
+    if (crew) $('onCrew').textContent = 'VS ' + crew.name + ' ›';
+  }
   if (inRoom) {
     $('onCodeShow').textContent = NET.code;
     const people = netPeople(), lists = [[], []], prac = !crew && DRILLS[NET.prac] ? NET.prac : null;
@@ -9175,6 +9285,7 @@ function renderOnline() {
     $('onOpts').hidden = !!crew;
     syncPosSeg($('onPos'), Math.min(cap, 3));
     $('onPosRow').hidden = !!prac; $('onDiff').hidden = !!prac; $('onDrill').hidden = !prac; $('onRecv').hidden = prac !== 'pass';
+    $('onMode').hidden = party && !!prac;   // (a party's PRACTICE comes from its tabs: no 2V2 / 3V3 there)
     document.querySelectorAll('#onDrill button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === prac)));
     document.querySelectorAll('#onRecv button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === (NET.recv || 'mix'))));
     $('onOpts').classList.toggle('readonly', !host);
@@ -9189,6 +9300,14 @@ function renderOnline() {
       const counts = legend.story.beaten.includes(crew.id) || nextCrew() === crew;
       $('onStory').textContent = 'VS ' + crew.name + ' · ' + COURTS[crew.court].name + ' · ' + (host ? 'your story' : counts ? 'counts in your story too' : 'just for points (your story is elsewhere)');
     }
+    if (!msg && party) {
+      const who = partyLeaderName() || 'The leader', hs = NET.hostSt;
+      if (!host && hs === 'play' && NET.state === 'lobby') msg = 'The game\'s still going. You\'ll all be back here when it ends.';
+      else if (!host && hs === 'over' && NET.state === 'lobby') msg = 'Waiting for ' + who + ' to come back to the party…';
+      else if (host) msg = people.length < 2 ? 'Tap INVITE to bring friends in. Or start now: the AI fills the open spots.'
+        : crew ? 'Everyone plays together against ' + crew.name + '. Start when you\'re ready.' : prac ? 'Everyone takes turns in the line. Start when you\'re ready.' : 'Everyone picks a side. Start when you\'re ready.';
+      else msg = crew ? who + ' picked BE A LEGEND: everyone together against ' + crew.name + '.' : prac ? who + ' picked PRACTICE: ' + DRILLS[prac].name + '.' : 'Pick your side. ' + who + ' starts the game.';
+    }
     if (!msg) {
       if (host) msg = people.length < 2 ? 'Share the code: friends tap ' + (crew ? 'BE A LEGEND, then JOIN A FRIEND\'S GAME' : 'PICKUP GAME, ONLINE, then JOIN') + '. Or start now: the AI fills every open spot.'
         : crew ? 'Ready when you are. Your recruits fill the open spots.' : 'Ready when you are. The AI fills every open spot.';
@@ -9199,7 +9318,7 @@ function renderOnline() {
   }
   $('onMsg').textContent = msg;
 }
-$('btnOnline').addEventListener('click', () => { audioInit(); NET.msg = ''; NET.story = null; openOnline('pickup'); });
+$('btnOnline').addEventListener('click', () => { audioInit(); if (inParty()) { panelStack.length = 0; openOnline('party'); return; } NET.msg = ''; NET.story = null; openOnline('pickup'); });
 $('onCreate').addEventListener('click', () => {
   audioInit();
   NET.story = null; NET.mode = settings.pickupMode; NET.diff = settings.difficulty; NET.park = parkFor(settings.pickupPark);
@@ -9210,12 +9329,13 @@ $('onCreate').addEventListener('click', () => {
 // Be a Legend with friends: host a game against the crew picked on the ladder, or join a friend's
 $('stFriends').addEventListener('click', () => {
   if (!storyCrew || !crewOpen(storyCrew)) return;
+  if (inParty()) { if (NET.role === 'host') { NET.pCrew = storyCrew.id; partyKind('story'); } panelStack.length = 0; openOnline('party'); return; }   // v10.1: your party plays it
   audioInit(); NET.msg = '';
   NET.from = 'story'; NET.story = storyCrew.id; NET.mode = 3; NET.diff = storyCrew.ai; NET.park = COURTS[storyCrew.court].park; NET.aiPick = legend.picks[0];
   openOnline('story');
   netOpen(newCode(), 'host');
 });
-$('stJoin').addEventListener('click', () => { audioInit(); NET.msg = ''; NET.story = null; openOnline('story'); });
+$('stJoin').addEventListener('click', () => { audioInit(); if (inParty()) { panelStack.length = 0; openOnline('party'); return; } NET.msg = ''; NET.story = null; openOnline('story'); });
 // How online works: the steps, worded for where this copy is running
 $('onHelp').addEventListener('click', () => {
   $('nhWhere').textContent = IN_CLAUDE
@@ -9245,6 +9365,7 @@ $('onJoin').addEventListener('click', () => {
   netOpen(code, 'guest');
 });
 $('onBack').addEventListener('click', () => {
+  if (NET.party) { showMenu(); return; }   // v10.1: MENU: the party stays together
   const story = NET.from === 'story', wasIn = !!NET.room;
   if (wasIn) { netLeave(); NET.msg = ''; NET.story = null; }
   if (story) { showMenu(); showStoryPanel(); }
@@ -9258,13 +9379,116 @@ const pickSide = (side) => { NET.side = side; netPresence({ side }); renderOnlin
 $('onPickHome').addEventListener('click', () => pickSide(0));
 $('onPickAway').addEventListener('click', () => pickSide(1));
 document.querySelectorAll('#onMode button').forEach((b) => b.addEventListener('click', () => {
-  if (NET.role !== 'host') return;
+  if (NET.role !== 'host' || (NET.party && NET.kind === 'prac')) return;
   if (b.dataset.v === 'p') NET.prac = NET.prac || 'hit'; else { NET.prac = null; NET.mode = Number(b.dataset.v) === 3 ? 3 : 2; }
   netPresence({ L: netLobbyInfo() }); renderOnline();
 }));
 document.querySelectorAll('#onDrill button').forEach((b) => b.addEventListener('click', () => { if (NET.role !== 'host' || !NET.prac) return; NET.prac = DRILLS[b.dataset.v] ? b.dataset.v : 'hit'; netPresence({ L: netLobbyInfo() }); renderOnline(); }));
 document.querySelectorAll('#onRecv button').forEach((b) => b.addEventListener('click', () => { if (NET.role !== 'host' || NET.prac !== 'pass') return; NET.recv = RECV[b.dataset.v] ? b.dataset.v : 'mix'; PRMENU.recv = NET.recv; netPresence({ L: netLobbyInfo() }); renderOnline(); }));
-document.querySelectorAll('#onDiff button').forEach((b) => b.addEventListener('click', () => { if (NET.role !== 'host') return; NET.diff = DIFF[b.dataset.v] ? b.dataset.v : 'normal'; netPresence({ L: netLobbyInfo() }); renderOnline(); }));
+document.querySelectorAll('#onDiff button').forEach((b) => b.addEventListener('click', () => { if (NET.role !== 'host') return; NET.diff = NET.pDiff = DIFF[b.dataset.v] ? b.dataset.v : 'normal'; netPresence({ L: netLobbyInfo() }); renderOnline(); }));
+
+/* =====================================================================
+   PARTY (v10.1): friends together. INVITE a friend in FRIENDS (a party starts if you're not in one), or JOIN a friend's
+   party from their row. The leader's phone hosts it (an online game room; nobody needs the code). The leader picks
+   PICKUP, BE A LEGEND or PRACTICE and starts it, and everyone in the party goes straight in; in a pickup game each
+   person picks their own side. After the game everyone's back in the party, and it stays together in the menus.
+   ===================================================================== */
+function inParty() { return !!(NET.party && NET.room); }
+function partyLeaderName() {
+  if (NET.role === 'host') return cleanName(profile.name);
+  const h = netPeople().find((p) => p.presence.r === 'h');
+  return h ? cleanName(h.presence.n) : NET.pLeader || '';
+}
+function partyTag() {   // (your pal room shows your party, so friends can JOIN it from FRIENDS)
+  return inParty() && NET.code && NET.state !== 'connecting' ? [NET.code, Math.max(1, netPeople().length), partyLeaderName()] : null;
+}
+async function partyCreate() {
+  if (inParty()) return true;
+  if (PARTY.creating) return PARTY.creating;
+  PARTY.creating = (async () => {
+    if (NET.room) netLeave();
+    Object.assign(NET, { party: true, from: 'party', kind: 'pickup', story: null, prac: null, mode: settings.pickupMode, diff: settings.difficulty, park: parkFor(settings.pickupPark), msg: '' });
+    await netOpen(newCode(), 'host');
+    if (NET.state !== 'lobby') NET.party = false;
+    syncMenus();
+    return NET.state === 'lobby';
+  })();
+  try { return await PARTY.creating; } finally { PARTY.creating = null; }
+}
+// Invite a friend (to your party, or to a new one)
+async function partyInvite(fc, name) {
+  if (!isFriend(fc)) return;
+  FR.msg = 'Inviting ' + name + '…'; renderFriends();
+  if (!(await partyCreate())) { FR.msg = NET.msg || 'Couldn\'t start a party. Check your connection.'; renderFriends(); return; }
+  const r = await palPeek(fc, Object.assign({ r: 'i', pc: NET.code }, myCard()));
+  FR.msg = r ? 'Invited ' + (r.n || name) + '. It pops up on their phone.' : name + ' isn\'t online right now.';
+  renderFriends(); if (G.panel === 'onlinePanel') renderOnline();
+}
+// An invite comes in (friends only): asked straight away in the menus; in a game it waits in FRIENDS
+function partyInviteIn(pr) {
+  const c = pr.fc, pc = String(pr.pc || '').toUpperCase();
+  if (!isFriend(c) || !/^[A-Z0-9]{4}$/.test(pc) || (inParty() && NET.code === pc)) return;
+  PARTY.invites.set(c, { n: tagName(pr.n, 'A FRIEND'), pc, t: Date.now() });
+  syncFriendDot(); renderFriends();
+  partyAsk(c);
+}
+async function partyAsk(c) {
+  const iv = PARTY.invites.get(c);
+  if (!iv) return;
+  const inMenus = G.demo && !G.scene && !G.spectate && $('confirm').hidden && $('boxOpen').hidden;
+  if (!inMenus) { flash(iv.n + ' INVITES YOU TO A PARTY', true); return; }
+  ballSfx('pop');
+  const yes = await confirmBox(iv.n + ' INVITES YOU', 'Join ' + iv.n + '\'s party? You play together in whatever they pick: PICKUP, BE A LEGEND or PRACTICE.', 'JOIN', 'NOT NOW');
+  if (yes && PARTY.invites.has(c)) partyJoin(iv.pc, c);
+}
+// Into a friend's party (their invite, or JOIN on their row)
+async function partyJoin(pc, fc) {
+  pc = String(pc || '').toUpperCase();
+  if (fc) { PARTY.invites.delete(fc); syncFriendDot(); }
+  if (inParty() && NET.code === pc) { panelStack.length = 0; openOnline('party'); return; }
+  if (!(await leaveParty(true))) return;
+  if (NET.room) netLeave();
+  if (WATCH.room || G.spectate) watchStop(true);
+  if (!G.demo) showMenu();
+  Object.assign(NET, { party: true, from: 'party', msg: 'Joining the party…', pLeader: '' });
+  panelStack.length = 0; openOnline('party');
+  await netOpen(pc, 'guest');
+  if (NET.state !== 'lobby') NET.party = false;
+  syncMenus();
+}
+// Out of the party (the leader leaving ends it for everyone)
+async function leaveParty(ask) {
+  if (!inParty()) return true;
+  if (ask && !(await confirmBox('LEAVE THE PARTY?', NET.role === 'host' ? 'You\'re the leader: the party ends for everyone.' : 'You leave ' + (partyLeaderName() || 'your friend') + '\'s party.', 'LEAVE', 'STAY'))) return false;
+  netLeave(); syncMenus();
+  return true;
+}
+function partyGuard(fn) { return async (...a) => { if (await leaveParty(true)) fn(...a); }; }   // (playing on your own: out of the party first)
+// The leader picks the game
+function partyKind(k) {
+  if (NET.role !== 'host' || !NET.party || NET.state !== 'lobby') return;
+  NET.kind = k === 'story' || k === 'prac' ? k : 'pickup';
+  if (NET.kind === 'story') {
+    const open = CREWS.filter((c) => crewOpen(c)), c = crewById(NET.pCrew) && crewOpen(crewById(NET.pCrew)) ? crewById(NET.pCrew) : nextCrew() || open[open.length - 1] || CREWS[0];
+    Object.assign(NET, { pCrew: c.id, story: c.id, prac: null, diff: c.ai, park: COURTS[c.court].park, aiPick: legend.roster.includes(NET.aiPick) ? NET.aiPick : legend.picks[0], side: 0 });
+    netPresence({ side: 0 });
+  } else if (NET.kind === 'prac') Object.assign(NET, { story: null, prac: DRILLS[NET.prac] ? NET.prac : PRMENU.drill || 'hit', recv: NET.recv || PRMENU.recv || 'mix', park: parkFor(settings.pickupPark) });
+  else Object.assign(NET, { story: null, prac: null, diff: DIFF[NET.pDiff] ? NET.pDiff : settings.difficulty, park: parkFor(settings.pickupPark) });
+  netPresence({ L: netLobbyInfo() }); renderOnline();
+}
+function partyCrewNext() {   // BE A LEGEND: which crew (any you've beaten, or the next one on your ladder)
+  if (NET.role !== 'host' || NET.kind !== 'story') return;
+  const open = CREWS.filter((c) => crewOpen(c));
+  if (!open.length) return;
+  const i = open.findIndex((c) => c.id === NET.story), c = open[(i + 1) % open.length];
+  Object.assign(NET, { pCrew: c.id, story: c.id, diff: c.ai, park: COURTS[c.court].park });
+  netPresence({ L: netLobbyInfo() }); renderOnline();
+}
+document.querySelectorAll('#onKind button').forEach((b) => b.addEventListener('click', () => partyKind(b.dataset.v)));
+$('onCrew').addEventListener('click', partyCrewNext);
+$('onInvite').addEventListener('click', () => { openPanel('friendsPanel'); });
+$('onLeave').addEventListener('click', async () => { if (await leaveParty(true)) showMenu(); });
+$('frParty').addEventListener('click', () => { panelStack.length = 0; openOnline('party'); });
 
 // Test / tuning hooks (harmless in normal play)
 /* =====================================================================
@@ -9275,23 +9499,23 @@ document.querySelectorAll('#onDiff button').forEach((b) => b.addEventListener('c
    (who's playing, then about 12 snapshots a second, the same ones online guests get), and their dogs show up in
    your park. Watchers never change the match: a ball goes right through a dog (the dog just tumbles).
    ===================================================================== */
-const PAL = { room: null, opening: false, unsub: null, watchers: [], st: '', w: -1, n: '', statT: 9, sendT: 0, sentM: '', live: false, retryT: 0, dogs: new Map() };
+const PAL = { room: null, opening: false, unsub: null, watchers: [], st: '', w: -1, n: '', key: '', pk: '', statT: 9, sendT: 0, sentM: '', live: false, retryT: 0, dogs: new Map(), ac: new Set() };
 const WATCH = { room: null, unsub: null, code: '', name: '', ep: -1, doneEp: -1, snap: null, snapNew: false, lastF: -1, sendT: 0, chkT: 0, sentD: '', hostSeenT: 0,
   msg: '', st: '', dog: null, dogs: new Map(), di: '', state: 'off' };
 const palMatchOn = () => !!G.match && !G.demo && !G.spectate && G.phase !== 'over' && !PRAC.on;
-const palStatus = () => (PRAC.on ? 'practice' : palMatchOn() ? (G.match.kind === 'story' ? 'story' : G.online ? 'online' : 'pickup') : 'menu');
+const palStatus = () => (PRAC.on ? 'practice' : palMatchOn() ? (G.match.kind === 'story' ? 'story' : G.online ? 'online' : 'pickup') : inParty() ? 'party' : 'menu');
 const isPalHost = (p) => !(p.isMe && p.sameTab) && p.presence && p.presence.v === NET_V && p.presence.pal === 1 && p.presence.r === 'h';
 const isWatcher = (p) => !(p.isMe && p.sameTab) && p.presence && p.presence.v === NET_V && p.presence.r === 'w' && typeof p.presence.di === 'string';
 function palPresence(patch) { if (PAL.room) PAL.room.presence(patch).catch(() => { /* full or gone: the next one goes */ }); }
-async function palOpen() {
-  if (PAL.room || PAL.opening || !settings.palWatch || !legend.fc || WATCH.room) return;
+async function palOpen() {   // (v10.1: open whether or not friends can watch: requests, invites and trades come in here too)
+  if (PAL.room || PAL.opening || !legend.fc || WATCH.room) return;
   PAL.opening = true;
   try {
     const ns = await roomReady;
     if (!ns) { PAL.retryT = performance.now() + 120000; return; }
     const room = await ns.join('grass-pal-' + legend.fc.toLowerCase(), 'host');
-    if (!settings.palWatch || WATCH.room) { room.leave().catch(() => { /* gone */ }); return; }
-    PAL.room = room; PAL.st = ''; PAL.w = -1; PAL.n = ''; PAL.statT = 9; PAL.sentM = ''; PAL.live = false;
+    if (WATCH.room) { room.leave().catch(() => { /* gone */ }); return; }
+    PAL.room = room; PAL.st = ''; PAL.w = -1; PAL.n = ''; PAL.key = ''; PAL.statT = 9; PAL.sentM = ''; PAL.live = false;
     PAL.unsub = room.onPeers((ch) => palPeers(ch.peers), () => palClose());
   } catch (_) { PAL.retryT = performance.now() + 60000; }   // (open on another tab, or offline: try again in a minute)
   finally { PAL.opening = false; }
@@ -9305,26 +9529,33 @@ function palClose() {
   if (TR.reqs.size) { TR.reqs.clear(); TR.asked.clear(); syncBallPlate(); }
 }
 function palPeers(peers) {
-  const w = peers.filter(isWatcher);
+  const w = settings.palWatch ? peers.filter(isWatcher) : [];   // (watching off: nobody's dog gets in)
   if (palMatchOn() && w.length > PAL.watchers.length) { const nu = w.find((p) => !PAL.watchers.some((o) => o.peer === p.peer)); if (nu) flash(tagName(nu.presence.n, 'A FRIEND') + ' IS WATCHING', true); }
   PAL.watchers = w;
   remoteDogsSync(PAL.dogs, w);
   tradeRequests(peers.filter(isTrader));   // v10: friends asking to trade balls
+  friendsInbox(peers);                      // v10.1: friend requests, answers to yours, party invites
 }
 // Every frame: say what you're up to (once a second), and while someone watches a match of yours, send it to them
 function palPump(dt) {
   if (!PAL.room) {   // (only once you've used FRIENDS or played online: until then nobody has your code)
-    if (settings.palWatch && settings.palSeen && legend.fc && !PAL.opening && !WATCH.room && performance.now() > PAL.retryT) palOpen();
+    if (settings.palSeen && legend.fc && !PAL.opening && !WATCH.room && performance.now() > PAL.retryT) palOpen();
     return;
   }
-  if (!settings.palWatch || WATCH.room) { palClose(); return; }
+  if (WATCH.room) { palClose(); return; }
   PAL.statT += dt;
+  const pk = inParty() && NET.state !== 'connecting' ? NET.code : '';
+  if (pk !== PAL.pk) { PAL.pk = pk; PAL.statT = 9; }   // (a party starting or ending goes up straight away: friends can JOIN)
   if (PAL.statT > 1) {
     PAL.statT = 0;
-    const st = palStatus(), w = legend.record.w, n = cleanName(profile.name);
-    if (st !== PAL.st || w !== PAL.w || n !== PAL.n) { PAL.st = st; PAL.w = w; PAL.n = n; palPresence({ v: NET_V, r: 'h', pal: 1, n, w, st, fc: legend.fc, lk: packLook(profile) }); }
+    // who you are and what you're up to; whether friends can watch (nw); friends whose request you've said yes to (ac);
+    // your party, so friends can JOIN it (pt)
+    const st = palStatus(), w = legend.record.w, n = cleanName(profile.name), nw = settings.palWatch ? 0 : 1, ac = [...PAL.ac], pt = partyTag();
+    const key = [st, w, n, nw, ac.join(), pt ? pt.join() : ''].join('|');
+    if (key !== PAL.key) { PAL.key = key; PAL.st = st; PAL.w = w; PAL.n = n; palPresence({ v: NET_V, r: 'h', pal: 1, n, w, st, fc: legend.fc, lk: packLook(profile), nw, ac, pt }); }
+    friendsRetry();   // (your requests that haven't been answered: now and then, again)
   }
-  const live = PAL.watchers.length > 0 && palMatchOn();
+  const live = settings.palWatch && PAL.watchers.length > 0 && palMatchOn();
   if (!live) { if (PAL.live) { PAL.live = false; PAL.sentM = ''; palPresence({ M: null, S: null, ep: null }); } return; }
   if (!PAL.live) { PAL.live = true; PAL.mT = 0; if (!G.online) { NET.ev = []; NET.evSeq = 0; } }
   // Who's playing goes up first (it and the snapshots don't fit in the room together): until everyone watching
@@ -9359,7 +9590,8 @@ function unpackRig(a) {
 function palConfig() {
   const me = localCtl && localCtl.p ? localCtl.p : allPlayers.find((p) => p.me) || null;
   return { ep: G.matchId, n: G.mode, park: G.park, kind: G.match.kind, crew: G.match.crew ? G.match.crew.id : null, cols: [teams[0].color, teams[1].color],
-    me: pidx(me), P: allPlayers.map((p) => [packRig(p.look), p.name || '']), dog: legend.courtDog && legend.dog.made ? packDog(legend.dog) : 0 };
+    me: pidx(me), P: allPlayers.map((p) => [packRig(p.look), p.name || '']), dog: legend.courtDog && legend.dog.made ? packDog(legend.dog) : 0,
+    bg: BAGS3D.list.map((b) => [pidx(b.p), BAG_IDS.indexOf(b.id), b.mode === 'wear' ? 0 : 1]) };   // v10.1: the bags
 }
 // A ball that flies into a watcher's dog: it tumbles (on their phone; the ball carries on)
 function palDogHit() {
@@ -9406,7 +9638,7 @@ function watchPeers(peers) {
   if (!host) return;
   WATCH.hostSeenT = performance.now();
   const hp = host.presence;
-  WATCH.name = tagName(hp.n, WATCH.name); WATCH.st = String(hp.st || '');
+  WATCH.name = tagName(hp.n, WATCH.name); WATCH.st = String(hp.st || ''); WATCH.nw = !!hp.nw;
   const M = hp.M && typeof hp.M === 'object' ? hp.M : null, ep = M ? M.ep | 0 : -1;
   const playing = WATCH.st === 'pickup' || WATCH.st === 'story' || WATCH.st === 'online';
   if (M && playing && ep !== WATCH.ep && ep !== WATCH.doneEp) watchBuild(M);
@@ -9440,6 +9672,7 @@ function watchBuild(M) {
   Object.assign(NET, { ev: [], evSeq: 0, f: 0, snap: null, snapNew: false, lastF: -1, evSeen: -1, ball: null });
   setupServe();
   courtDogSet(M.dog ? unpackDog(M.dog) : null);
+  matchBags((Array.isArray(M.bg) ? M.bg : []).map((x) => (Array.isArray(x) && Number.isInteger(x[0]) ? Object.assign({ p: allPlayers[x[0]] }, unbag([x[1], x[2]])) : null)));   // v10.1
   watchDogSpawn();
   showPanel(null); hideGameUi();
   $('hud').hidden = false; $('controls').hidden = false; releaseAll(); hudCache = {};
@@ -9499,7 +9732,8 @@ function renderWatch() {
   if (G.panel !== 'watchPanel') return;
   $('wtTitle').textContent = 'WATCHING ' + WATCH.name;
   let msg = WATCH.msg;
-  if (WATCH.state === 'waiting') msg = WATCH.st === 'menu' || !WATCH.st ? (WATCH.doneEp >= 0 ? msg : WATCH.name + ' is in the menus. Their next match shows up here.')
+  if (WATCH.state === 'waiting' && WATCH.nw) msg = WATCH.name + ' has watching turned off (SETTINGS). You can still trade and party up.';
+  else if (WATCH.state === 'waiting') msg = WATCH.st === 'menu' || WATCH.st === 'party' || !WATCH.st ? (WATCH.doneEp >= 0 ? msg : WATCH.name + ' is in the menus. Their next match shows up here.')
     : WATCH.st === 'watching' ? WATCH.name + ' is watching a game too. Their next match shows up here.'
     : WATCH.st === 'practice' ? WATCH.name + ' is practicing with Chai T. Their next match shows up here.' : 'Their match is starting…';
   $('wtMsg').textContent = msg;
@@ -9702,39 +9936,148 @@ function updateDogs(dt) {
 }
 
 // ---- The FRIENDS panel: your code, add a friend, the leaderboard (wins), and people you've played online ----
-const FR = { msg: '', peeked: new Map(), polling: false, pollT: -1e9, peeking: new Set() };
+// v10.1: adding someone's code sends them a request. It reaches their game (their pal room) whenever both games are
+// open, and keeps trying while yours is; they accept (or not) in their FRIENDS. Until then they're REQUEST SENT, not a
+// friend: no watching, trading or party invites.
+const FR = { msg: '', peeked: new Map(), polling: false, pollT: -1e9, peeking: new Set(), retryAt: 0, retrying: false };
 function addRecent(code, name) {
   if (!isFriendCode(code) || code === legend.fc) return;
   legend.recent = [{ c: code, n: tagName(name, 'PLAYER'), w: 0, at: Date.now() }, ...legend.recent.filter((r) => r.c !== code)].slice(0, 12);
 }
+const isFriend = (c) => legend.friends.some((f) => f.c === c);
+const myCard = () => ({ fc: legend.fc, n: cleanName(profile.name), lk: packLook(profile) });   // what a request or an answer says about you
 function addFriend(code, name) {
   code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   FR.msg = '';
   if (!isFriendCode(code)) FR.msg = 'A friend code is 6 letters and numbers.';
   else if (code === legend.fc) FR.msg = 'That\'s your own code. Send it to a friend!';
-  else if (legend.friends.some((f) => f.c === code)) FR.msg = 'They\'re already on your list.';
+  else if (isFriend(code)) FR.msg = 'They\'re already on your list.';
   else if (legend.friends.length >= 40) FR.msg = 'Your list is full. Remove someone first.';
   if (FR.msg) { renderFriends(); return false; }
-  legend.friends.push({ c: code, n: tagName(name, 'FRIEND'), w: 0, at: 0 }); saveLegend();
-  FR.msg = 'Added! Looking for them…'; $('frAdd').value = '';
-  renderFriends(); friendsPoll([code]);
+  $('frAdd').value = '';
+  const asked = legend.reqs.find((f) => f.c === code);
+  if (asked) { friendMake(code, asked.n, asked.lk, true); FR.msg = asked.n + ' had asked you too: you\'re friends now!'; renderFriends(); return true; }
+  legend.nope = legend.nope.filter((c) => c !== code);   // (you'd turned them down before: asking them is fine)
+  const had = legend.sent.find((f) => f.c === code);
+  if (!had) legend.sent.push({ c: code, n: tagName(name, code), w: 0, at: Date.now() });
+  saveLegend();
+  FR.msg = had ? 'You\'ve asked them already. Sending it again…' : 'Request sent! They can accept it in their FRIENDS.';
+  renderFriends(); friendRequestSend(code);
   return true;
 }
-async function removeFriend(code) {
-  const f = legend.friends.find((x) => x.c === code);
-  if (!f || !(await confirmBox('REMOVE ' + f.n + '?', 'They come off your friends list. You can add them again with their code.', 'REMOVE', 'KEEP'))) return;
-  legend.friends = legend.friends.filter((x) => x.c !== code); FR.peeked.delete(code); saveLegend(); renderFriends();
+// Send (or send again) a request, and see whether they've said yes
+async function friendRequestSend(code) {
+  const r = await palPeek(code, Object.assign({ r: 'q' }, myCard()));
+  const s = legend.sent.find((f) => f.c === code);
+  if (r) FR.peeked.set(code, r);
+  if (s && r) { s.n = r.n || s.n; if (r.ac.includes(legend.fc)) friendMake(code, r.n, r.lk, false); }
+  renderFriends();
+  return r;
+}
+// Now and then (from palPump): your requests nobody's answered yet, a few at a time
+function friendsRetry() {
+  if (!legend.sent.length || FR.polling || FR.retrying || performance.now() < FR.retryAt) return;
+  FR.retryAt = performance.now() + 45000; FR.retrying = true;
+  const list = legend.sent.slice().sort((a, b) => (a.tried || 0) - (b.tried || 0)).slice(0, 3);
+  (async () => { for (const f of list) { f.tried = Date.now(); await friendRequestSend(f.c); } })().finally(() => { FR.retrying = false; });
+}
+// Friends now: on both lists. (notify: tell them straight away, when it's their request you're saying yes to)
+function friendMake(code, name, lk, notify) {
+  const was = legend.reqs.find((f) => f.c === code) || legend.sent.find((f) => f.c === code) || {};
+  legend.reqs = legend.reqs.filter((f) => f.c !== code); legend.sent = legend.sent.filter((f) => f.c !== code); legend.nope = legend.nope.filter((c) => c !== code);
+  if (!isFriend(code) && legend.friends.length < 40) {
+    const f = { c: code, n: tagName(name, was.n || 'FRIEND'), w: 0, at: Date.now() };
+    const look = Array.isArray(lk) ? lk : was.lk;
+    if (Array.isArray(look) && look.length <= 40) f.lk = look.slice(0, 40);
+    legend.friends.push(f);
+  }
+  palAck(code);
+  saveLegend();
+  if (notify) palPeek(code, Object.assign({ r: 'qa' }, myCard()));   // (if they're offline, they'll find out from you next time they look)
+  const n = tagName(name, was.n || 'THEY');
+  FR.msg = n + ' and you are friends now.';
+  if (!G.demo) flash(n + ' IS YOUR FRIEND NOW', true);
+  syncFriendDot(); renderFriends(); if (G.panel === 'tradePanel') renderTrade();
+}
+function palAck(code) {   // (your pal room says "yes" to them until they've seen it: the 20 most recent)
+  PAL.ac.delete(code); PAL.ac.add(code);
+  while (PAL.ac.size > 20) PAL.ac.delete(PAL.ac.values().next().value);
+  PAL.key = '';
+}
+function acceptRequest(code) { const r = legend.reqs.find((f) => f.c === code); if (r) friendMake(code, r.n, r.lk, true); }
+function declineRequest(code) {
+  legend.reqs = legend.reqs.filter((f) => f.c !== code);
+  if (!legend.nope.includes(code)) legend.nope = legend.nope.concat(code).slice(-60);
+  saveLegend(); syncFriendDot(); renderFriends();
+}
+function cancelRequest(code) { legend.sent = legend.sent.filter((f) => f.c !== code); saveLegend(); renderFriends(); }
+// What lands in your pal room from other people's games: a request, an answer to yours, an invite to a party
+const INBOX = new Set();
+function friendsInbox(peers) {
+  const here = new Set();
+  for (const p of peers) {
+    const pr = p.presence;
+    if ((p.isMe && p.sameTab) || !pr || pr.v !== NET_V || !isFriendCode(pr.fc) || pr.fc === legend.fc || !['q', 'qa', 'i'].includes(pr.r)) continue;
+    const key = p.peer + ':' + pr.r + ':' + (pr.pc || '');
+    here.add(key);
+    if (INBOX.has(key)) continue;
+    INBOX.add(key);
+    if (pr.r === 'q') friendRequestIn(pr);
+    else if (pr.r === 'qa') { if (legend.sent.some((f) => f.c === pr.fc)) friendMake(pr.fc, pr.n, pr.lk, false); }
+    else partyInviteIn(pr);
+  }
+  for (const k of [...INBOX]) if (!here.has(k)) INBOX.delete(k);
+}
+function friendRequestIn(pr) {
+  const c = pr.fc, n = tagName(pr.n, 'PLAYER'), lk = Array.isArray(pr.lk) && pr.lk.length <= 40 ? pr.lk.slice(0, 40) : null;
+  if (isFriend(c)) { palAck(c); return; }                                        // (already friends: tell them so)
+  if (legend.nope.includes(c)) return;                                           // (you said no)
+  if (legend.sent.some((f) => f.c === c)) { friendMake(c, n, lk, true); return; } // (you'd asked them too)
+  const old = legend.reqs.find((f) => f.c === c);
+  if (old) { old.n = n; if (lk) old.lk = lk; return; }
+  if (legend.reqs.length >= 40) return;
+  const f = { c, n, w: 0, at: Date.now() }; if (lk) f.lk = lk;
+  legend.reqs.push(f); saveLegend();
+  flash(n + ' WANTS TO BE FRIENDS', true);
+  syncFriendDot(); renderFriends();
 }
 const friendStatus = (st) => (st === undefined ? 'CHECKING…' : st === 'off' ? 'OFFLINE' : st === 'menu' ? 'ONLINE' : st === 'watching' ? 'WATCHING A GAME' : st === 'practice' ? 'PRACTICING'
-  : 'PLAYING ' + (st === 'story' ? 'BE A LEGEND' : st === 'online' ? 'ONLINE' : 'A PICKUP GAME'));
+  : st === 'party' ? 'IN A PARTY' : 'PLAYING ' + (st === 'story' ? 'BE A LEGEND' : st === 'online' ? 'ONLINE' : 'A PICKUP GAME'));
+// The red dot on FRIENDS: a request or a party invite waiting for you
+function syncFriendDot() {
+  for (const [c, iv] of PARTY.invites) if (Date.now() - iv.t > 600000) PARTY.invites.delete(c);   // (an invite lasts 10 minutes)
+  const n = legend.reqs.length + PARTY.invites.size, d = $('frDot');
+  if (d) { d.hidden = !n; d.textContent = n ? String(n) : ''; }
+}
+function frRow(cls, name, status, live, chips) {
+  const li = document.createElement('li'); if (cls) li.className = cls;
+  const rk = document.createElement('b'); rk.className = 'rk'; rk.textContent = cls === 'req' ? '+' : cls === 'inv' ? '★' : cls === 'sent' ? '…' : '';
+  const who = document.createElement('span'); who.className = 'who';
+  const nm = document.createElement('b'); nm.textContent = name;
+  const st = document.createElement('small'); st.textContent = status; if (live) st.className = 'live';
+  who.append(nm, st); li.append(rk, who);
+  const acts = document.createElement('span'); acts.className = 'acts';
+  for (const [label, kind, fn, dis, aria] of chips) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (kind ? ' ' + kind : ''); b.textContent = label;
+    if (aria) b.setAttribute('aria-label', aria); b.disabled = !!dis; b.addEventListener('click', fn); acts.append(b);
+  }
+  li.append(acts);
+  return li;
+}
 function renderFriends() {
   if (G.panel !== 'friendsPanel') return;
   $('frCode').textContent = legend.fc || '------';
   $('frMsg').textContent = FR.msg;
   const ol = $('frBoard'); ol.textContent = '';
+  // waiting for you: party invites, then friend requests
+  syncFriendDot();
+  for (const [c, iv] of PARTY.invites) ol.append(frRow('inv', iv.n, 'INVITES YOU TO A PARTY', true, [['JOIN', 'go', () => partyJoin(iv.pc, c)], ['✕', 'x', () => { PARTY.invites.delete(c); syncFriendDot(); renderFriends(); }, false, 'No thanks']]));
+  for (const r of legend.reqs) ol.append(frRow('req', r.n, 'WANTS TO BE FRIENDS', true, [['ACCEPT', 'go', () => acceptRequest(r.c)], ['✕', 'x', () => declineRequest(r.c), false, 'Say no to ' + r.n]]));
+  // the leaderboard: you and your friends, by wins
+  const party = inParty();
   const rows = [{ me: true, c: legend.fc, n: cleanName(profile.name), w: legend.record.w }].concat(legend.friends.map((f) => {
     const pk = FR.peeked.get(f.c);
-    return { c: f.c, n: pk && pk.n ? pk.n : f.n, w: pk ? pk.w : f.w, st: pk ? pk.st : undefined };
+    return { c: f.c, n: pk && pk.n ? pk.n : f.n, w: pk ? pk.w : f.w, st: pk ? pk.st : undefined, pt: pk ? pk.pt : null };
   }));
   rows.sort((a, b) => b.w - a.w || (b.me ? 1 : 0) - (a.me ? 1 : 0));
   rows.forEach((r, i) => {
@@ -9742,39 +10085,55 @@ function renderFriends() {
     const rk = document.createElement('b'); rk.className = 'rk'; rk.textContent = String(i + 1);
     const who = document.createElement('span'); who.className = 'who';
     const nm = document.createElement('b'); nm.textContent = r.me && r.n !== 'YOU' ? r.n + ' (YOU)' : r.n;
-    const st = document.createElement('small'); st.textContent = r.me ? 'CODE ' + r.c : friendStatus(r.st);
+    const inMine = party && r.pt && r.pt[0] === NET.code;
+    const st = document.createElement('small');
+    st.textContent = r.me ? 'CODE ' + r.c + (party ? ' · IN A PARTY' : '') : inMine ? 'IN YOUR PARTY' : r.pt && r.st !== 'off' ? 'IN ' + (r.pt[2] && r.pt[2] !== r.n ? r.pt[2] + '\'S' : 'A') + ' PARTY' + (r.pt[1] > 1 ? ' OF ' + r.pt[1] : '') : friendStatus(r.st);
     if (!r.me && r.st && r.st !== 'off' && r.st !== 'menu' && r.st !== 'watching') st.className = 'live';
     who.append(nm, st);
     const w = document.createElement('b'); w.className = 'w'; w.textContent = fmtPts(r.w) + (r.w === 1 ? ' WIN' : ' WINS');
     li.append(rk, who, w);
     if (!r.me) {
-      const wb = document.createElement('button'); wb.type = 'button'; wb.className = 'chip go'; wb.textContent = 'WATCH';
-      wb.disabled = r.st === 'off'; wb.addEventListener('click', () => watchStart(r.c, r.n));
-      const xb = document.createElement('button'); xb.type = 'button'; xb.className = 'chip x'; xb.textContent = '✕'; xb.setAttribute('aria-label', 'Remove ' + r.n);
-      xb.addEventListener('click', () => removeFriend(r.c));
-      li.append(wb, xb);
+      const acts = document.createElement('span'); acts.className = 'acts';
+      const chip = (label, kind, fn, dis, aria) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (kind ? ' ' + kind : ''); b.textContent = label; b.disabled = !!dis; if (aria) b.setAttribute('aria-label', aria); b.addEventListener('click', fn); acts.append(b); };
+      const on = r.st && r.st !== 'off';
+      if (r.pt && on && !inMine) chip('JOIN', 'go', () => partyJoin(r.pt[0], r.c));   // their party: hop in
+      else if (!inMine) chip('INVITE', 'go', () => partyInvite(r.c, r.n), !on);       // to yours (one starts if you're not in one)
+      chip('WATCH', '', partyGuard(() => watchStart(r.c, r.n)), !on || r.st === 'party');
+      chip('✕', 'x', () => removeFriend(r.c), false, 'Remove ' + r.n);
+      li.append(acts);
     }
     ol.append(li);
   });
-  const rec = legend.recent.filter((r) => !legend.friends.some((f) => f.c === r.c));
+  // your requests nobody's answered yet
+  for (const s of legend.sent) ol.append(frRow('sent', s.n, 'REQUEST SENT', false, [['✕', 'x', () => cancelRequest(s.c), false, 'Take back the request to ' + s.n]]));
+  const rec = legend.recent.filter((r) => !isFriend(r.c) && !legend.sent.some((s) => s.c === r.c));
   $('frRecentBox').hidden = !rec.length;
   const rc = $('frRecent'); rc.textContent = '';
   for (const r of rec) { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = '+ ' + r.n; b.addEventListener('click', () => addFriend(r.c, r.n)); rc.append(b); }
   $('frDog').textContent = legend.dog.made ? 'WATCH DOG · ' + legend.dog.name : 'MAKE YOUR WATCH DOG';
+  $('frParty').hidden = !party;
+  if (party) $('frParty').textContent = 'PARTY · ' + Math.max(1, netPeople().length);
 }
-// Look in on friends (a few at a time): their name, wins and what they're doing right now
-async function palPeek(code) {
+async function removeFriend(code) {
+  const f = legend.friends.find((x) => x.c === code);
+  if (!f || !(await confirmBox('REMOVE ' + f.n + '?', 'They come off your friends list. You can send them a request again with their code.', 'REMOVE', 'KEEP'))) return;
+  legend.friends = legend.friends.filter((x) => x.c !== code); FR.peeked.delete(code); PAL.ac.delete(code); saveLegend(); renderFriends();
+}
+// Look in on friends (a few at a time): their name, wins and what they're doing right now. (say: what you leave in
+// their room on the way, a request, an answer or an invite: you stay a moment so their game sees it)
+async function palPeek(code, say) {
   if ((TR.st !== 'off' && TR.fc === code) || (WATCH.room && WATCH.code === code)) return FR.peeked.get(code) || null;   // (already in their room: never join it twice)
+  for (let i = 0; i < 80 && FR.peeking.has(code); i++) await new Promise((r) => setTimeout(r, 100));   // (one visit at a time)
   FR.peeking.add(code);
-  try { return await palPeekRoom(code); } finally { FR.peeking.delete(code); }
+  try { return await palPeekRoom(code, say); } finally { FR.peeking.delete(code); }
 }
-async function palPeekRoom(code) {
+async function palPeekRoom(code, say) {
   const ns = await roomReady;
   if (!ns) return null;
   let room;
   try { room = await ns.join('grass-pal-' + code.toLowerCase(), 'guest'); } catch (_) { return null; }
   return new Promise((resolve) => {
-    let done = false, un = null;
+    let done = false, got = false, un = null;
     const finish = (v) => {
       if (done) return; done = true; clearTimeout(timer);
       try { if (un) un(); } catch (_) { /* gone */ }
@@ -9784,21 +10143,27 @@ async function palPeekRoom(code) {
     const timer = setTimeout(() => finish(null), 7000);
     un = room.onPeers((ch) => {
       const h = ch.peers.find(isPalHost);
-      if (h) finish({ n: tagName(h.presence.n, 'FRIEND'), w: Math.max(0, Math.round(Number(h.presence.w) || 0)), st: String(h.presence.st || 'menu'), lk: Array.isArray(h.presence.lk) ? h.presence.lk.slice(0, LOOK_LEN) : null });
+      if (!h || got) return;
+      got = true;
+      const pr = h.presence, pt = Array.isArray(pr.pt) && /^[A-Z0-9]{4}$/.test(String(pr.pt[0])) ? [String(pr.pt[0]), Math.max(1, pr.pt[1] | 0), tagName(pr.pt[2], '')] : null;
+      const info = { n: tagName(pr.n, 'FRIEND'), w: Math.max(0, Math.round(Number(pr.w) || 0)), st: String(pr.st || 'menu'), lk: Array.isArray(pr.lk) ? pr.lk.slice(0, LOOK_LEN) : null,
+        ac: Array.isArray(pr.ac) ? pr.ac.filter(isFriendCode).slice(0, 20) : [], pt, nw: !!pr.nw };
+      if (say) setTimeout(() => finish(info), 1300); else finish(info);
     });
-    room.presence({ v: NET_V, r: 'p' }).catch(() => { /* just looking */ });
+    room.presence(Object.assign({ v: NET_V, r: 'p' }, say || {})).catch(() => { /* just looking */ });
   });
 }
 async function friendsPoll(only) {
   if (FR.polling && !only) return;
   if (!only) FR.polling = true;
-  const codes = (only || legend.friends.map((f) => f.c)).slice(0, 40);
+  const codes = (only || legend.friends.map((f) => f.c).concat(legend.sent.map((f) => f.c))).slice(0, 60);
   let i = 0;
   const next = async () => {
     while (i < codes.length) {
       const c = codes[i++];
+      if (legend.sent.some((f) => f.c === c)) { await friendRequestSend(c); continue; }   // (a request: ask again, and see if they've said yes)
       const r = await palPeek(c);
-      FR.peeked.set(c, r || { n: '', w: (legend.friends.find((f) => f.c === c) || {}).w || 0, st: 'off' });
+      FR.peeked.set(c, r || { n: '', w: (legend.friends.find((f) => f.c === c) || {}).w || 0, st: 'off', pt: null, ac: [] });
       const f = legend.friends.find((x) => x.c === c);
       if (f && r) { f.n = r.n; f.w = r.w; f.at = Date.now(); if (r.lk) f.lk = r.lk; }
       renderFriends();
@@ -9881,7 +10246,11 @@ function updateDogPreview(dt) {
    you play with, spares sold to Chai T (by tier) or traded with a friend.
    ===================================================================== */
 const ownsBall = (id) => id === 'classic' || (legend.balls[id] || 0) > 0;
-const sparesOf = (id) => Math.max(0, (legend.balls[id] || 0) - 1);
+// v10.1: balls and bags both come out of the box, sell and trade the same way
+const lootN = (id) => (isBag(id) ? legend.bags[id] || 0 : legend.balls[id] || 0);
+function lootAdd(id, d) { const m = isBag(id) ? legend.bags : legend.balls; m[id] = Math.max(0, (m[id] || 0) + d); }
+const ownsLoot = (id) => (isBag(id) ? lootN(id) > 0 : ownsBall(id));
+const sparesOf = (id) => Math.max(0, lootN(id) - 1);
 // A ball picture for the menus: the look's paint wrapped round a ball and lit from the top left (no 3D needed).
 // For each pixel of an S x S picture: where on the paint it lands (tilted so a little of the top shows) and its light.
 const _sph = new Map();
@@ -9953,47 +10322,57 @@ function syncBallPlate() {
   $('btnBalls').classList.toggle('can', can);
   $('bpDot').hidden = !TR.reqs.size;
 }
-// ---- The BALLS panel
-const BL = { sel: null, msg: '', busy: false };
+// ---- The LOOT panel (v10: BALLS; v10.1: balls and bags)
+const BL = { sel: null, msg: '', busy: false, tab: 'balls' };
+const lootPic = (cv, id, o) => (isBag(id) ? drawBagPic(cv, id, o) : drawBallPic(cv, id, 0, o));   // (a picture for a tile or an offer)
 function renderBalls() {
   if (G.panel !== 'ballsPanel') return;
   $('blPts').textContent = fmtPts(legend.points);
   const can = legend.points >= BOX_PRICE && !BL.busy;
   $('blOpen').textContent = 'OPEN · ' + fmtPts(BOX_PRICE); $('blOpen').disabled = !can;
   $('blCrate').classList.toggle('can', can); $('blCrate').disabled = !can;
+  $('blBoxSub').textContent = 'One of ' + BOX_LOOT.length + ' balls and bags inside. Repeats happen.';
   const odds = $('blOdds');
   if (!odds.childElementCount) for (const t of BALL_TIERS) { const li = document.createElement('li'), i = document.createElement('i'); li.style.setProperty('--tc', t.col); li.append(i, t.name + ' ' + t.w + '%'); odds.append(li); }
-  // the ball you tapped (or the box)
-  const B = BL.sel && BALL_BY[BL.sel] ? BALL_BY[BL.sel] : null;
+  // what you tapped (or the box)
+  const B = BL.sel && LOOT_BY[BL.sel] ? LOOT_BY[BL.sel] : null, bag = !!B && isBag(B.id);
   $('blBoxView').hidden = !!B; $('blDetail').hidden = !B;
+  $('blBig').classList.toggle('bagpic', bag);
   if (B) {
-    const T = tierOf(B), own = ownsBall(B.id), n = legend.balls[B.id] || 0, sp = sparesOf(B.id), price = ballSell(B.id);
+    const T = tierOf(B), own = ownsLoot(B.id), n = lootN(B.id), sp = sparesOf(B.id), price = ballSell(B.id);
     $('blDetail').style.setProperty('--tc', T.col);
-    $('blTier').textContent = T.name; $('blName').textContent = B.name; $('blAbout').textContent = B.about;
+    $('blTier').textContent = T.name; $('blName').textContent = B.name;
+    $('blAbout').textContent = B.about + (bag && legend.bag === B.id ? '. You ' + (settings.bagMode === 'wear' ? 'wear it while you play' : 'leave it on the sideline') + ' (SETTINGS).' : '');
     $('blCount').textContent = B.id === 'classic' ? 'ALWAYS YOURS' : !own ? 'NOT YOURS YET · IT\'S IN THE BOX' : 'YOU HAVE ' + n + (sp ? ' · ' + sp + ' SPARE' + (sp > 1 ? 'S' : '') : '');
-    const use = $('blUse'); use.hidden = !own; use.disabled = legend.ball === B.id; use.textContent = legend.ball === B.id ? 'IN PLAY' : 'PLAY WITH IT';
+    const use = $('blUse'); use.hidden = !own;
+    if (bag) { use.disabled = false; use.textContent = legend.bag === B.id ? 'PUT IT AWAY' : 'BRING IT'; }
+    else { use.disabled = legend.ball === B.id; use.textContent = legend.ball === B.id ? 'IN PLAY' : 'PLAY WITH IT'; }
     const sell = $('blSell'); sell.hidden = B.id === 'classic' || !own; sell.disabled = !sp || TR.st === 'open';
     sell.textContent = 'SELL ONE · +' + fmtPts(price);
-    spinPic($('blBig'), B.id, 0.1);
+    if (bag) { spinPic($('blBig'), null); drawBagPic($('blBig'), B.id); } else spinPic($('blBig'), B.id, 0.1);
   } else spinPic($('blBig'), null);
-  // all of them: yours first? no: always the same order (BASIC to MYTHIC), so you can see what's still to find
-  const grid = $('blGrid');
-  grid.textContent = '';
-  for (const b of BALLS) {
-    const own = ownsBall(b.id), n = legend.balls[b.id] || 0, T = tierOf(b);
-    const el = document.createElement('button'); el.type = 'button'; el.className = 'btile' + (own ? '' : ' lock') + (legend.ball === b.id ? ' on' : '') + (BL.sel === b.id ? ' sel' : '');
+  // the tabs: your balls, your bags (how many of each you've found)
+  const nBalls = BALLS.filter((b) => ownsBall(b.id)).length, nBags = BAGS.filter((b) => ownsLoot(b.id)).length;
+  $('blTabBalls').textContent = 'BALLS ' + nBalls + '/' + BALLS.length; $('blTabBags').textContent = 'BAGS ' + nBags + '/' + BAGS.length;
+  $('blTabBalls').setAttribute('aria-pressed', String(BL.tab !== 'bags')); $('blTabBags').setAttribute('aria-pressed', String(BL.tab === 'bags'));
+  // all of them, BASIC to MYTHIC (always the same order, so you can see what's still to find)
+  const grid = $('blGrid'), list = BL.tab === 'bags' ? BAGS : BALLS, mine = BL.tab === 'bags' ? legend.bag : legend.ball;
+  grid.textContent = ''; grid.setAttribute('aria-label', BL.tab === 'bags' ? 'Your bags' : 'Your balls');
+  for (const b of list) {
+    const own = ownsLoot(b.id), n = lootN(b.id), T = tierOf(b);
+    const el = document.createElement('button'); el.type = 'button'; el.className = 'btile' + (own ? '' : ' lock') + (mine === b.id ? ' on' : '') + (BL.sel === b.id ? ' sel' : '');
     el.setAttribute('role', 'listitem'); el.style.setProperty('--tc', T.col);
-    el.setAttribute('aria-label', b.name + ', ' + T.name + (own ? (n > 1 ? ', you have ' + n : '') : ', not yours yet') + (legend.ball === b.id ? ', in play' : ''));
+    el.setAttribute('aria-label', b.name + ', ' + T.name + (own ? (n > 1 ? ', you have ' + n : '') : ', not yours yet') + (mine === b.id ? (BL.tab === 'bags' ? ', the one you bring' : ', in play') : ''));
     const cv = document.createElement('canvas'); cv.width = 80; cv.height = 80;
     const nm = document.createElement('span'); nm.textContent = own ? b.name : '???';
     el.append(cv, nm);
     if (n > 1) { const c = document.createElement('b'); c.textContent = '×' + n; el.append(c); }
-    if (legend.ball === b.id) { const st = document.createElement('em'); st.textContent = '★'; el.append(st); }
+    if (mine === b.id) { const st = document.createElement('em'); st.textContent = '★'; el.append(st); }
     el.addEventListener('click', () => { BL.sel = BL.sel === b.id ? null : b.id; BL.msg = ''; renderBalls(); });
     grid.append(el);
-    drawBallPic(cv, b.id, 0, { locked: !own });
+    lootPic(cv, b.id, { locked: !own });
   }
-  const spares = BOX_BALLS.reduce((s, b) => s + sparesOf(b.id), 0);
+  const spares = BOX_LOOT.reduce((s, b) => s + sparesOf(b.id), 0);
   $('blSellAll').disabled = !spares || TR.st === 'open'; $('blSellAll').textContent = spares ? 'SELL SPARES (' + spares + ')' : 'SELL SPARES';
   $('blTrade').textContent = TR.reqs.size ? 'TRADE (' + TR.reqs.size + ')' : 'TRADE';
   $('blMsg').textContent = BL.msg;
@@ -10001,10 +10380,10 @@ function renderBalls() {
 // One box: pay, roll (the tier first, then a ball in it), keep it (saved before the show), then the show
 function rollBox() {
   const forced = typeof window.__grassBoxRoll === 'function' ? window.__grassBoxRoll() : null;   // (tests)
-  if (forced && BALL_BY[forced] && BALL_BY[forced].box !== false) return forced;
+  if (forced && LOOT_BY[forced] && LOOT_BY[forced].box !== false) return forced;
   let x = Math.random() * BALL_TIERS.reduce((s, t) => s + t.w, 0), tier = BALL_TIERS[0];
   for (const t of BALL_TIERS) { if (x < t.w) { tier = t; break; } x -= t.w; }
-  const pool = BOX_BALLS.filter((b) => b.tier === tier.id);
+  const pool = BOX_LOOT.filter((b) => b.tier === tier.id);   // (v10.1: the tier's balls and bags)
   return pool[Math.floor(Math.random() * pool.length)].id;
 }
 async function openBox() {
@@ -10012,22 +10391,22 @@ async function openBox() {
   BL.busy = true; audioInit();
   legend.points -= BOX_PRICE; legend.boxes++;
   const id = rollBox();
-  legend.balls[id] = (legend.balls[id] || 0) + 1;
+  lootAdd(id, 1);
   saveLegend(); syncMenus();
-  await boxShow(id, legend.balls[id] === 1);
-  BL.busy = false; BL.sel = id;
-  BL.msg = legend.balls[id] === 1 ? 'NEW: ' + BALL_BY[id].name + '. Tap PLAY WITH IT to use it.' : 'A spare ' + BALL_BY[id].name + ': sell it to Chai T or trade it.';
+  await boxShow(id, lootN(id) === 1);
+  BL.busy = false; BL.sel = id; BL.tab = isBag(id) ? 'bags' : 'balls';
+  BL.msg = lootN(id) === 1 ? 'NEW: ' + LOOT_BY[id].name + '. Tap ' + (isBag(id) ? 'BRING IT to take it to your games.' : 'PLAY WITH IT to use it.') : 'A spare ' + LOOT_BY[id].name + ': sell it to Chai T or trade it.';
   renderBalls();
 }
 // The show: the box shakes (harder, and glowing, the rarer it is), the lid flies, the ball comes up spinning
 const BOXSHOW = { timers: [], done: null, stage: 0 };
 function boxShow(id, isNew) {
   return new Promise((resolve) => {
-    const B = BALL_BY[id], T = tierOf(B), ti = BALL_TIERS.indexOf(T), el = $('boxOpen');
+    const B = LOOT_BY[id], T = tierOf(B), ti = BALL_TIERS.indexOf(T), el = $('boxOpen'), bag = isBag(id);
     el.style.setProperty('--tc', T.col);
     el.className = ''; el.hidden = false;
-    $('boTier').textContent = T.name; $('boName').textContent = B.name;
-    $('boNote').textContent = isNew ? 'NEW!' : 'REPEAT · YOU HAVE ' + legend.balls[id];
+    $('boTier').textContent = T.name + (bag ? ' BAG' : ''); $('boName').textContent = B.name;
+    $('boNote').textContent = isNew ? 'NEW!' : 'REPEAT · YOU HAVE ' + lootN(id);
     const cv = $('boBall'); cv.getContext('2d').clearRect(0, 0, cv.width, cv.height);
     const at = ti >= 3 ? [700, 1500, 2300] : ti === 2 ? [550, 1150, 1800] : [450, 950, 1450];   // shake harder, open, name it
     const T0 = performance.now();
@@ -10040,7 +10419,8 @@ function boxShow(id, isNew) {
       if (BOXSHOW.stage >= 2) return;
       BOXSHOW.stage = 2;
       el.classList.remove('shake1', 'shake2'); el.classList.add('open'); if (ti >= 2) el.classList.add('tell'); if (ti === 4) el.classList.add('mythic');
-      ballSfx('pop'); spinPic(cv, id, 0.22);
+      if (bag) { el.classList.add('isbag'); drawBagPic(cv, id); }   // (a bag: it comes up swinging)
+      ballSfx('pop'); if (!bag) spinPic(cv, id, 0.22);
     };
     const name = () => { if (BOXSHOW.stage >= 3) return; open(); BOXSHOW.stage = 3; el.classList.add('done'); ballSfx('reveal', ti); };
     later(at[1], open); later(at[2], name);
@@ -10061,24 +10441,31 @@ function useBall(id) {
   BL.msg = BALL_BY[id].name + ' is your ball now: it comes out when you serve.';
   renderBalls(); syncMenus();
 }
-const CHAI_BUYS = ['Nice ball.', 'I\'ll put it to work.', 'Pleasure doing business.', 'That one\'s going in my bag.', 'Deal.'];
+// Bringing a bag to your games (or putting it away: no bag)
+function useBag(id) {
+  if (!ownsLoot(id) || !isBag(id)) return;
+  legend.bag = legend.bag === id ? '' : id; saveLegend();
+  BL.msg = legend.bag ? BAG_BY[id].name + ' comes to your games now. ' + (settings.bagMode === 'wear' ? 'You wear it while you play' : 'It goes on the sideline') + ': change that in SETTINGS.' : 'No bag for now.';
+  bagChanged(); renderBalls(); syncMenus();
+}
+const CHAI_BUYS = ['Nice one.', 'I\'ll put it to work.', 'Pleasure doing business.', 'That one\'s going in my bag.', 'Deal.'];
 async function sellSpare(id) {
-  const B = BALL_BY[id], price = ballSell(id);
+  const B = LOOT_BY[id], price = ballSell(id);
   if (!B || sparesOf(id) < 1 || TR.st === 'open') return;
   if (!(await confirmBox('SELL A SPARE ' + B.name + '?', 'Chai T gives you ' + fmtPts(price) + ' points for it. You keep your other one.', 'SELL IT', 'KEEP IT'))) return;
   if (sparesOf(id) < 1 || TR.st === 'open') return;
-  legend.balls[id]--; legend.points += price; saveLegend(); ballSfx('coin');
+  lootAdd(id, -1); legend.points += price; saveLegend(); ballSfx('coin');
   BL.msg = 'CHAI T: "' + CHAI_BUYS[Math.floor(Math.random() * CHAI_BUYS.length)] + ' ' + fmtPts(price) + ' points."';
   renderBalls(); syncMenus();
 }
 async function sellAllSpares() {
-  const list = () => BOX_BALLS.filter((b) => sparesOf(b.id) > 0).map((b) => ({ b, n: sparesOf(b.id) }));
+  const list = () => BOX_LOOT.filter((b) => sparesOf(b.id) > 0).map((b) => ({ b, n: sparesOf(b.id) }));
   const L = list();
   if (!L.length || TR.st === 'open') return;
   const total = L.reduce((s, x) => s + x.n * ballSell(x.b.id), 0), count = L.reduce((s, x) => s + x.n, 0);
   if (!(await confirmBox('SELL ' + count + ' SPARE' + (count > 1 ? 'S' : '') + '?', 'Chai T buys ' + L.map((x) => x.n + ' ' + x.b.name).join(', ') + ' for ' + fmtPts(total) + ' points. You keep one of each.', 'SELL THEM', 'KEEP THEM'))) return;
   let got = 0;
-  for (const x of list()) { got += x.n * ballSell(x.b.id); legend.balls[x.b.id] = 1; }
+  for (const x of list()) { got += x.n * ballSell(x.b.id); lootAdd(x.b.id, -x.n); }
   if (!got) return;
   legend.points += got; saveLegend(); ballSfx('coin');
   BL.msg = 'CHAI T: "' + CHAI_BUYS[Math.floor(Math.random() * CHAI_BUYS.length)] + ' ' + fmtPts(got) + ' points for the lot."';
@@ -10086,7 +10473,9 @@ async function sellAllSpares() {
 }
 $('blOpen').addEventListener('click', openBox);
 $('blCrate').addEventListener('click', openBox);
-$('blUse').addEventListener('click', () => { if (BL.sel) useBall(BL.sel); });
+$('blUse').addEventListener('click', () => { if (BL.sel) { if (isBag(BL.sel)) useBag(BL.sel); else useBall(BL.sel); } });
+$('blTabBalls').addEventListener('click', () => { BL.tab = 'balls'; if (BL.sel && isBag(BL.sel)) BL.sel = null; renderBalls(); });
+$('blTabBags').addEventListener('click', () => { BL.tab = 'bags'; if (BL.sel && !isBag(BL.sel)) BL.sel = null; renderBalls(); });
 $('blSell').addEventListener('click', () => { if (BL.sel) sellSpare(BL.sel); });
 $('blBoxBtn').addEventListener('click', () => { BL.sel = null; BL.msg = ''; renderBalls(); });
 $('blSellAll').addEventListener('click', sellAllSpares);
@@ -10100,7 +10489,7 @@ $('blDone').addEventListener('click', closePanel);
 const TR = { st: 'off', role: null, room: null, unsub: null, fc: '', name: '', mine: '', theirs: '', ok: false, theirOk: false, theirKey: '', theirDone: '',
   theirSp: [], round: 0, accepted: new Set(), done: new Set(), msg: '', reqs: new Map(), asked: new Set(), hostT: 0, leaving: 0 };
 const isTrader = (p) => !(p.isMe && p.sameTab) && p.presence && p.presence.v === NET_V && p.presence.r === 't' && isFriendCode(p.presence.fc) && p.presence.to === legend.fc;
-const spareIds = () => BOX_BALLS.filter((b) => sparesOf(b.id) > 0).map((b) => b.id);
+const spareIds = () => BOX_LOOT.filter((b) => sparesOf(b.id) > 0).map((b) => b.id);
 const tradeKey = () => TR.round + ':' + (TR.role === 'r' ? TR.mine + '>' + TR.theirs : TR.theirs + '>' + TR.mine);   // (the asker's ball first)
 function tradeSend() {   // what you put up, whether you've accepted, and the last deal you've done
   const last = [...TR.done].pop() || '';
@@ -10167,7 +10556,7 @@ async function tradeAsk(fc, n) {
   const inMenus = G.demo && !G.scene && !G.spectate && $('confirm').hidden && $('boxOpen').hidden;
   if (!inMenus) { if (!G.demo) flash(n + ' WANTS TO TRADE', true); return; }
   ballSfx('pop');
-  const yes = await confirmBox(n + ' WANTS TO TRADE', n + ' wants to trade balls with you.', 'OPEN TRADE', 'NOT NOW');
+  const yes = await confirmBox(n + ' WANTS TO TRADE', n + ' wants to trade balls or bags with you.', 'OPEN TRADE', 'NOT NOW');
   if (!TR.reqs.has(fc)) return;
   if (yes) { if (G.panel !== 'tradePanel') openPanel('tradePanel'); tradeOpen(fc); }
   else tradeNo(fc);
@@ -10188,10 +10577,10 @@ function tradeOpen(fc) {   // (you were asked) into the trade, in your pal room
 }
 // Both sides: what they've put up, then whether a deal is done
 function tradeRead(o, ok, k, d, sp) {
-  const off = BALL_BY[o] && BALL_BY[o].box !== false ? o : '';
+  const off = LOOT_BY[o] && LOOT_BY[o].box !== false ? o : '';
   if (off !== TR.theirs) { TR.theirs = off; if (TR.ok) { TR.ok = false; TR.msg = TR.name + ' changed what they\'re giving.'; tradeSend(); } }
   TR.theirOk = !!ok; TR.theirKey = String(k || ''); TR.theirDone = String(d || '');
-  TR.theirSp = Array.isArray(sp) ? sp.filter((x) => BALL_BY[x] && BALL_BY[x].box !== false).slice(0, 19) : [];
+  TR.theirSp = Array.isArray(sp) ? sp.filter((x) => LOOT_BY[x] && LOOT_BY[x].box !== false).slice(0, BOX_LOOT.length) : [];
   tradeCheck();
 }
 function tradeCheck() {
@@ -10202,13 +10591,13 @@ function tradeCheck() {
 function tradeCommit(key) {
   const deal = key.slice(key.indexOf(':') + 1).split('>'), give = TR.role === 'r' ? deal[0] : deal[1], get = TR.role === 'r' ? deal[1] : deal[0];
   TR.done.add(key); TR.round++;
-  if (give && sparesOf(give) > 0) legend.balls[give]--;
-  if (get && BALL_BY[get]) legend.balls[get] = (legend.balls[get] || 0) + 1;
+  if (give && sparesOf(give) > 0) lootAdd(give, -1);
+  if (get && LOOT_BY[get]) lootAdd(get, 1);
   saveLegend();
   TR.mine = ''; TR.ok = false; TR.theirs = ''; TR.theirOk = false;
   tradeSend(); ballSfx('trade');
-  TR.msg = get ? 'TRADED! ' + BALL_BY[get].name + ' is yours' + (give ? ' (for your ' + BALL_BY[give].name + ')' : '') + '.' : 'Done: ' + TR.name + ' got your ' + BALL_BY[give].name + '.';
-  if (get) BL.sel = get;
+  TR.msg = get ? 'TRADED! ' + LOOT_BY[get].name + ' is yours' + (give ? ' (for your ' + LOOT_BY[give].name + ')' : '') + '.' : 'Done: ' + TR.name + ' got your ' + LOOT_BY[give].name + '.';
+  if (get) { BL.sel = get; BL.tab = isBag(get) ? 'bags' : 'balls'; }
   renderTrade(); syncMenus();
 }
 function tradePick(id) {
@@ -10243,18 +10632,18 @@ function tradeEnd(msg) {
 }
 // ---- The TRADE panel: who to trade with (and who's asking), then the trade itself
 function tradeTile(id, onClick, sel) {
-  const b = BALL_BY[id], el = document.createElement('button');
+  const b = LOOT_BY[id], el = document.createElement('button');
   el.type = 'button'; el.className = 'btile' + (sel ? ' sel' : ''); el.style.setProperty('--tc', tierOf(b).col);
   const cv = document.createElement('canvas'); cv.width = 64; cv.height = 64;
   const nm = document.createElement('span'); nm.textContent = b.name;
-  el.append(cv, nm); drawBallPic(cv, id, 0);
+  el.append(cv, nm); lootPic(cv, id);
   if (onClick) el.addEventListener('click', onClick); else el.disabled = true;
-  if (!ownsBall(id)) { const n = document.createElement('em'); n.textContent = 'NEW'; n.style.fontSize = '9px'; el.append(n); }
+  if (!ownsLoot(id)) { const n = document.createElement('em'); n.textContent = 'NEW'; n.style.fontSize = '9px'; el.append(n); }
   return el;
 }
 function offerBox(el, id, ok, who) {
   el.textContent = ''; el.classList.toggle('ok', !!ok);
-  if (id) { const cv = document.createElement('canvas'); cv.width = 108; cv.height = 108; drawBallPic(cv, id, 0); const b = document.createElement('b'); b.textContent = BALL_BY[id].name; el.append(cv, b); }
+  if (id) { const cv = document.createElement('canvas'); cv.width = 108; cv.height = 108; lootPic(cv, id); const b = document.createElement('b'); b.textContent = LOOT_BY[id].name; el.append(cv, b); }
   else { const b = document.createElement('b'); b.textContent = 'NOTHING'; b.style.opacity = '0.6'; el.append(b); }
   if (ok) { const s = document.createElement('small'); s.textContent = who + ' ACCEPTED'; el.append(s); }
 }
@@ -10301,6 +10690,340 @@ $('tdAccept').addEventListener('click', tradeAcceptPress);
 $('tdBack').addEventListener('click', tradeLeave);
 
 /* =====================================================================
+   BAGS (v10.1, Truss's notes): bags come out of the loot boxes with the balls (BASIC to MYTHIC). At a game you wear
+   yours or leave it on the sideline (SETTINGS); of everyone who leaves theirs, the rarest bag hangs on Chai T's lawn
+   chair, the rest lie on the grass by the court. Only people have bags (you, and friends online), never the AI.
+   ===================================================================== */
+const BAG_W = 0.36, BAG_H = 0.44, BAG_D = 0.085, BAG_TW = 256, BAG_TH = 312;
+// ---- How each bag looks: painted on a canvas (the front with its print, the back without), plus what glows
+function bagFabric(g, W, H, col, k, rnd) {   // a plain weave with a little grain
+  g.fillStyle = col; g.fillRect(0, 0, W, H);
+  for (let i = 0; i < 900; i++) { const v = rnd(); g.fillStyle = v < 0.5 ? 'rgba(0,0,0,' + (k * rnd()).toFixed(3) + ')' : 'rgba(255,255,255,' + (k * 0.7 * rnd()).toFixed(3) + ')'; g.fillRect(rnd() * W, rnd() * H, 1 + rnd() * 3, 1); }
+}
+function bagFolds(g, W, H, k) {   // soft folds from the gathered top, and the top itself a shade darker
+  for (const [x0, x1, a] of [[0.2, 0.3, 1], [0.6, 0.52, -1], [0.84, 0.78, 1]]) {
+    const gr = g.createLinearGradient(x0 * W - 12, 0, x0 * W + 12, 0);
+    gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(0.5, 'rgba(0,0,0,' + k + ')'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gr; g.beginPath(); g.moveTo(x0 * W - 12, 0); g.lineTo(x0 * W + 12, 0); g.lineTo(x1 * W + 4 * a, H * 0.4); g.lineTo(x1 * W - 4 * a, H * 0.4); g.closePath(); g.fill();
+  }
+  const top = g.createLinearGradient(0, 0, 0, H * 0.13); top.addColorStop(0, 'rgba(0,0,0,' + Math.min(0.7, k * 1.7) + ')'); top.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = top; g.fillRect(0, 0, W, H * 0.13);
+}
+function bagArcText(g, text, cx, cy, R, size, font, col) {   // letters along an arc that bulges up (centred on cx, cy)
+  g.save(); g.font = font.replace('#', size); g.fillStyle = col; g.textAlign = 'center'; g.textBaseline = 'middle';
+  const ws = [...text].map((ch) => g.measureText(ch).width + size * 0.06), tot = ws.reduce((a, b) => a + b, 0);
+  let x = -tot / 2;
+  for (let i = 0; i < ws.length; i++) {
+    const a = (x + ws[i] / 2) / R;
+    g.save(); g.translate(cx + R * Math.sin(a), cy + R - R * Math.cos(a)); g.rotate(a); g.fillText(text[i], 0, 0); g.restore();
+    x += ws[i];
+  }
+  g.restore();
+}
+function bagRingText(g, text, cx, cy, R, size, col) {   // small words round the top of a badge
+  g.save(); g.font = '800 ' + size + 'px "Barlow Condensed", Arial, sans-serif'; g.fillStyle = col; g.textAlign = 'center'; g.textBaseline = 'middle';
+  const ws = [...text].map((ch) => g.measureText(ch).width * 1.08), tot = ws.reduce((a, b) => a + b, 0);
+  let x = -tot / 2;
+  for (let i = 0; i < ws.length; i++) {
+    const a = (x + ws[i] / 2) / R;
+    g.save(); g.translate(cx + R * Math.sin(a), cy - R * Math.cos(a)); g.rotate(a); g.fillText(text[i], 0, 0); g.restore();
+    x += ws[i];
+  }
+  g.restore();
+}
+// BLACKOUT's badges: line art in a unit circle
+const BAG_ICONS = {
+  ball(g) { g.beginPath(); g.arc(0, 0, 0.78, 0, 6.2832); g.stroke(); g.beginPath(); g.arc(-0.95, -0.3, 1, -0.55, 0.75); g.stroke(); g.beginPath(); g.arc(0.85, -0.55, 1, 1.75, 2.95); g.stroke(); g.beginPath(); g.arc(0.2, 1.05, 1, 3.75, 5.05); g.stroke(); },
+  chair(g) { g.beginPath(); g.moveTo(-0.55, -0.75); g.lineTo(-0.35, 0.05); g.lineTo(0.55, 0.05); g.moveTo(-0.45, 0.05); g.lineTo(-0.6, 0.75); g.moveTo(0.45, 0.05); g.lineTo(0.6, 0.75); g.moveTo(-0.5, -0.2); g.lineTo(0.35, -0.2); g.lineTo(0.35, 0.05); g.stroke(); for (let i = 0; i < 3; i++) { g.beginPath(); g.moveTo(-0.5 + i * 0.05, -0.62 + i * 0.22); g.lineTo(-0.3 + i * 0.05, -0.62 + i * 0.22); g.stroke(); } },
+  paw(g) { g.beginPath(); g.ellipse(0, 0.28, 0.42, 0.34, 0, 0, 6.2832); g.fill(); for (const [x, y] of [[-0.5, -0.22], [-0.18, -0.52], [0.18, -0.52], [0.5, -0.22]]) { g.beginPath(); g.ellipse(x, y, 0.15, 0.2, x * 0.6, 0, 6.2832); g.fill(); } },
+  net(g) { g.beginPath(); g.moveTo(-0.85, -0.05); g.lineTo(0.85, -0.05); g.moveTo(-0.85, -0.05); g.lineTo(-0.85, 0.75); g.moveTo(0.85, -0.05); g.lineTo(0.85, 0.75); g.stroke(); g.save(); g.lineWidth *= 0.5; for (let i = 1; i < 6; i++) { g.beginPath(); g.moveTo(-0.85 + i * 0.283, -0.05); g.lineTo(-0.85 + i * 0.283, 0.4); g.stroke(); } for (const y of [0.13, 0.27, 0.4]) { g.beginPath(); g.moveTo(-0.85, y); g.lineTo(0.85, y); g.stroke(); } g.restore(); g.beginPath(); g.arc(0.15, -0.5, 0.25, 0, 6.2832); g.stroke(); },
+  flame(g) { g.beginPath(); g.moveTo(0, -0.85); g.bezierCurveTo(0.55, -0.3, 0.7, 0.1, 0.45, 0.55); g.bezierCurveTo(0.3, 0.85, -0.3, 0.85, -0.45, 0.55); g.bezierCurveTo(-0.7, 0.15, -0.35, -0.1, -0.15, -0.35); g.bezierCurveTo(-0.1, -0.1, 0.05, 0.05, 0.1, 0.1); g.bezierCurveTo(0.2, -0.25, 0.15, -0.55, 0, -0.85); g.fill(); },
+};
+function bagBadge(g, x, y, r, icon, words) {
+  g.save(); g.strokeStyle = '#f4f1ea'; g.fillStyle = '#f4f1ea';
+  g.lineWidth = r * 0.1; g.beginPath(); g.arc(x, y, r, 0, 6.2832); g.stroke();
+  g.lineWidth = r * 0.05; g.beginPath(); g.arc(x, y, r * 0.7, 0, 6.2832); g.stroke();
+  bagRingText(g, words, x, y, r * 0.85, Math.max(5, r * 0.22), '#f4f1ea');
+  g.translate(x, y + r * 0.05); g.scale(r * 0.5, r * 0.5); g.lineWidth = 0.13; g.lineCap = 'round'; g.lineJoin = 'round';
+  BAG_ICONS[icon](g); g.restore();
+}
+function bagStripe(g, W, H, col, w) {   // BLACKOUT's stripe that catches the light, swooping across the bottom
+  g.save(); g.strokeStyle = col; g.lineWidth = w; g.lineCap = 'round';
+  g.beginPath(); g.moveTo(-6, H * 0.79); g.bezierCurveTo(W * 0.28, H * 0.97, W * 0.72, H * 0.95, W + 6, H * 0.8); g.stroke(); g.restore();
+}
+function bagWaves(g, W, H, col, n, y0, amp) {
+  g.save(); g.strokeStyle = col; g.lineWidth = 5; g.lineCap = 'round';
+  for (let k = 0; k < n; k++) { const y = H * (y0 + k * 0.12); g.beginPath(); for (let x = -10; x <= W + 10; x += 6) { const yy = y + Math.sin(x / 22 + k) * amp; if (x === -10) g.moveTo(x, yy); else g.lineTo(x, yy); } g.stroke(); }
+  g.restore();
+}
+function bagBallIcon(g, x, y, r, col) { g.save(); g.translate(x, y); g.scale(r, r); g.strokeStyle = col; g.lineWidth = 0.1; g.lineCap = 'round'; BAG_ICONS.ball(g); g.restore(); }
+function bagFlames(g, W, H, rnd, a) {
+  for (let i = 0; i < 9; i++) {
+    const x = (i / 8) * W + (rnd() - 0.5) * 18, h = H * (0.3 + rnd() * 0.32), w = W * (0.1 + rnd() * 0.06);
+    const gr = g.createLinearGradient(0, H, 0, H - h); gr.addColorStop(0, 'rgba(255,90,20,' + a + ')'); gr.addColorStop(0.55, 'rgba(255,170,30,' + a + ')'); gr.addColorStop(1, 'rgba(255,240,140,' + a * 0.9 + ')');
+    g.fillStyle = gr; g.beginPath(); g.moveTo(x - w, H + 2); g.bezierCurveTo(x - w * 0.9, H - h * 0.45, x - w * 0.15, H - h * 0.55, x + (rnd() - 0.5) * w * 0.5, H - h);
+    g.bezierCurveTo(x + w * 0.35, H - h * 0.55, x + w * 0.95, H - h * 0.4, x + w, H + 2); g.fill();
+  }
+}
+const BAG_LOOK = {
+  gym: { col: '#8e9198', cord: 0xf4f1ea, paint(g, W, H, rnd, back) { bagFabric(g, W, H, '#8e9198', 0.1, rnd); bagFolds(g, W, H, 0.16); if (back) return; bagArcText(g, 'GRASS', W / 2, H * 0.27, W * 2.2, 34, '400 #px Bungee, "Arial Black", sans-serif', '#f4f1ea'); bagArcText(g, 'STREET VOLLEYBALL', W / 2, H * 0.36, W * 2.6, 13, '800 #px "Barlow Condensed", Arial, sans-serif', '#f4f1ea'); } },
+  redsack: { col: '#cf3529', cord: 0x17110d, paint(g, W, H, rnd, back) { bagFabric(g, W, H, '#cf3529', 0.1, rnd); bagFolds(g, W, H, 0.2); if (back) return; bagBallIcon(g, W / 2, H * 0.48, W * 0.2, '#f4f1ea'); bagArcText(g, 'GRASS', W / 2, H * 0.8, W * 3, 22, '400 #px Bungee, "Arial Black", sans-serif', '#f4f1ea'); } },
+  canvas: { col: '#cdb68c', cord: 0x6b4a2a, paint(g, W, H, rnd, back) {
+    bagFabric(g, W, H, '#cdb68c', 0.08, rnd);
+    g.fillStyle = 'rgba(80,55,25,0.07)'; for (let x = 0; x < W; x += 3) g.fillRect(x, 0, 1, H); for (let y = 0; y < H; y += 3) g.fillRect(0, y, W, 1);
+    bagFolds(g, W, H, 0.12); if (back) return;
+    g.save(); g.translate(W * 0.5, H * 0.52); g.rotate(-0.14); const ink = 'rgba(92,52,24,0.78)';
+    g.strokeStyle = ink; g.lineWidth = 5; g.beginPath(); g.arc(0, 0, W * 0.27, 0, 6.2832); g.stroke(); g.lineWidth = 2; g.beginPath(); g.arc(0, 0, W * 0.2, 0, 6.2832); g.stroke();
+    bagRingText(g, 'THE BLOCK · STREET VOLLEYBALL', 0, 0, W * 0.235, 12, ink);
+    g.fillStyle = ink; g.font = '400 30px Bungee, "Arial Black", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('21', 0, 2); g.restore();
+  } },
+  sky: { col: '#5db3ea', cord: 0xf4f1ea, paint(g, W, H, rnd, back) { bagFabric(g, W, H, '#5db3ea', 0.08, rnd); bagWaves(g, W, H, 'rgba(244,241,234,0.9)', 4, 0.36, 7); bagFolds(g, W, H, 0.14); } },
+  tiedye: { col: '#f06ac4', cord: 0xf4f1ea, paint(g, W, H, rnd) {
+    g.fillStyle = '#ffe9f6'; g.fillRect(0, 0, W, H);
+    for (let a = 0; a < 46; a += 0.045) { const r = a * 5.2, hue = (a * 34) % 360; g.fillStyle = 'hsla(' + hue.toFixed(0) + ',92%,58%,0.5)'; g.beginPath(); g.arc(W / 2 + Math.cos(a) * r, H * 0.52 + Math.sin(a) * r, 11, 0, 6.2832); g.fill(); }
+    bagFolds(g, W, H, 0.12);
+  } },
+  checker: { col: '#17110d', cord: 0x17110d, paint(g, W, H) {
+    const n = 32; for (let y = 0; y < H; y += n) for (let x = 0; x < W; x += n) { g.fillStyle = ((x + y) / n) % 2 ? '#17110d' : '#f4f1ea'; g.fillRect(x, y, n, n); }
+    bagFolds(g, W, H, 0.22);
+  } },
+  camo: { col: '#5b6b3c', cord: 0x3d4426, paint(g, W, H, rnd) {
+    g.fillStyle = '#5b6b3c'; g.fillRect(0, 0, W, H);
+    const cols = ['#3e4a29', '#7a6a43', '#262b1c', '#6d7f46'];
+    for (let i = 0; i < 70; i++) { g.fillStyle = cols[i % 4]; g.beginPath(); g.ellipse(rnd() * W, rnd() * H, 10 + rnd() * 26, 6 + rnd() * 14, rnd() * 3.1, 0, 6.2832); g.fill(); }
+    bagFolds(g, W, H, 0.16);
+  } },
+  neon: { col: '#121016', cord: 0x39ff88, emis: 0xffffff, paint(g, W, H, rnd, back) { bagFabric(g, W, H, '#121016', 0.05, rnd); bagFolds(g, W, H, 0.3); BAG_LOOK.neon.lines(g, W, H, back); },
+    lines(g, W, H, back) {
+      g.save(); g.lineWidth = 6; g.lineJoin = 'round'; g.lineCap = 'round';
+      [['#39ff88', 0.3], ['#ff4fd8', 0.5], ['#3fd2ff', 0.7]].forEach(([c, y], k) => { g.strokeStyle = c; g.beginPath(); for (let i = 0; i <= 8; i++) { const x = (i / 8) * W, yy = H * y + (i % 2 ? -1 : 1) * 16 * (k % 2 ? -1 : 1); if (i) g.lineTo(x, yy); else g.moveTo(x, yy); } g.stroke(); });
+      if (!back) { g.strokeStyle = '#39ff88'; g.lineWidth = 2.5; g.font = '400 38px Bungee, "Arial Black", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.strokeText('GRASS', W / 2, H * 0.15); }
+      g.restore();
+    },
+    glow(g, W, H) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); BAG_LOOK.neon.lines(g, W, H, false); } },
+  cosmic: { col: '#1d0c46', cord: 0xc9b6ff, emis: 0xffffff, paint(g, W, H, rnd) {
+    const bg = g.createRadialGradient(W * 0.5, H * 0.5, 10, W * 0.5, H * 0.5, H * 0.75); bg.addColorStop(0, '#3a1a86'); bg.addColorStop(1, '#0c0522'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    for (const [x, y, r, c] of [[0.3, 0.35, 0.3, 'rgba(255,79,216,0.28)'], [0.72, 0.6, 0.32, 'rgba(63,160,255,0.26)'], [0.45, 0.75, 0.22, 'rgba(160,110,255,0.3)']]) { const n = g.createRadialGradient(x * W, y * H, 2, x * W, y * H, r * W); n.addColorStop(0, c); n.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = n; g.fillRect(0, 0, W, H); }
+    BAG_LOOK.cosmic.stars(g, W, H, rnd); bagFolds(g, W, H, 0.25);
+  }, stars(g, W, H, rnd) { for (let i = 0; i < 110; i++) { const r = rnd() < 0.12 ? 2.2 : 0.6 + rnd() * 1.1; g.fillStyle = 'rgba(255,255,255,' + (0.55 + rnd() * 0.45).toFixed(2) + ')'; g.beginPath(); g.arc(rnd() * W, rnd() * H, r, 0, 6.2832); g.fill(); } },
+    glow(g, W, H, rnd) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); BAG_LOOK.cosmic.stars(g, W, H, rnd); } },
+  goldbag: { col: '#d8a326', cord: 0xffe08a, paint(g, W, H, rnd, back) {
+    const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, '#f6d873'); gr.addColorStop(0.45, '#c98f17'); gr.addColorStop(0.7, '#f2cb52'); gr.addColorStop(1, '#b97c12'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    for (const x of [0.15, 0.55]) { const sh = g.createLinearGradient(x * W, 0, x * W + 60, 0); sh.addColorStop(0, 'rgba(255,255,255,0)'); sh.addColorStop(0.5, 'rgba(255,250,220,0.45)'); sh.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = sh; g.save(); g.transform(1, 0, -0.5, 1, 0, 0); g.fillRect(x * W, 0, 60 + H * 0.5, H); g.restore(); }
+    bagFolds(g, W, H, 0.18); if (back) return;
+    g.strokeStyle = 'rgba(120,75,5,0.75)'; g.lineWidth = 4; g.beginPath(); g.arc(W / 2, H * 0.5, W * 0.22, 0, 6.2832); g.stroke();
+    g.fillStyle = 'rgba(120,75,5,0.8)'; g.font = '400 30px Bungee, "Arial Black", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('G', W / 2, H * 0.505);
+  } },
+  inferno: { col: '#160d0b', cord: 0xff7a2f, emis: 0xffffff, paint(g, W, H, rnd) { bagFabric(g, W, H, '#160d0b', 0.06, rnd); bagFolds(g, W, H, 0.3); bagFlames(g, W, H, rnd, 1); },
+    glow(g, W, H, rnd) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); bagFlames(g, W, H, rnd, 0.75); } },
+  blackout: { col: '#17171b', cord: 0x111114, emis: 0xffffff, paint(g, W, H, rnd, back) {
+    bagFabric(g, W, H, '#17171b', 0.05, rnd); bagFolds(g, W, H, 0.4);
+    if (!back) {
+      bagArcText(g, 'GRASS', W / 2, H * 0.2, W * 1.15, 44, '400 #px Bungee, "Arial Black", sans-serif', '#f4f1ea');
+      bagArcText(g, 'STREET VOLLEYBALL', W / 2, H * 0.285, W * 1.3, 15, '800 #px "Barlow Condensed", Arial, sans-serif', '#f4f1ea');
+      const r = W * 0.105;
+      bagBadge(g, W * 0.24, H * 0.435, r, 'ball', 'FIRST TO 21');
+      bagBadge(g, W * 0.5, H * 0.42, r, 'chair', 'CHAI T');
+      bagBadge(g, W * 0.76, H * 0.435, r, 'paw', 'WATCH DOG');
+      bagBadge(g, W * 0.37, H * 0.6, r, 'net', 'THE BLOCK');
+      bagBadge(g, W * 0.63, H * 0.6, r, 'flame', 'GAMEBREAKER');
+      bagArcText(g, 'LEGENDS OF THE BLOCK', W / 2, H * 0.755, W * 1.7, 14.5, '400 #px Bungee, "Arial Black", sans-serif', '#f4f1ea');
+    }
+    bagStripe(g, W, H, '#c9cdd3', 7);
+  }, glow(g, W, H) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); bagStripe(g, W, H, '#8d939b', 7); } },
+};
+const bagArtCache = new Map();
+// The print uses the game's fonts: if they're still on their way when a bag is first painted, it's painted again
+// (and its textures updated) once they're here
+const BAG_FONTS = ['400 44px Bungee', '800 15px "Barlow Condensed"'];
+const bagFontsIn = () => { try { return BAG_FONTS.every((f) => document.fonts.check(f)); } catch (_) { return true; } };
+try { for (const f of BAG_FONTS) document.fonts.load(f).catch(() => { /* (offline: the fallback font) */ }); } catch (_) { /* old browser */ }
+function bagPaint(a) {
+  const L = BAG_LOOK[a.id] || BAG_LOOK.gym, seed = (BAG_IDS.indexOf(a.id) + 3) * 7919;
+  L.paint(a.front.getContext('2d'), BAG_TW, BAG_TH, seededRandom(seed), false);
+  L.paint(a.back.getContext('2d'), BAG_TW, BAG_TH, seededRandom(seed + 1), true);
+  if (a.glow) L.glow(a.glow.getContext('2d'), BAG_TW, BAG_TH, seededRandom(seed));
+}
+function bagArt(id) {
+  let a = bagArtCache.get(id);
+  if (a) return a;
+  const L = BAG_LOOK[id] || BAG_LOOK.gym;
+  const mk = () => { const c = document.createElement('canvas'); c.width = BAG_TW; c.height = BAG_TH; return c; };
+  a = { id, front: mk(), back: mk(), glow: L.glow ? mk() : null, col: parseInt(L.col.slice(1), 16), cord: L.cord, emis: L.emis || 0xffffff, mats: null };
+  bagPaint(a);
+  bagArtCache.set(id, a);
+  if (!bagFontsIn()) {
+    Promise.all(BAG_FONTS.map((f) => document.fonts.load(f))).catch(() => null).then(() => {
+      bagPaint(a);
+      if (a.mats) { a.mats[4].map.needsUpdate = true; a.mats[5].map.needsUpdate = true; if (a.mats[4].emissiveMap) a.mats[4].emissiveMap.needsUpdate = true; }
+      if (G.panel === 'ballsPanel') renderBalls();
+    });
+  }
+  return a;
+}
+// ---- A bag picture for the menus: the sack (a gathered top, full sides), its print, and the cords looping out
+function bagPath(x0, y0, w, h) {
+  const P = new Path2D();
+  P.moveTo(x0 + 0.14 * w, y0 + 0.035 * h);
+  P.quadraticCurveTo(x0 + 0.5 * w, y0 - 0.02 * h, x0 + 0.86 * w, y0 + 0.035 * h);
+  P.bezierCurveTo(x0 + 1.02 * w, y0 + 0.25 * h, x0 + 1.03 * w, y0 + 0.72 * h, x0 + 0.97 * w, y0 + 0.93 * h);
+  P.quadraticCurveTo(x0 + 0.95 * w, y0 + h, x0 + 0.86 * w, y0 + h);
+  P.lineTo(x0 + 0.14 * w, y0 + h);
+  P.quadraticCurveTo(x0 + 0.05 * w, y0 + h, x0 + 0.03 * w, y0 + 0.93 * h);
+  P.bezierCurveTo(x0 - 0.03 * w, y0 + 0.72 * h, x0 - 0.02 * w, y0 + 0.25 * h, x0 + 0.14 * w, y0 + 0.035 * h);
+  P.closePath();
+  return P;
+}
+function drawBagPic(cv, id, o) {
+  const S = cv.width, g = cv.getContext('2d'), a = bagArt(id), dim = o && o.locked;
+  g.clearRect(0, 0, S, S);
+  const w = S * 0.58, h = S * 0.72, x0 = (S - w) / 2, y0 = S * 0.17, lw = Math.max(1.5, S * 0.03);
+  // the cords: out of the top corners, a loose loop each side, down to the bottom corners (an ink line under the colour)
+  const cord = dim ? '#4a4a52' : hexCss(a.cord);
+  for (const sx of [-1, 1]) {
+    const cx = S / 2, P = new Path2D();
+    P.moveTo(cx + sx * w * 0.33, y0 + h * 0.04);
+    P.bezierCurveTo(cx + sx * w * 0.62, y0 - h * 0.12, cx + sx * w * 0.86, y0 + h * 0.3, cx + sx * w * 0.66, y0 + h * 0.55);
+    P.bezierCurveTo(cx + sx * w * 0.56, y0 + h * 0.72, cx + sx * w * 0.5, y0 + h * 0.86, cx + sx * w * 0.44, y0 + h * 0.97);
+    g.lineCap = 'round'; g.strokeStyle = '#17110d'; g.lineWidth = lw * 1.9; g.stroke(P);
+    g.strokeStyle = cord; g.lineWidth = lw * 0.9; g.stroke(P);
+  }
+  const P = bagPath(x0, y0, w, h);
+  g.save(); g.clip(P);
+  g.drawImage(a.front, x0 - w * 0.03, y0 - h * 0.02, w * 1.06, h * 1.03);
+  const sh = g.createLinearGradient(x0, 0, x0 + w, 0);   // round at the sides
+  sh.addColorStop(0, 'rgba(0,0,0,0.38)'); sh.addColorStop(0.22, 'rgba(0,0,0,0)'); sh.addColorStop(0.65, 'rgba(255,255,255,0.06)'); sh.addColorStop(1, 'rgba(0,0,0,0.42)');
+  g.fillStyle = sh; g.fillRect(x0 - 4, y0 - 4, w + 8, h + 8);
+  if (dim) { g.fillStyle = 'rgba(28,26,32,0.88)'; g.fillRect(x0 - 4, y0 - 4, w + 8, h + 8); }
+  g.restore();
+  g.strokeStyle = '#17110d'; g.lineWidth = lw; g.lineJoin = 'round'; g.stroke(P);
+  // the gathered top: a few creases
+  g.lineWidth = lw * 0.55; g.beginPath();
+  for (const k of [0.3, 0.45, 0.6, 0.72]) { g.moveTo(x0 + k * w, y0 + 0.02 * h); g.lineTo(x0 + (k + (k - 0.5) * 0.15) * w, y0 + 0.1 * h); }
+  g.stroke();
+  if (dim) { g.fillStyle = 'rgba(255, 247, 234, 0.85)'; g.font = `400 ${Math.round(S * 0.36)}px Bungee, "Arial Black", sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('?', S / 2, y0 + h * 0.55); }
+}
+// ---- In 3D: a soft sack (a box puffed up in the middle and gathered at the top), the print on the front
+let bagGeo = null, bagInkGeo = null;
+function bagGeometry() {
+  if (bagGeo) return bagGeo;
+  const g = new THREE.BoxGeometry(BAG_W, BAG_H, BAG_D, 8, 10, 2), p = g.attributes.position;
+  const sm = (v) => { v = clamp(v, 0, 1); return v * v * (3 - 2 * v); };
+  for (let i = 0; i < p.count; i++) {
+    let x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+    const t = (y + BAG_H / 2) / BAG_H, u = x / (BAG_W / 2);
+    x *= 1 - 0.3 * sm((t - 0.7) / 0.3);                                                   // gathered at the top by the cords
+    z *= Math.max(0.24, (1 - u * u * 0.72) * (1 - Math.pow((t - 0.45) / 0.62, 2) * 0.72));   // full in the middle, flat at the seams
+    if (t > 0.93) y += Math.sin(u * 9) * 0.006;                                            // the bunched-up top
+    p.setXYZ(i, x, y, z);
+  }
+  g.computeVertexNormals();
+  // the ink outline wants one normal per corner (the box's faces don't share theirs), or it splits at the edges
+  const ink = g.clone(), ip = ink.attributes.position, nn = ink.attributes.normal, sum = new Map(), key = (i) => ip.getX(i).toFixed(4) + ',' + ip.getY(i).toFixed(4) + ',' + ip.getZ(i).toFixed(4);
+  for (let i = 0; i < ip.count; i++) { const k = key(i), v = sum.get(k) || [0, 0, 0]; v[0] += nn.getX(i); v[1] += nn.getY(i); v[2] += nn.getZ(i); sum.set(k, v); }
+  for (let i = 0; i < ip.count; i++) { const v = sum.get(key(i)), l = Math.hypot(v[0], v[1], v[2]) || 1; nn.setXYZ(i, v[0] / l, v[1] / l, v[2] / l); }
+  bagGeo = g; bagInkGeo = ink;
+  return g;
+}
+const BAG_INK = outlineMat(0.012);
+function bagMats(id) {
+  const a = bagArt(id);
+  if (a.mats) return a.mats;
+  const side = toon(a.col);
+  const front = new THREE.MeshToonMaterial({ map: new THREE.CanvasTexture(a.front), gradientMap: toonGrad, emissive: a.glow ? a.emis : 0x000000, emissiveMap: a.glow ? new THREE.CanvasTexture(a.glow) : null });
+  const back = new THREE.MeshToonMaterial({ map: new THREE.CanvasTexture(a.back), gradientMap: toonGrad });
+  a.mats = [side, side, side, side, front, back];   // (the box's faces: +x, -x, top, bottom, front, back)
+  return a.mats;
+}
+function bagBody(id) {
+  const m = new THREE.Mesh(bagGeometry(), bagMats(id));
+  m.add(new THREE.Mesh(bagInkGeo, BAG_INK));
+  return m;
+}
+function bagCord(pts, col) {   // a cord along a few points (its own tube: dropped with the bag)
+  const curve = new THREE.CatmullRomCurve3(pts.map((q) => new V3(q[0], q[1], q[2])));
+  const m = new THREE.Mesh(new THREE.TubeGeometry(curve, 32, 0.0085, 5, false), toon(col));
+  m.userData.own = true;
+  return m;
+}
+function disposeBag(g) { g.traverse((o) => { if (o.userData.own && o.geometry) o.geometry.dispose(); }); }
+// Worn: on the back, the cords over the shoulders and back under the arms (in the hips bone's frame: +z is forward)
+const BAG_WEAR = { y: 0.335, z: -0.168 };
+function wornBag(rig, id) {
+  const a = bagArt(id), g = new THREE.Group(), body = bagBody(id);
+  body.rotation.y = Math.PI;   // the print faces back
+  body.position.set(0, BAG_WEAR.y, BAG_WEAR.z);
+  g.add(body);
+  for (const sx of [1, -1]) g.add(bagCord([[0.12 * sx, 0.545, -0.15], [0.145 * sx, 0.625, -0.085], [0.15 * sx, 0.625, 0.05], [0.14 * sx, 0.5, 0.15], [0.175 * sx, 0.34, 0.1], [0.19 * sx, 0.24, -0.02], [0.17 * sx, 0.15, -0.12], [0.145 * sx, 0.125, -0.155]], a.cord));
+  rig.hips.add(g);
+  return g;
+}
+// On the grass by the sideline: on its back, the print up, the cords loose around it
+function groundBag(id, x, z, yaw, rnd) {
+  const a = bagArt(id), g = new THREE.Group(), body = bagBody(id);
+  body.rotation.x = -Math.PI / 2; body.position.y = BAG_D * 0.34;
+  g.add(body);
+  for (const sx of [1, -1]) {
+    const k = 0.1 + rnd() * 0.14;
+    g.add(bagCord([[0.12 * sx, 0.014, -0.205], [(0.22 + k) * sx, 0.014, -0.31 - k], [(0.36 + k) * sx, 0.014, -0.1], [(0.28 + 0.5 * k) * sx, 0.014, 0.15], [0.16 * sx, 0.014, 0.215]], a.cord));
+  }
+  g.position.set(x, 0, z); g.rotation.y = yaw;
+  scene.add(g);
+  return g;
+}
+// On Chai T's lawn chair: hung by its cords over the armrest, on the side facing your end (s: that end's x sign)
+function chairBag(id, s) {
+  const a = bagArt(id), g = new THREE.Group(), body = bagBody(id);
+  body.rotation.x = -0.1;   // its top leaning in on the chair
+  body.position.set(0, 0.6 - BAG_H / 2, 0);
+  g.add(body);
+  for (const sx of [1, -1]) g.add(bagCord([[0.12 * sx, 0.575, 0.0], [0.115 * sx, 0.655, -0.04], [0.105 * sx, 0.665, -0.1], [0.1 * sx, 0.6, -0.15], [0.095 * sx, 0.5, -0.165]], a.cord));
+  g.position.set(COACH_AT.x + s * 0.37, 0, COACH_AT.z - 0.06); g.rotation.y = s > 0 ? Math.PI / 2 : -Math.PI / 2;   // (the back of the armrest, clear of his knees)
+  scene.add(g);
+  return g;
+}
+// ---- At a game: whose bag goes where. list: [{ p (their player), id, mode: 'wear' | 'side' }] (people only)
+const BAGS3D = { list: [] };
+function clearBags() {
+  for (const b of BAGS3D.list) { if (b.g.parent) b.g.parent.remove(b.g); disposeBag(b.g); }
+  BAGS3D.list = [];
+}
+const bagRank = (id) => BALL_TIERS.indexOf(tierOf(BAG_BY[id]));
+function matchBags(list) {
+  clearBags();
+  const people = (list || []).filter((e) => e && e.p && e.p.rig && isBag(e.id));
+  let chair = null;
+  for (const e of people) if (e.mode !== 'wear' && (!chair || bagRank(e.id) > bagRank(chair.id))) chair = e;   // the rarest left on the sideline (the first of equals)
+  const me = localCtl && localCtl.p, s = Math.sign(me ? me.team.side : teams[0].side) || 1, n = [0, 0];
+  people.forEach((e, i) => {
+    let g;
+    if (e.mode === 'wear') g = wornBag(e.p.rig, e.id);
+    else if (e === chair) g = chairBag(e.id, s);
+    else {
+      const t = e.p.team === teams[1] ? 1 : 0, k = n[t]++, side = Math.sign(e.p.team.side) || 1, rnd = seededRandom(97 + i * 31 + bagRank(e.id));
+      g = groundBag(e.id, side * (2.3 + 1.25 * k), -(COURT_Z + 1.05 + 0.32 * (k % 2)), (rnd() - 0.5) * 0.9 + (rnd() < 0.5 ? 0 : Math.PI), rnd);
+    }
+    BAGS3D.list.push({ g, id: e.id, mode: e.mode === 'wear' ? 'wear' : 'side', p: e.p, chair: e === chair });
+  });
+}
+// Yours, at a game on this phone
+const myBagMode = () => (settings.bagMode === 'wear' ? 'wear' : 'side');
+const soloBags = (p) => (p && isBag(legend.bag) && ownsLoot(legend.bag) ? [{ p, id: legend.bag, mode: myBagMode() }] : []);
+// Online: what you'll bring (your presence), and someone's from theirs (a seat's 8th field)
+const bagPack = () => [isBag(legend.bag) && ownsLoot(legend.bag) ? BAG_IDS.indexOf(legend.bag) : -1, myBagMode() === 'wear' ? 0 : 1];
+const unbag = (a) => (Array.isArray(a) && Number.isInteger(a[0]) && BAGS[a[0]] ? { id: BAGS[a[0]].id, mode: a[1] ? 'side' : 'wear' } : null);
+function bagChanged() {   // (your bag or SETTINGS changed: the lobby hears it, and the menu shows it)
+  if (NET.room) netPresence({ bg: bagPack() });
+  if (showcase) showcaseBag();
+}
+// The menu: you wear yours (from the front, the cords on your shoulders)
+function showcaseBag() {
+  if (!showcase) return;
+  if (showcase.bag) { if (showcase.bag.parent) showcase.bag.parent.remove(showcase.bag); disposeBag(showcase.bag); showcase.bag = null; }
+  if (G.panel === 'menu' && isBag(legend.bag) && ownsLoot(legend.bag)) showcase.bag = wornBag(showcase, legend.bag);
+}
+
+/* =====================================================================
    PRACTICE (v10): drills run by Chai T, on your own or with everyone in an online lobby (you take turns: the line).
    HITTING LINES: he sets you from the net. Call your set before he sets it: no call, he fakes the set, catches it,
      tells you off, and you drop for five push-ups. (Your default set doesn't count here.)
@@ -10313,7 +11036,7 @@ $('tdBack').addEventListener('click', tradeLeave);
    snapshots (G[22]), like everything else.
    ===================================================================== */
 const DRILLS = {
-  hit: { name: 'HITTING LINES', short: 'HITTING', intro: [['HITTING LINES!', 'I set you from the net. Call your set before I set it.'], ['NO CALL, NO SET!', 'QUICK, HIGH, BACK or SKY: the buttons over SWITCH.']] },
+  hit: { name: 'HITTING LINES', short: 'HITTING', intro: [['HITTING LINES!', 'I toss and set on my own count. Call your set before I set it.'], ['NO CALL, NO SET!', 'QUICK, HIGH, BACK or SKY: tap one over your buttons, then time your run.']] },
   pass: { name: 'RECEIVING', short: 'RECEIVING', intro: [['RECEIVING!', 'Serves, and down balls off my box. Pass it to the ring by the net.'], ['STAY LOW!', 'Get your feet to it. DIG as it drops.']] },
   serve: { name: 'SERVING', short: 'SERVING', intro: [['SERVING!', 'I call a zone over there. It lights up. Put your serve in it.'], ['AIM WITH THE STICK!', 'Push it to go deep, pull it back to go short.']] },
   set: { name: 'SETTING', short: 'SETTING', intro: [['SETTING!', 'I toss you a free ball and call the set. Give me that set.'], ['THE STICK PICKS IT!', 'Up: QUICK. Middle: HIGH. Right: BACK. Down: SKY.']] },
@@ -10328,6 +11051,7 @@ const RECV = {
 const RECV_IDS = ['mix', 'serve', 'down'];
 const SET_NAME = { quick: 'QUICK', high: 'HIGH', back: 'BACK', sky: 'SKY' };
 const BOX_H = 0.5;
+const HIT_BEAT = 1.5;   // HITTING LINES: how long he holds the ball before his toss
 const PRAC_SPOT = {   // on your side (toWorld u: from the net, w: across)
   setter: [0.75, 0.9],   // Chai T setting (hitting lines); you setting (the setting drill)
   line: [4.4, -2.7],     // the hitting line, left side, behind the 10-foot line
@@ -10493,9 +11217,9 @@ function pracReady() {
   const there = pracCoachAt();
   if (d === 'hit') {
     c.look = { x: up.pos.x, z: up.pos.z }; pracPose(there ? 'hold' : 'walk');
-    const at = pracLineSpot(0), near = Math.hypot(up.pos.x - at.x, up.pos.z - at.z) < 1.6;
-    if (PRAC.t > 0.4 && PRAC.said < G.time - 6) pracSay('CALL IT!', 'Call your set, then come and hit.', 2.0);
-    if (there && PRAC.t > 1.4 && (near || PRAC.t > 4.5)) { pracGo('toss'); pracPose('toss'); PRAC.holder = 'toss'; PRAC.tossY = ball.p.y; }
+    if (PRAC.t > 0.4 && PRAC.said < G.time - 6) pracSay('CALL IT!', 'Call your set, then time your run.', 2.0);
+    // v10.0.1: once he has the ball he tosses on his own count, wherever you are (it used to wait for you at the line)
+    if (there && PRAC.t > HIT_BEAT) { pracGo('toss'); pracPose('toss'); PRAC.holder = 'toss'; PRAC.tossY = ball.p.y; }
   } else if (d === 'set') {
     c.look = { x: up.pos.x, z: up.pos.z }; pracPose(there ? 'hold' : 'walk');
     if (there && PRAC.t > 0.5 && PRAC.said < G.time - 4) pracSay(SET_NAME[PRAC.call] + '!', 'Give me a ' + SET_NAME[PRAC.call] + ' set.', 2.2);
@@ -10808,6 +11532,7 @@ function startPractice(drill, recv) {
   showPanel(null);
   $('hud').hidden = false; $('controls').hidden = false;
   releaseAll(); hudCache = {};
+  matchBags(soloBags(localCtl.p));   // v10.1: your bag (on Chai T's chair, if it's on the sideline: he's up running the drill)
 }
 const pracTitle = () => 'PRACTICE · ' + DRILLS[PRAC.drill].short + (PRAC.drill === 'pass' ? ' · ' + (RECV[PRAC.recv] || RECV.mix).name : '');
 function pracTags() {
@@ -10926,18 +11651,18 @@ function openPracticePanel() {
   document.querySelectorAll('#prDrills .dkinds button').forEach((b) => b.classList.toggle('go', b.dataset.kind === (PRMENU.recv || 'mix')));   // (the last one you picked)
   if (G.panel !== 'practicePanel') openPanel('practicePanel');
 }
-document.querySelectorAll('#prDrills button.drill').forEach((b) => b.addEventListener('click', () => { PRMENU.drill = b.dataset.drill; playTap(); startPractice(b.dataset.drill); }));
-document.querySelectorAll('#prDrills .dkinds button').forEach((b) => b.addEventListener('click', () => { PRMENU.drill = 'pass'; PRMENU.recv = RECV[b.dataset.kind] ? b.dataset.kind : 'mix'; playTap(); startPractice('pass', PRMENU.recv); }));
+document.querySelectorAll('#prDrills button.drill').forEach((b) => b.addEventListener('click', partyGuard(() => { PRMENU.drill = b.dataset.drill; playTap(); startPractice(b.dataset.drill); })));
+document.querySelectorAll('#prDrills .dkinds button').forEach((b) => b.addEventListener('click', partyGuard(() => { PRMENU.drill = 'pass'; PRMENU.recv = RECV[b.dataset.kind] ? b.dataset.kind : 'mix'; playTap(); startPractice('pass', PRMENU.recv); })));
 $('pkPractice').addEventListener('click', () => { playTap(); openPracticePanel(); });
 $('prBack').addEventListener('click', closePanel);
-$('prOnline').addEventListener('click', () => { audioInit(); NET.msg = ''; NET.story = null; panelStack.length = 0; openOnline('practice'); });
+$('prOnline').addEventListener('click', () => { audioInit(); if (inParty()) { panelStack.length = 0; openOnline('party'); return; } NET.msg = ''; NET.story = null; panelStack.length = 0; openOnline('practice'); });
 // ---- Online practice: the host seats everyone in the line and sends the shaggers' looks (its own friends')
 function netStartPractice() {
   const seat = [];
   for (const p of netPeople()) {
     if (seat.length >= 6) break;
     const pr = p.presence;
-    seat.push([p.peer, 0, seat.length, cleanName(pr.n), Array.isArray(pr.look) ? pr.look.slice(0, LOOK_LEN) : [], Array.isArray(pr.st) ? pr.st.slice(0, 9) : [], pr.tr | 0]);
+    seat.push([p.peer, 0, seat.length, cleanName(pr.n), Array.isArray(pr.look) ? pr.look.slice(0, LOOK_LEN) : [], Array.isArray(pr.st) ? pr.st.slice(0, 9) : [], pr.tr | 0, Array.isArray(pr.bg) ? [pr.bg[0] | 0, pr.bg[1] ? 1 : 0] : null]);
   }
   if (!seat.some((x) => x[0] === NET.me)) { NET.msg = 'Still connecting… try again in a second.'; renderOnline(); return; }
   const pals = legend.friends.filter((f) => Array.isArray(f.lk) && f.lk.length).slice().sort(() => Math.random() - 0.5).slice(0, 3).map((f) => [f.lk.slice(0, LOOK_LEN), f.n]);
@@ -10966,6 +11691,7 @@ function startOnlinePractice(cfg) {
     assign(c, t.players[i]);
     addTag(nameTag(c.name, local ? '#ffd23f' : '#fff7ea', !!t.players[i].mastery), { ctl: c });
   });
+  matchBags(seat.map((x, i) => Object.assign({ p: teams[0].players[i] }, unbag(x[7]))));   // v10.1: everyone's bag
   for (const p of teams[1].players) if (p.name) addTag(nameTag(p.name, '#fff7ea', false), { p, quiet: true });
   G.mode = 3; G.demo = false; G.autoplay = false; G.paused = false; G.countdown = null; G.scene = null;
   G.match = { kind: 'practice', drill: cfg.prac, diff: 'normal', n: seat.length, crew: null, park: G.park };
@@ -11008,8 +11734,11 @@ window.__grass = {
   PAL, WATCH, FR, CDOG, watchStart, watchStop, addFriend, removeFriend, friendsPoll, palPeek, openDogPanel, dogTrick, dogTumble, makeWatchDog, disposeWatchDog, dogPose, placeDog,
   DOG_BREEDS, DOG_TRICKS, unpackRig, packRig, palConfig, courtDogSet, get dogPreview() { return dogPreview; },
   dogClamp, dogNearCourt, coachPatDog, PAT, LEAP_R, palDogHit,
+  friendRequestSend, acceptRequest, declineRequest, cancelRequest, renderFriends, partyInvite, partyJoin, leaveParty, partyKind, inParty, PARTY, HIT_BEAT,
   BALLS, BALL_BY, BALL_TIERS, BOX_PRICE, BALL_FX, ballArt, setBallLook, get ballLook() { return ballLook; }, ballMesh, ballGlow, ballHalo, drawBallPic, rollBox, openBox, useBall, sellSpare, sellAllSpares,
   P: PRAC, DRILLS, ZONES, sendPass, sendSet, humanAim, timeToHeightTest: timeToHeight, ballAtTest: ballAt, practiceLandTest: (good) => { PRAC.st = 'rep'; pracDone(good, 'OK', ''); }, startPractice, practiceStop, practicePack, PRMENU, pracNext, pracHand, PUSH_T, SET_NAME,
+  BAGS, BAG_BY, LOOT_BY, BOX_LOOT, BAGS3D, matchBags, clearBags, useBag, drawBagPic, bagArt, lootN, isBag, bagPack, showcaseBag, bagChanged, get showcase() { return showcase; },
+  saveSettings, netBackToLobby,
   BL, BOXSHOW, renderBalls, mythicShatter, mythic, shards, serveBallOf, coachGradeTest: coachGrade, TR, tradeStart, tradeOpen, tradePick, tradeAcceptPress, tradeLeave, tradeEnd, renderTrade, syncBallPlate,
   poseKit: { celebratePose, idlePose, poseTarget, BASE_POSE, CELEBRATIONS, IDLES },
   renderRaw() { sky.position.copy(camera.position); renderer.render(scene, camera); },
