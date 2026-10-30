@@ -1335,7 +1335,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 (() => {
 'use strict';
 // The version: shown in SETTINGS and on the cover of the guide book. Raise it with every update, then rebuild the guide.
-const VERSION = '10.1';
+const VERSION = '10.1.1';
 const $ = (id) => document.getElementById(id);
 const errBox = $('err');
 function showError(msg) { errBox.textContent = msg; errBox.hidden = false; }
@@ -6985,11 +6985,12 @@ const hexCss = (c) => '#' + c.toString(16).padStart(6, '0');
 // The parks you can pick for a pickup game: the Block, then each court once you reach it in the story
 const parkOpen = (i) => i === 0 || CREWS.some((c) => c.court === i && crewOpen(c));
 // v10.1: the menu's ONLINE button says PARTY while you're in one (with how many), and FRIENDS shows what's waiting
-function syncPartyBits() {
-  const n = Math.max(1, netPeople().length), on = inParty();
-  $('btnMenuOnline').querySelector('b').textContent = on ? 'PARTY · ' + n : 'ONLINE';
-  $('btnMenuOnline').classList.toggle('party', on);
-  if (G.panel === 'friendsPanel') { $('frParty').hidden = !on; if (on) $('frParty').textContent = 'PARTY · ' + n; }
+function syncPartyBits() {   // (runs on every update from the room: it only touches the page when something changed)
+  const n = Math.max(1, netPeople().length), on = inParty(), lbl = $('btnMenuOnline').querySelector('b'), txt = on ? 'PARTY · ' + n : 'ONLINE';
+  if (lbl.textContent !== txt) lbl.textContent = txt;
+  const mb = $('btnMenuOnline'), fp = $('frParty');
+  if (mb.classList.contains('party') !== on) mb.classList.toggle('party', on);
+  if (G.panel === 'friendsPanel') { if (fp.hidden !== !on) fp.hidden = !on; if (on && fp.textContent !== 'PARTY · ' + n) fp.textContent = 'PARTY · ' + n; }
   syncFriendDot();
 }
 function syncMenus() {
@@ -8086,7 +8087,14 @@ function updateRig(p, dt) {
     p.stareYaw = p.stareYaw == null ? yaw : p.stareYaw + Math.atan2(Math.sin(want - p.stareYaw), Math.cos(want - p.stareYaw)) * Math.min(1, dt * 5);
     yaw = p.stareYaw;
   } else p.stareYaw = null;
-  r.root.position.set(p.pos.x, p.pos.y + hop, p.pos.z);
+  let ox = 0, oz = 0;
+  if (p.vo) {   // (v10.1.1: a guest's player on the host's screen, easing over to its latest report)
+    const f = Math.exp(-dt / 0.08);
+    p.vo.x *= f; p.vo.z *= f;
+    if (Math.hypot(p.vo.x, p.vo.z) > 3.5) p.vo.x = p.vo.z = 0;
+    ox = p.vo.x; oz = p.vo.z;
+  }
+  r.root.position.set(p.pos.x + ox, p.pos.y + hop, p.pos.z + oz);
   r.root.rotation.y = yaw + (p.spin ? Math.min(1, p.spin.t / 0.32) * Math.PI * 2 : 0);
   applyRig(r, P);
   placeBlob(r);
@@ -8343,7 +8351,7 @@ const NET = {
   // host
   ev: [], evSeq: 0, f: 0, sentAt: new Array(64).fill(0), sentF: new Array(64).fill(-1),
   // guest
-  snap: null, snapNew: false, lastF: -1, evSeen: -1, ball: null, q: 0, actSeq: 0, cnt: [0, 0, 0, 0, 0, 0, 0, 0], tossCharge: 0,
+  snap: null, snapNew: false, lastF: -1, inF: -1, evSeen: -1, ball: null, q: 0, actSeq: 0, cnt: [0, 0, 0, 0, 0, 0, 0, 0], tossCharge: 0,
 };
 const PARTY = { invites: new Map(), creating: null };   // v10.1: party invites waiting for you; a party being started
 // ---- Online outside Claude (this file on GitHub Pages or any web host): the phones connect to each other directly
@@ -8377,6 +8385,12 @@ function loadPeerLib() {
 // and the hub passes everyone's presence along (the same shape as Claude's room, so the game can't tell).
 // Every message stays far under PeerJS's 16 KB limit for JSON lines.
 const PEER_FATAL = new Set(['browser-incompatible', 'invalid-id', 'invalid-key', 'ssl-unavailable']);
+// v10.1.1: the live part (the host's snapshots, a guest's buttons and body) goes on a second channel on the same line,
+// unordered and never sent twice. PeerJS's line is ordered and resends, so on a phone network one lost message held up
+// everything behind it: a freeze, then a rush to catch up. Newest only: a live send is skipped while an older one is still
+// waiting to go out, and anything older than the last one in is dropped. (A phone with an older Grass just uses the line.)
+const RT_LABEL = 'grass-rt', RT_BACKLOG = 3000, LINE_BACKLOG = 6000;
+const isLivePatch = (patch) => { const k = Object.keys(patch); return k.length === 1 && (k[0] === 'S' || k[0] === 'I'); };
 const peerRooms = {
   async join(name, role) {
     const asHub = (role || PEER_ROLE) === 'host';
@@ -8384,7 +8398,7 @@ const peerRooms = {
     const hubId = 'grass3d-v' + NET_V + '-' + String(name).replace(/[^a-z0-9-]/gi, '').toLowerCase();
     const opts = Object.assign({ debug: 0 }, window.__grassPeerServer || {});
     const st = { me: null, hub: asHub, mine: {}, peers: new Map(), conns: new Map(), hubConn: null, dialing: null, handlers: new Set(), errs: new Set(),
-      closed: false, retry: 0, list: [], dialT: 0, tick: 0, tickAt: 0, reT: 0, reN: 0 };
+      closed: false, retry: 0, list: [], dialT: 0, tick: 0, tickAt: 0, reT: 0, reN: 0, rtN: 0 };
     const now = () => performance.now();
     const freeze = (id, pres) => Object.freeze({ peer: id, by: null, isMe: id === st.me, sameTab: id === st.me, kind: 'viewer', guest: false, presence: Object.freeze(pres || {}), updatedAt: Date.now() });
     const emit = (joined, left, updated) => {
@@ -8394,14 +8408,55 @@ const peerRooms = {
     const merge = (base, patch) => { const o = Object.assign({}, base, patch); for (const k in o) if (o[k] === null) delete o[k]; return o; };
     const lite = (p) => { if (!p || !p.I) return p; const o = Object.assign({}, p); delete o.I; return o; };   // guests' button reports only matter to the host
     const send = (c, m) => { try { if (c && c.open && !c.__dead) { c.send(m); c.__out = now(); } } catch (_) { /* a closing line */ } };
-    const kill = (c) => { if (!c) return; c.__dead = true; try { c.close(); } catch (_) { /* gone */ } };
+    const closeRt = (c) => { if (c && c.__rt) { const ch = c.__rt; c.__rt = null; try { ch.close(); } catch (_) { /* gone */ } } };
+    const kill = (c) => { if (!c) return; c.__dead = true; closeRt(c); try { c.close(); } catch (_) { /* gone */ } };
+    // the live channel: newest only (skipped while it's still sending an older one; on the line only if it isn't open)
+    const backlog = (c) => (c && c.dataChannel ? Number(c.dataChannel.bufferedAmount) || 0 : 0) + (c && c.bufferSize ? 1e9 : 0);
+    const liveSend = (c, m) => {
+      const ch = c && c.__rt;
+      if (ch && ch.readyState === 'open') {
+        if ((Number(ch.bufferedAmount) || 0) <= RT_BACKLOG) { try { ch.send(JSON.stringify(Object.assign({ n: ++st.rtN }, m))); } catch (_) { /* closing */ } }
+        return;
+      }
+      if (backlog(c) <= LINE_BACKLOG) send(c, m);
+    };
+    const rtParse = (e) => { try { const d = e && e.data; return JSON.parse(typeof d === 'string' ? d : new TextDecoder().decode(d)); } catch (_) { return null; } };
+    // a live message in: only if it's newer than the last one on this line
+    const rtTake = (c, ch, fn) => {
+      ch.onmessage = (e) => {
+        if (c.__dead || c.__rt !== ch) return;
+        const m = rtParse(e);
+        if (!m || typeof m !== 'object' || !(Number(m.n) > (c.__rtIn || 0))) return;
+        c.__rtIn = Number(m.n); c.__in = now();
+        fn(c, m);
+      };
+      ch.onclose = () => { if (c.__rt === ch) c.__rt = null; };
+    };
     const peer = new Peer(st.hub ? hubId : undefined, opts);
     if (window.__grassTestPeer) window.__grassPeerSt = st;   // tests look inside
     // the hub: everyone connects to it and it shares everyone's presence
+    const hubData = (c, m) => {
+      if (c.__dead || st.conns.get(c.peer) !== c || !m || typeof m !== 'object' || m.t !== 'p' || !m.d || typeof m.d !== 'object') return;
+      const isNew = !st.peers.has(c.peer);
+      st.peers.set(c.peer, merge(st.peers.get(c.peer) || {}, m.d));
+      if (isNew || !m.d.I || Object.keys(m.d).length > 1) { const out = { t: 'u', id: c.peer, p: lite(st.peers.get(c.peer)) }; for (const [id, o] of st.conns) if (id !== c.peer) send(o, out); }
+      emit(isNew ? [c.peer] : [], [], isNew ? [] : [c.peer]);
+    };
     const hubWelcome = (c) => {
       c.__in = now();
+      // the guest's live channel arrives on this line's connection: ours (PeerJS's own handler would take it as its line)
+      const pc = c.peerConnection;
+      if (pc && 'ondatachannel' in pc) {
+        const theirs = pc.ondatachannel;
+        pc.ondatachannel = (evt) => {
+          const ch = evt && evt.channel;
+          if (ch && ch.label === RT_LABEL) { closeRt(c); c.__rt = ch; c.__rtIn = 0; rtTake(c, ch, hubData); }
+          else if (theirs) theirs.call(pc, evt);
+        };
+      }
       const gone = () => {
         if (st.conns.get(c.peer) !== c) return;   // already replaced by a newer line from the same phone
+        closeRt(c);
         st.conns.delete(c.peer); st.peers.delete(c.peer);
         for (const o of st.conns.values()) send(o, { t: 'l', id: c.peer });
         emit([], [c.peer], []);
@@ -8419,17 +8474,10 @@ const peerRooms = {
           const e = [id, id === st.me ? p : lite(p)], n = JSON.stringify(e).length;
           if (size + n < 12000) { all.push(e); size += n; } else rest.push(e);
         }
-        send(c, { t: 'all', me: c.peer, list: all });
+        send(c, { t: 'all', me: c.peer, list: all, rt: 1 });   // (rt: this hub takes a live channel)
         for (const [id, p] of rest) send(c, { t: 'u', id, p });
       });
-      c.on('data', (m) => {
-        c.__in = now();
-        if (c.__dead || st.conns.get(c.peer) !== c || !m || typeof m !== 'object' || m.t !== 'p' || !m.d || typeof m.d !== 'object') return;
-        const isNew = !st.peers.has(c.peer);
-        st.peers.set(c.peer, merge(st.peers.get(c.peer) || {}, m.d));
-        if (isNew || !m.d.I || Object.keys(m.d).length > 1) { const out = { t: 'u', id: c.peer, p: lite(st.peers.get(c.peer)) }; for (const [id, o] of st.conns) if (id !== c.peer) send(o, out); }
-        emit(isNew ? [c.peer] : [], [], isNew ? [] : [c.peer]);
-      });
+      c.on('data', (m) => { c.__in = now(); hubData(c, m); });
       c.on('close', gone);
       c.on('error', () => { if (!c.open) gone(); });
     };
@@ -8446,6 +8494,7 @@ const peerRooms = {
       const lost = () => {
         if (c.__done) return;
         c.__done = true;
+        closeRt(c);
         if (st.dialing === c) st.dialing = null;
         if (st.hubConn !== c) { if (!c.__dead && !st.closed && !st.hubConn) scheduleDial(2000); return; }   // a call that never connected
         st.hubConn = null;
@@ -8459,20 +8508,23 @@ const peerRooms = {
         st.dialing = null; st.hubConn = c; st.retry = 0; c.__in = now();
         send(c, { t: 'p', d: st.mine });
       });
-      c.on('data', (m) => {
-        c.__in = now();
+      const guestData = (c, m) => {
         if (c.__dead || st.hubConn !== c || !m || typeof m !== 'object') return;
         if (m.t === 'all' && Array.isArray(m.list)) {
           const before = new Set(st.peers.keys());
           st.peers = new Map(m.list.filter((x) => Array.isArray(x) && typeof x[0] === 'string').map(([id, p]) => [id, p && typeof p === 'object' ? p : {}]));
           st.peers.set(st.me, st.mine);
           emit([...st.peers.keys()].filter((k) => !before.has(k)), [...before].filter((k) => !st.peers.has(k)), []);
+          if (m.rt && !c.__rt && c.peerConnection && typeof c.peerConnection.createDataChannel === 'function') {
+            try { const ch = c.peerConnection.createDataChannel(RT_LABEL, { ordered: false, maxRetransmits: 0 }); c.__rt = ch; c.__rtIn = 0; rtTake(c, ch, guestData); } catch (_) { /* the line will do */ }
+          }
         } else if (m.t === 'u' && typeof m.id === 'string' && m.id !== st.me) {
           const prev = st.peers.get(m.id), p = m.p && typeof m.p === 'object' ? m.p : {};
           st.peers.set(m.id, m.m && prev ? merge(prev, p) : merge({}, p));
           emit(prev ? [] : [m.id], [], prev ? [m.id] : []);
         } else if (m.t === 'l' && typeof m.id === 'string' && m.id !== st.me && st.peers.delete(m.id)) emit([], [m.id], []);
-      });
+      };
+      c.on('data', (m) => { c.__in = now(); guestData(c, m); });
       c.on('close', lost);
       c.on('error', () => { if (!c.open) lost(); });
     };
@@ -8532,7 +8584,9 @@ const peerRooms = {
         const out = st.hub ? { t: 'u', id: st.me, p: patch, m: 1 } : { t: 'p', d: patch };
         if (JSON.stringify(out).length > 15000) return Promise.reject({ code: 'invalid_argument', message: 'presence over 15 KB' });
         st.mine = merge(st.mine, patch); st.peers.set(st.me, st.mine);
-        if (st.hub) for (const c of st.conns.values()) send(c, out);
+        const live = isLivePatch(patch);   // the newest snapshot or report: by the live channel, never queued behind an older one
+        if (st.hub) for (const c of st.conns.values()) { if (live) liveSend(c, out); else send(c, out); }
+        else if (live) liveSend(st.hubConn, out);
         else send(st.hubConn, out);
         emit([], [], [st.me]);
         return Promise.resolve();
@@ -8710,7 +8764,7 @@ function netFromHost(hp) {
       else NET.msg = 'That game already started. Stay here for the next one.';
     } else if (L.st === 'lobby' && (NET.state === 'play' || NET.state === 'over')) netBackToLobby();
   }
-  if (NET.state === 'play' && hp.S && typeof hp.S === 'object' && (hp.S.f | 0) !== NET.lastF) { NET.snap = hp.S; NET.snapNew = true; NET.snapAt = performance.now(); }
+  if (NET.state === 'play' && hp.S && typeof hp.S === 'object' && (hp.S.f | 0) > NET.inF) { NET.inF = hp.S.f | 0; NET.snap = hp.S; NET.snapNew = true; NET.snapAt = performance.now(); clockSample(hp.S.t, NET.snapAt); }
 }
 function netLobbyInfo() {
   const live = NET.state === 'play' || NET.state === 'over';
@@ -8787,7 +8841,7 @@ function startOnline(cfg) {
   if (!crew) teams[0].ai = teams[1].ai;
   camFocusFor = null; shakeT = 0; hitStop = 0; popT = 0;
   resetScores(); resetRec(); eventsReset(); G.replay = null; G.replayPending = false;
-  Object.assign(NET, { ev: [], evSeq: 0, f: 0, snap: null, snapNew: false, lastF: -1, evSeen: -1, ball: null, q: 0, cnt: [0, 0, 0, 0, 0, 0, 0, 0] });
+  Object.assign(NET, { ev: [], evSeq: 0, f: 0, snap: null, snapNew: false, lastF: -1, inF: -1, evSeen: -1, ball: null, ballPrev: null, bOff: null, q: 0, cnt: [0, 0, 0, 0, 0, 0, 0, 0] }); clockReset();
   setupServe();   // guests too, so everyone stands in place until the first snapshot lands
   const me = localCtl && localCtl.p;
   $('modeTag').textContent = crew ? 'VS ' + crew.name : n + 'V' + n + ' · ONLINE';
@@ -8836,7 +8890,7 @@ function netPump(dt) {
   const wallDt = NET.pumpAt && !asleep ? (now - NET.pumpAt) / 1000 : 0;   // real seconds (dt stops at 0.1 on a slow frame)
   if (asleep) { NET.snapAt = now; NET.hostSeenT = now; }   // this phone was the one asleep: the host gets a fresh wait
   NET.pumpAt = now;
-  if (G.client && NET.snapNew) { NET.snapNew = false; netApplySnap(NET.snap); }
+  if (G.client && NET.snapNew) { NET.snapNew = false; netApplySnap(NET.snap, NET.snapAt); }
   // v10.1: a party that isn't there any more (the invite was old)
   if (NET.party && NET.role === 'guest' && !NET.hostSeen && Date.now() - NET.joinedAt > 12000) { netLeave(); showMenu(); flash('THAT PARTY HAS ENDED', true); return; }
   // Outside a match, a guest waits up to 30 s for a host who's gone quiet (texting the code, say)
@@ -8861,7 +8915,7 @@ function netPump(dt) {
   }
   NET.sendT += dt;
   if (NET.sendT < 1 / 30) return;
-  NET.sendT = 0;
+  NET.sendT = Math.min(NET.sendT - 1 / 30, 1 / 30);   // (a steady 30 a second at any frame rate; it used to slip to 20-25 on a slow one)
   if (G.host && (NET.state === 'play' || NET.state === 'over')) { NET.lastS = netSnapshot(); netPresence({ S: NET.lastS }); NET.sentAt[NET.f % 64] = performance.now(); NET.sentF[NET.f % 64] = NET.f; }
   else if (G.client && NET.state === 'play') netPresence({ I: netReport() });
 }
@@ -8890,7 +8944,7 @@ function netSnapshot() {
       t.score, Math.round(t.style), t.gb.pocket, t.gb.active, t.serveIdx, Math.round(G.styleEarned[t.id] || 0)];
   });
   return {
-    f: ++NET.f,
+    f: ++NET.f, t: Math.round(performance.now()),   // (v10.1.1: the host's clock, so a phone can tell how late a snapshot is)
     G: [NET_PHASES.indexOf(G.phase), G.servePhase === 'tossed' ? 1 : 0, pidx(G.server), G.serving ? G.serving.id : 0, G.poss.team ? G.poss.team.id : -1, G.poss.count,
       pidx(G.poss.last), pidx(G.lastToucher), G.touchSerial, G.rallyWinner ? G.rallyWinner.id : -1, pidx(G.celebrate), r2(G.deadT), G.matchWinner ? G.matchWinner.id : -1,
       G.lucky ? Math.max(0, LUCKY_KINDS.indexOf(G.lucky.kind)) : 0, G.lucky && G.lucky.go ? 1 : 0, G.lucky && G.lucky.chase ? [r2(G.lucky.chase.x), r2(G.lucky.chase.z)] : 0,
@@ -8905,7 +8959,7 @@ function netReadInputs() {
   for (const c of ctls) {
     if (c.local) continue;
     const peer = NET.peers.find((x) => x.peer === c.peer), I = peer && peer.presence && peer.presence.I;
-    if (!I || typeof I !== 'object' || I.q === c.lastQ || I.ep !== NET.ep) continue;   // nothing new, or from an earlier match
+    if (!I || typeof I !== 'object' || I.ep !== NET.ep || ((I.q | 0) <= (c.lastQ | 0) && (c.lastQ | 0) - (I.q | 0) < 100000)) continue;   // nothing new (or older), or from an earlier match
     c.lastQ = I.q;
     const st = Array.isArray(I.s) ? I.s : [];
     c.wx = num(st[0], -1, 1); c.wz = num(st[1], -1, 1);
@@ -8978,7 +9032,12 @@ function remoteStep(p) {
 }
 function netTakeReport(p, B) {
   if ((B[BX.tp] | 0) < (p.tp || 0)) return;   // from before the host moved everyone (a new rally): ignore it
-  p.pos.set(num(B[BX.x], -14, 14), num(B[BX.y], 0, 8), num(B[BX.z], -9, 9));
+  const nx = num(B[BX.x], -14, 14), nz = num(B[BX.z], -9, 9);
+  // v10.1.1: on the host's screen a guest's player eases over to each report instead of jumping to it (reports from a
+  // phone network come in unevenly); where the host has them for the rules is still the report
+  const vo = p.vo || (p.vo = { x: 0, z: 0 }), dx = p.pos.x - nx, dz = p.pos.z - nz;
+  if (Math.hypot(dx, dz) < 3.5) { vo.x += dx; vo.z += dz; } else vo.x = vo.z = 0;
+  p.pos.set(nx, num(B[BX.y], 0, 8), nz);
   p.vel.x = num(B[BX.vx], -12, 12); p.vel.z = num(B[BX.vz], -12, 12); p.vy = num(B[BX.vy], -25, 25);
   p.face = num(B[BX.face], -50, 50); p.grounded = !!B[BX.gr];
   const kind = NET_ACTS[B[BX.act] | 0] || '', id = B[BX.aid] | 0;
@@ -9046,8 +9105,23 @@ function netTakeBody(p, a) {   // adopt the host's copy (a new rally, or control
   p.face = num(a[PX.face], -50, 50); p.yawFx = 0; p.grounded = !!a[PX.gr];
   p.act = null; p.charging = false; p.windup = false; p.spin = null; p.recover = 0; p.trick180 = false; p.net = null;
 }
-function netApplySnap(S) {
-  const now = performance.now();
+// v10.1.1: how late a snapshot is. Two phones' clocks don't agree, so a guest keeps the smallest gap it has seen lately
+// between the host's clock on a snapshot and its own when it came in (the quickest trip). A snapshot that took longer than
+// that is that much older than it looks: everything's drawn from where it should be by now, not from when it showed up,
+// so a late one (or a bunch arriving at once after a hold-up) no longer drags the match backwards and then rushes it on.
+const CLK = { s: [], off: null };
+function clockReset() { CLK.s.length = 0; CLK.off = null; }
+function clockSample(t, at) {
+  if (!Number.isFinite(t)) return;   // (a host on an older Grass: its snapshots are timed when they come in)
+  CLK.s.push([at, at - t]);
+  while (CLK.s.length > 1 && at - CLK.s[0][0] > 4000) CLK.s.shift();
+  let m = Infinity;
+  for (const x of CLK.s) if (x[1] < m) m = x[1];
+  CLK.off = m;
+}
+const clockAt = (t, at) => (Number.isFinite(t) && CLK.off != null ? Math.min(at, t + CLK.off) : at);   // when it would have come on the quickest trip
+function netApplySnap(S, at) {
+  const now = clockAt(S.t, Number.isFinite(at) ? at : performance.now());   // (when this snapshot was the newest news)
   NET.lastF = S.f | 0;
   const g = Array.isArray(S.G) ? S.G : [], prev = G.phase, prevSerial = G.touchSerial;
   G.phase = NET_PHASES[g[0] | 0] || 'serve'; G.servePhase = g[1] ? 'tossed' : 'hold';
@@ -9078,6 +9152,7 @@ function netApplySnap(S) {
   });
   const b = Array.isArray(S.B) ? S.B : null;
   if (b) {
+    NET.ballPrev = NET.ball;
     NET.ball = { x: num(b[0], -40, 40), y: num(b[1], 0, 40), z: num(b[2], -40, 40), vx: num(b[3], -60, 60), vy: num(b[4], -60, 60), vz: num(b[5], -60, 60), t: now };
     ball.held = pAt(b[6]); ball.wobble = num(b[7], 0, 10); ball.lastKind = NET_KINDS[b[8] | 0] || null;
     const az = num(b[9], -40, 40), dy = num(b[10], 0, 30); ball.curve = az || dy ? { az, dy } : null;
@@ -9110,6 +9185,7 @@ function netApplySnap(S) {
       if (a[PX.tk] && !p.trick) p.trick = { kind: NET_TRICKS[a[PX.tk] | 0] || 'head', t: num(a[PX.tt], 0, 1) };
       return;
     }
+    p.netPrev = p.net;   // (netSmooth eases from where the last one had them to where this one does)
     p.net = { x: num(a[PX.x], -14, 14), y: num(a[PX.y], 0, 8), z: num(a[PX.z], -9, 9), vx: num(a[PX.vx], -12, 12), vz: num(a[PX.vz], -12, 12), vy: num(a[PX.vy], -25, 25), face: num(a[PX.face], -50, 50), t: now };
     p.vel.x = p.net.vx; p.vel.z = p.net.vz; p.vy = p.net.vy; p.grounded = !!a[PX.gr]; p.yawFx = 0;
     const kind = NET_ACTS[a[PX.act] | 0] || '';
@@ -9178,31 +9254,54 @@ function netPlay(e) {
     if (w && !w.rag) { if (k === 'r') startRag(w, num(e[3], -30, 30), num(e[4], 0, 20), num(e[5], -30, 30), num(e[6], -20, 20)); else w.bonk = { t: 0 }; }
   }
 }
-// Guest, every frame: ease everyone else toward the host's copy (moved on by its velocity) and fly the ball on
+// Guest, every frame: everyone else and the ball, flown on from the newest snapshot to now (by the host's clock: see
+// clockAt). v10.1.1: when a new snapshot changes where someone should be (a turn, the host's touch on the ball), the change
+// is eased in over a few frames: the gap goes into an offset that fades. (Before, they chased a moving target, which left
+// them trailing behind it and lurching at every snapshot.)
+const EASE_P = 0.08, EASE_B = 0.06;   // seconds for a player's, or the ball's, correction to fade to a third
+function netFly(n, now) {   // where a snapshot had a player, flown on to now
+  const age = G.paused ? 0 : Math.min(0.25, Math.max(0, (now - n.t) / 1000));
+  return [n.x + n.vx * age, n.y > 0 || n.vy > 0 ? Math.max(0, n.y + n.vy * age - 0.5 * G_PLAYER * age * age) : 0, n.z + n.vz * age];
+}
+function netBallAt(b, now) {   // where a snapshot had the ball, flown on to now: [x, y, z, vy]
+  const age = G.paused ? 0 : Math.min(0.3, Math.max(0, (now - b.t) / 1000));
+  const cv = ball.curve ? ball.curve.az || 0 : 0, gy = ballG();
+  return [b.x + b.vx * age, Math.max(BALL_R, b.y + b.vy * age - 0.5 * gy * age * age), b.z + b.vz * age + 0.5 * cv * age * age, b.vy - gy * age];
+}
 function netSmooth(dt) {
   const now = performance.now(), k = 1 - Math.exp(-dt * 16);
+  const fadeP = (d) => Math.exp(-dt / Math.min(0.25, EASE_P + 0.04 * d)), fadeB = (d) => Math.exp(-dt / Math.min(0.2, EASE_B + 0.03 * d));   // (a bigger catch-up glides in a little slower)
   for (const p of allPlayers) {
     const n = p.net;
-    if (!n || (localCtl && localCtl.p === p && G.phase !== 'coach')) continue;
-    const age = Math.min(0.25, (now - n.t) / 1000);
-    const tx = n.x + n.vx * age, tz = n.z + n.vz * age;
-    const ty = n.y > 0 || n.vy > 0 ? Math.max(0, n.y + n.vy * age - 0.5 * G_PLAYER * age * age) : 0;
-    if (Math.abs(tx - p.pos.x) + Math.abs(tz - p.pos.z) > 2.5) p.pos.set(tx, ty, tz);
-    else { p.pos.x += (tx - p.pos.x) * k; p.pos.z += (tz - p.pos.z) * k; p.pos.y += (ty - p.pos.y) * Math.min(1, k * 1.6); }
+    if (!n || (localCtl && localCtl.p === p && G.phase !== 'coach')) { p.netPrev = null; continue; }
+    const T = netFly(n, now), o = p.netOff || (p.netOff = { x: 0, y: 0, z: 0 });
+    if (p.netPrev) {   // a new snapshot: they carry on from where they were drawn, and the difference fades out
+      const P = netFly(p.netPrev, now);
+      o.x += P[0] - T[0]; o.y += P[1] - T[1]; o.z += P[2] - T[2];
+      p.netPrev = null;
+    }
+    const od = Math.hypot(o.x, o.z), f = fadeP(od);
+    if (od > 4) o.x = o.y = o.z = 0;   // too far to ease (a new rally's line-up): they're just there
+    o.x *= f; o.y *= f; o.z *= f;
+    p.pos.set(T[0] + o.x, Math.max(0, T[1] + o.y), T[2] + o.z);
     p.face += Math.atan2(Math.sin(n.face - p.face), Math.cos(n.face - p.face)) * k;
     if (p.act) p.act.t += dt;
     if (p.spin) p.spin.t += dt;
   }
-  if (ball.held) { holdPoint(ball.held, ball.p); NET.pin = null; return; }
+  const bo = NET.bOff || (NET.bOff = { x: 0, y: 0, z: 0 });
+  if (ball.held) { holdPoint(ball.held, ball.p); NET.pin = null; NET.ballPrev = null; bo.x = bo.y = bo.z = 0; return; }
   if (!NET.ball) return;
-  const b = NET.ball, age = Math.min(0.3, (now - b.t) / 1000);
-  const cv = ball.curve ? ball.curve.az || 0 : 0, gy = ballG();
-  const x = b.x + b.vx * age, z = b.z + b.vz * age + 0.5 * cv * age * age, y = Math.max(BALL_R, b.y + b.vy * age - 0.5 * gy * age * age);
-  ball.v.set(b.vx, b.vy - gy * age, b.vz);
+  const b = NET.ball, B = netBallAt(b, now), x = B[0], y = B[1], z = B[2];
+  ball.v.set(b.vx, B[3], b.vz);
+  if (NET.ballPrev) {   // a new snapshot: the ball carries on from where it was drawn, and the difference fades out
+    const P = netBallAt(NET.ballPrev, now);
+    bo.x += P[0] - x; bo.y += P[1] - y; bo.z += P[2] - z;
+    NET.ballPrev = null;
+  }
   // Your own touch: the ball stops at your hands until the host's answer comes back (about one round trip)
   if (NET.pin) {
     if (G.touchSerial !== NET.pin.serial || now - NET.pin.t > 350) NET.pin = null;
-    else { ball.p.set(NET.pin.x, NET.pin.y, NET.pin.z); return; }
+    else { ball.p.set(NET.pin.x, NET.pin.y, NET.pin.z); bo.x = ball.p.x - x; bo.y = ball.p.y - y; bo.z = ball.p.z - z; return; }   // (and eases off your hands after)
   }
   const me = localCtl && localCtl.p, a = me && me.act;
   if (a && !a.done && (a.kind === 'dig' || a.kind === 'set' || a.kind === 'dive' || a.kind === 'swing') && (G.phase === 'live' || G.phase === 'serve')) {
@@ -9216,8 +9315,10 @@ function netSmooth(dt) {
     }
     NET.pinD = d;
   } else NET.pinD = null;
-  if (Math.abs(x - ball.p.x) + Math.abs(y - ball.p.y) + Math.abs(z - ball.p.z) > 1.2) ball.p.set(x, y, z);
-  else ball.p.set(lerp(ball.p.x, x, 0.6), lerp(ball.p.y, y, 0.6), lerp(ball.p.z, z, 0.6));
+  const bd = Math.hypot(bo.x, bo.y, bo.z), fb = fadeB(bd);
+  if (bd > 3.5) bo.x = bo.y = bo.z = 0;   // far off (a new serve): just there
+  bo.x *= fb; bo.y *= fb; bo.z *= fb;
+  ball.p.set(x + bo.x, Math.max(BALL_R, y + bo.y), z + bo.z);
 }
 
 // ---- The lobby ----
@@ -9644,14 +9745,14 @@ function watchPeers(peers) {
   if (M && playing && ep !== WATCH.ep && ep !== WATCH.doneEp) watchBuild(M);
   else if (G.spectate && (!playing || (hp.ep != null && (hp.ep | 0) !== WATCH.ep))) watchWaiting('That match is over. Waiting for ' + WATCH.name + '\'s next one…');
   const S = hp.S;
-  if (G.spectate && S && typeof S === 'object' && (S.f | 0) !== WATCH.lastF) { WATCH.lastF = S.f | 0; WATCH.snap = S; WATCH.snapNew = true; }
+  if (G.spectate && S && typeof S === 'object' && (S.f | 0) > WATCH.lastF) { WATCH.lastF = S.f | 0; WATCH.snap = S; WATCH.snapNew = true; WATCH.snapAt = performance.now(); clockSample(S.t, WATCH.snapAt); }
   if (G.panel === 'watchPanel') renderWatch();
 }
 // Build the match the way your friend's phone has it, and let your dog out
 function watchBuild(M) {
   const n = M.n === 2 ? 2 : 3, P = Array.isArray(M.P) ? M.P : [];
   if (P.length !== n * 2) return;
-  WATCH.ep = M.ep | 0; WATCH.lastF = -1; WATCH.snap = null; WATCH.snapNew = false;
+  WATCH.ep = M.ep | 0; WATCH.lastF = -1; WATCH.snap = null; WATCH.snapNew = false; clockReset();
   for (const c of ctls) assign(c, null);
   ctls = []; localCtl = null; G.human = null;
   const cols = Array.isArray(M.cols) ? M.cols : [], col = (v, d) => (Number.isFinite(Number(v)) ? (Number(v) >>> 0) & 0xffffff : d);
@@ -9669,7 +9770,7 @@ function watchBuild(M) {
   G.online = false; G.host = false; G.client = true; G.spectate = true;
   G.match = { kind: 'watch', crew: crewById(M.crew) || null, diff: 'normal', n, park: G.park };
   resetScores(); resetRec(); eventsReset(); G.replay = null; G.replayPending = false;
-  Object.assign(NET, { ev: [], evSeq: 0, f: 0, snap: null, snapNew: false, lastF: -1, evSeen: -1, ball: null });
+  Object.assign(NET, { ev: [], evSeq: 0, f: 0, snap: null, snapNew: false, lastF: -1, inF: -1, evSeen: -1, ball: null, ballPrev: null, bOff: null }); clockReset();
   setupServe();
   courtDogSet(M.dog ? unpackDog(M.dog) : null);
   matchBags((Array.isArray(M.bg) ? M.bg : []).map((x) => (Array.isArray(x) && Number.isInteger(x[0]) ? Object.assign({ p: allPlayers[x[0]] }, unbag([x[1], x[2]])) : null)));   // v10.1
@@ -9715,7 +9816,7 @@ function watchEnd(msg) {
 }
 function watchPump(dt) {
   const now = performance.now();
-  if (WATCH.snapNew && G.spectate) { WATCH.snapNew = false; netApplySnap(WATCH.snap); }
+  if (WATCH.snapNew && G.spectate) { WATCH.snapNew = false; netApplySnap(WATCH.snap, WATCH.snapAt); }
   if (!WATCH.room) return;
   WATCH.chkT += dt;
   if (WATCH.chkT > 2) { WATCH.chkT = 0; if (WATCH.room.peers().some(isPalHost)) WATCH.hostSeenT = now; }
@@ -10046,8 +10147,8 @@ const friendStatus = (st) => (st === undefined ? 'CHECKING…' : st === 'off' ? 
 // The red dot on FRIENDS: a request or a party invite waiting for you
 function syncFriendDot() {
   for (const [c, iv] of PARTY.invites) if (Date.now() - iv.t > 600000) PARTY.invites.delete(c);   // (an invite lasts 10 minutes)
-  const n = legend.reqs.length + PARTY.invites.size, d = $('frDot');
-  if (d) { d.hidden = !n; d.textContent = n ? String(n) : ''; }
+  const n = legend.reqs.length + PARTY.invites.size, d = $('frDot'), t = n ? String(n) : '';
+  if (d) { if (d.hidden !== !n) d.hidden = !n; if (d.textContent !== t) d.textContent = t; }
 }
 function frRow(cls, name, status, live, chips) {
   const li = document.createElement('li'); if (cls) li.className = cls;
@@ -11698,7 +11799,7 @@ function startOnlinePractice(cfg) {
   teams[0].ai = teams[1].ai = DIFF.normal;
   camFocusFor = null; shakeT = 0; hitStop = 0; popT = 0;
   resetScores(); resetRec(); eventsReset(); G.replay = null; G.replayPending = false;
-  Object.assign(NET, { ev: [], evSeq: 0, f: 0, snap: null, snapNew: false, lastF: -1, evSeen: -1, ball: null, q: 0, cnt: [0, 0, 0, 0, 0, 0, 0, 0] });
+  Object.assign(NET, { ev: [], evSeq: 0, f: 0, snap: null, snapNew: false, lastF: -1, inF: -1, evSeen: -1, ball: null, ballPrev: null, bOff: null, q: 0, cnt: [0, 0, 0, 0, 0, 0, 0, 0] }); clockReset();
   PRAC.recv = RECV[cfg.recv] ? cfg.recv : 'mix';
   practiceReset(cfg.prac);   // (a guest's phone puts everyone in place too, until the first snapshot)
   const me = localCtl && localCtl.p;
