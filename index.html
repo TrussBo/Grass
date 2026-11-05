@@ -425,7 +425,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 .hrow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
 .hint { font-weight: 600; font-size: 14px; letter-spacing: 0.03em; color: var(--chalk); opacity: 0.85; }
 .stepper output.wide { min-width: 70px; }
-.sw.team { display: inline-grid; place-items: center; line-height: 1; color: var(--chalk); font: 800 14px var(--font-ui); text-shadow: 1px 1px 0 var(--ink); }
+.sw.team, .sw.auto { display: inline-grid; place-items: center; line-height: 1; color: var(--chalk); font: 800 14px var(--font-ui); text-shadow: 1px 1px 0 var(--ink); }
 .field { display: grid; gap: 5px; align-content: start; min-width: 0; }
 .field.wide { grid-column: 1 / -1; }
 .lbl, .field label { font-weight: 800; font-size: 13px; letter-spacing: 0.14em; color: var(--sun); }
@@ -1133,12 +1133,15 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
         <div class="cgrid">
           <div class="field wide"><span class="lbl">TEAM COLOR</span><div class="swatches" data-sw="color"></div></div>
           <div class="field wide"><span class="lbl">HEADWEAR</span><div class="chipset" data-chips="head"></div></div>
+          <div class="field wide" id="hatColField"><span class="lbl">HAT COLOR <small>A: the usual</small></span><div class="swatches" data-sw="hatCol"></div></div>
           <div class="field wide"><span class="lbl">GEAR COLOR <small>sleeves · bands · headwear · pads</small></span><div class="swatches" data-sw="gear"></div></div>
           <div class="field wide"><span class="lbl">ARM SLEEVES</span><div class="chipset" data-chips="sleeves"></div></div>
           <div class="field"><span class="lbl">KNEE PADS</span><div class="seg" data-toggle="knees"><button type="button" data-v="true">ON</button><button type="button" data-v="false">OFF</button></div></div>
           <div class="field"><span class="lbl">WRISTBANDS</span><div class="seg" data-toggle="bands"><button type="button" data-v="true">ON</button><button type="button" data-v="false">OFF</button></div></div>
           <div class="field wide"><span class="lbl">SHIRT</span><div class="chipset" data-chips="shirt"></div></div>
           <div class="field"><span class="lbl">NUMBER ON IT</span><div class="seg" data-toggle="shirtNum"><button type="button" data-v="true">ON</button><button type="button" data-v="false">OFF</button></div></div>
+          <div class="field" id="hoodField"><span class="lbl">HOOD</span><div class="seg" data-toggle="hoodUp"><button type="button" data-v="true">UP</button><button type="button" data-v="false">DOWN</button></div></div>
+          <div class="field wide"><span class="lbl">SHIRT TRIM <small>collar · cuffs · hems · strings · A: goes with the shirt</small></span><div class="swatches" data-sw="trimCol"></div></div>
           <div class="field wide"><span class="lbl">PANTS</span><div class="chipset" data-chips="pants"></div></div>
           <div class="field wide"><span class="lbl">PANTS COLOR</span><div class="swatches" data-sw="shorts"></div></div>
           <div class="field wide"><span class="lbl">SHOES</span><div class="chipset" data-chips="shoeType"></div></div>
@@ -1146,7 +1149,9 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
           <div class="field wide"><span class="lbl">ARM TATTOO</span><div class="chipset" data-chips="tatArm"></div></div>
           <div class="field wide"><span class="lbl">LEG TATTOO</span><div class="chipset" data-chips="tatLeg"></div></div>
           <div class="field wide"><span class="lbl">CHAIN</span><div class="chipset" data-chips="chain"></div></div>
-          <div class="field wide"><span class="lbl">EARBUDS</span><div class="chipset" data-chips="ears"></div></div>
+          <div class="field wide" id="chainColField"><span class="lbl">CHAIN METAL</span><div class="swatches" data-sw="chainCol"></div></div>
+          <div class="field wide"><span class="lbl">EARBUDS &amp; HEADPHONES</span><div class="chipset" data-chips="ears"></div></div>
+          <div class="field wide" id="earColField"><span class="lbl">THEIR COLOR</span><div class="swatches" data-sw="earCol"></div></div>
         </div>
       </div>
       <div class="cpane" data-pane="body" role="tabpanel" hidden>
@@ -1400,7 +1405,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 (() => {
 'use strict';
 // The version: shown in SETTINGS and on the cover of the guide book. Raise it with every update, then rebuild the guide.
-const VERSION = '11.0.1';
+const VERSION = '11.1';
 const $ = (id) => document.getElementById(id);
 const errBox = $('err');
 function showError(msg) { errBox.textContent = msg; errBox.hidden = false; }
@@ -1429,9 +1434,11 @@ const HAIR_COLORS = [0x1b1410, 0x4a2c17, 0x8a5a2b, 0xd9a441, 0xc8402a, 0xe8e2d6]
 const HAIR_STYLES = ['buzz', 'afro', 'mohawk', 'bun', 'braids', 'dreads', 'ponytail', 'hightop', 'long', 'curly', 'bald',
   'cornrows', 'spacebuns', 'mullet', 'spiky', 'topknot', 'puffs', 'twists', 'bowl',   // v7 (online play sends looks by position: add new ones at the end)
   'shaggy', 'surfcurls'];   // v11: Nick's shaggy hair, Kekai's surfer curls
-const FACE_HAIR = ['none', 'stubble', 'beard', 'goatee', 'mustache'];
+const FACE_HAIR = ['none', 'stubble', 'beard', 'goatee', 'mustache', 'thin'];   // v11.1: a thin mustache (Chrome's)
 const EYEWEAR = ['none', 'shades', 'sport', 'aviators', 'liner'];   // v11: eyeliner
-const HEADWEAR = ['none', 'headband', 'visor', 'cap', 'bandana', 'catears', 'bucket', 'hood'];   // v11: cat ears, Kekai's bucket hat, a hood
+const HEADWEAR = ['none', 'headband', 'visor', 'cap', 'bandana', 'catears', 'bucket', 'hood', 'bear'];   // v11: cat ears, Kekai's bucket hat, a hood; v11.1: Chrome's bear hat
+// (v11.1: the hood is the HOODIE's hood now, up or down: 'hood' stays in the list for older phones, which still send it)
+const HAT_PICKS = HEADWEAR.filter((h) => h !== 'hood');
 // (v11: random looks only ever use the looks from before v11, so every crew and passer-by looks the way they always did)
 const OLD_N = { hair: 19, face: 5, eyes: 4, celebrate: 9 };
 const GEAR_COLORS = [0xffd23f, 0xf4f1ea, 0x1b1b22, 0xf2433a, 0x2f86e8, 0x2fbf71, 0xff8a1f, 0xec4899];
@@ -1443,13 +1450,17 @@ const CELEBRATIONS = ['flex', 'point', 'roof', 'spin', 'fist', 'guitar', 'bow', 
   'dab', 'lap', 'moonwalk'];   // v11: Nick's dab, Chrome's victory lap, Sky-Kai's moonwalk
 // v11: chains round your neck, earbuds, and what you do while you wait for the serve
 const CHAINS = ['none', 'gold', 'chrome'];
-const EARS = ['none', 'earbuds'];
+const EARS = ['none', 'earbuds', 'pods', 'phones'];   // v11.1: wireless earbuds, headphones
 const IDLE_MOVES = ['mix', 'hump', 'swivel', 'yawn', 'watch'];
 // v9: more looks (Truss's notes): sideburns, eye shapes and colors (heterochromia too), shirts, pants, shoes and tattoos
 const SIDEBURNS = ['none', 'short', 'long'];
 const EYE_SHAPES = ['round', 'almond', 'sleepy', 'wide'];
 const EYE_COLORS = [0x3a2213, 0x6b4423, 0x8a6b2f, 0x4f7a3a, 0x3f7fbf, 0x7d8a96];   // dark brown, brown, hazel, green, blue, grey
-const SHIRTS = ['tank', 'tee', 'longsleeve', 'polo', 'collar', 'rash'];   // v11: a collared shirt, a rash guard
+const SHIRTS = ['tank', 'tee', 'longsleeve', 'polo', 'collar', 'rash', 'hoodie', 'sweat'];   // v11: a collared shirt, a rash guard; v11.1: a hoodie, a sweatshirt
+// v11.1: colours for the new gear. A hat, the trim on your shirt: -1 is the usual (your gear colour on a hat, Sky-Kai's
+// blue checks, Chrome's brown bear; trim that goes with the shirt). Earbuds and headphones, and chains, always have one.
+const ITEM_COLORS = [0xf4f1ea, 0x1b1b22, 0x8a8f96, 0x8a5a2b, 0xf2433a, 0xff8a1f, 0xffd23f, 0x2fbf71, 0x2f86e8, 0x1f2a4a, 0x8b5cf6, 0xec4899];
+const METAL_COLORS = [0xf2c230, 0xdfe6ee, 0xe9a387, 0x2a2a30, 0x9fe3ff, 0xf2433a, 0x2f86e8, 0xec4899];   // gold, chrome, rose gold, black, ice, red, blue, pink
 const PANTS = ['shorts', 'trunks', 'sweats', 'slacks'];
 const SHOE_TYPES = ['low', 'high', 'clogs', 'flipflops', 'slides', 'dress'];
 const TATS = ['none', 'left', 'right', 'both'];
@@ -1469,7 +1480,9 @@ const LABELS = {
   // v11
   shaggy: 'SHAGGY', surfcurls: 'SURFER CURLS', liner: 'EYELINER', catears: 'CAT EARS', bucket: 'BUCKET HAT', hood: 'HOOD',
   collar: 'COLLARED SHIRT', rash: 'RASH GUARD', dab: 'DAB', lap: 'VICTORY LAP', moonwalk: 'MOONWALK',
-  gold: 'GOLD CHAINS', chrome: 'CHROME CHAIN', earbuds: 'EARBUDS', mix: 'MIX IT UP', hump: 'HUMP DANCE', swivel: 'HIP SWIVEL', yawn: 'BIG YAWN', watch: 'CHECK THE WATCH',
+  // v11.1
+  thin: 'THIN MUSTACHE', bear: 'BEAR HAT', hoodie: 'HOODIE', sweat: 'SWEATSHIRT', pods: 'WIRELESS EARBUDS', phones: 'HEADPHONES',
+  gold: 'LAYERED CHAINS', chrome: 'MEDAL CHAIN', earbuds: 'WIRED EARBUDS', mix: 'MIX IT UP', hump: 'HUMP DANCE', swivel: 'HIP SWIVEL', yawn: 'BIG YAWN', watch: 'CHECK THE WATCH',   // (v11.1: chains come in any metal now)
 };
 const pick = (list, v, d) => (list.includes(v) ? v : d);
 const DEFAULT_LOOK = {
@@ -1478,6 +1491,7 @@ const DEFAULT_LOOK = {
   height: 0, build: 'athletic', celebrate: 'flex',
   burns: 'none', eyeShape: 'round', eyeColor: 0, hetero: false, eyeColor2: 4, shirt: 'tank', shirtNum: true, pants: 'shorts', shoeType: 'low', tatArm: 'none', tatLeg: 'none',
   chain: 'none', ears: 'none', idle: 'mix',   // v11
+  hoodUp: false, hatCol: -1, earCol: 0, chainCol: 0, trimCol: -1,   // v11.1
 };
 function cleanLook(src) {
   const L = Object.assign({}, DEFAULT_LOOK, src && typeof src === 'object' ? src : {});
@@ -1493,6 +1507,12 @@ function cleanLook(src) {
   L.shirt = pick(SHIRTS, L.shirt, 'tank'); L.shirtNum = L.shirtNum !== false; L.pants = pick(PANTS, L.pants, 'shorts');
   L.shoeType = pick(SHOE_TYPES, L.shoeType, 'low'); L.tatArm = pick(TATS, L.tatArm, 'none'); L.tatLeg = pick(TATS, L.tatLeg, 'none');
   L.chain = pick(CHAINS, L.chain, 'none'); L.ears = pick(EARS, L.ears, 'none'); L.idle = pick(IDLE_MOVES, L.idle, 'mix');   // (v11)
+  // v11.1: a hood (v11) is a hoodie with the hood up; a v11 chain keeps its metal; the new colours
+  if (L.head === 'hood') { L.head = 'none'; L.shirt = 'hoodie'; L.hoodUp = true; }
+  if (!(src && typeof src === 'object' && 'chainCol' in src)) L.chainCol = L.chain === 'chrome' ? 1 : 0;
+  const cx = (v, lo, n) => { const k = Math.round(Number(v)); return Number.isFinite(k) ? clamp(k, lo, n - 1) : lo; };
+  L.hoodUp = L.hoodUp === true; L.hatCol = cx(L.hatCol, -1, ITEM_COLORS.length); L.earCol = cx(L.earCol, 0, ITEM_COLORS.length);
+  L.chainCol = cx(L.chainCol, 0, METAL_COLORS.length); L.trimCol = cx(L.trimCol, -1, ITEM_COLORS.length);
   L.height = clamp(Math.round(Number(L.height) || 0), -2, 3);   // (3: Sky-Kai, the tallest there is; the creator stops at 2)
   L.knees = L.knees === true; L.bands = L.bands !== false;
   L.name = String(L.name || 'YOU').toUpperCase().replace(/[^A-Z0-9 .'-]/g, '').slice(0, 10).trim() || 'YOU';
@@ -1576,8 +1596,9 @@ const SHOP_GEAR = {
 };
 Object.assign(SHOP_GEAR.hair, { shaggy: 250, surfcurls: 300 });
 Object.assign(SHOP_GEAR.eyes, { liner: 150 });
-Object.assign(SHOP_GEAR.head, { catears: 300, bucket: 350, hood: 150 });
-Object.assign(SHOP_GEAR.shirt, { collar: 250, rash: 250 });
+Object.assign(SHOP_GEAR.head, { catears: 300, bucket: 350, bear: 450 });   // (v11.1: the hood is the hoodie's now)
+Object.assign(SHOP_GEAR.shirt, { collar: 250, rash: 250, hoodie: 150, sweat: 100 });
+Object.assign(SHOP_GEAR.ears, { pods: 300, phones: 350 });
 Object.assign(SHOP_GEAR.celebrate, { dab: 400, lap: 500, moonwalk: 500 });
 const gearId = (key, v) => key + ':' + v;
 const gearPrice = (key, v) => { const t = SHOP_GEAR[key]; return t && t[String(v)] != null ? t[String(v)] : 0; };
@@ -1811,13 +1832,13 @@ const CREWS = [
     intro: [['KIRA', "Forty floors up, and the wind's on our side. Don't look down."]],
     outro: [['KIRA', "...Okay, you can look down now. The street's waiting for you."]] },
   { id: 'lasttrain', court: 3, name: 'LAST TRAIN', color: 0x3ff7ff, ai: 'veryhard', aiAt: 3.15, lvl: 5,
-    p: [['RIKU', { set: -2, control: -1 }, { hair: 'long', hairColor: 0, eyes: 'shades', skin: 1 }], ['MAYA', { hit: -1, block: -1 }, { hair: 'ponytail', hairColor: 4, head: 'hood', skin: 4 }], ['BOLT', { set: -1, hit: -1 }, { hair: 'buzz', face: 'beard', build: 'strong', skin: 5 }]],
+    p: [['RIKU', { set: -2, control: -1 }, { hair: 'long', hairColor: 0, eyes: 'shades', skin: 1 }], ['MAYA', { hit: -1, block: -1 }, { hair: 'ponytail', hairColor: 4, shirt: 'hoodie', hoodUp: true, skin: 4 }], ['BOLT', { set: -1, hit: -1 }, { hair: 'buzz', face: 'beard', build: 'strong', skin: 5 }]],
     reward: { trick: '180' },
     intro: [['RIKU', 'The last train rolls over every twenty minutes. That gives you till then.']],
     outro: [['RIKU', "Missed it. Whatever. The Strays are out in the old lot. They don't get visitors."]] },
   { id: 'strays', court: 3, name: 'THE STRAYS', color: 0x9aa0a8, ai: 'veryhard', aiAt: 3.3, lvl: 5,
-    p: [['ASH', { set: -2, pass: -1 }, { hair: 'twists', head: 'hood', skin: 6 }], ['WREN', { hit: -1, power: -1 }, { hair: 'braids', eyes: 'liner', skin: 3 }], ['GRIT', { hit: -2, set: -1 }, { hair: 'mohawk', hairColor: 5, face: 'stubble', skin: 0 }]],
-    reward: { trick: 'hybrid', gear: ['head:hood'] },
+    p: [['ASH', { set: -2, pass: -1 }, { hair: 'twists', shirt: 'hoodie', hoodUp: true, trimColor: 0x1b1b22, skin: 6 }], ['WREN', { hit: -1, power: -1 }, { hair: 'braids', eyes: 'liner', skin: 3 }], ['GRIT', { hit: -2, set: -1 }, { hair: 'mohawk', hairColor: 5, face: 'stubble', skin: 0 }]],
+    reward: { trick: 'hybrid', gear: ['shirt:hoodie'] },
     intro: [['ASH', 'Nobody comes out to the lot. Nobody but Nick.']],
     outro: [['ASH', "He's been waiting on you since the rooftop. He saw the whole thing."]] },
   { id: 'kdj', court: 3, boss: true, star: 'LIL NICK', title: 'GOTTA LIL NICK', name: 'KDJ-COMPANY', color: 0xeef0f5, ai: 'veryhard', aiAt: 3.45, lvl: 5,
@@ -1845,9 +1866,9 @@ const CREWS = [
     outro: [['JACKIE', "Huh. Maybe YOU'RE the next legend. Go on. The House is open."]] },
   { id: 'house', court: 4, boss: true, star: 'CHROME', title: 'CHROME', name: 'THE HOUSE', color: 0x23232f, ai: 'veryhard', aiAt: 3.8, lvl: 5,
     p: [['VIPER', { master: 'hit', set: -2 }, { hair: 'afro', eyes: 'sport', height: 2, skin: 5 }],
-      ['CHROME', { master: 'set', block: -2, power: -1, hops: -1 }, { hair: 'curly', hairColor: 0, head: 'none', eyes: 'shades', chain: 'chrome', shirt: 'tee', skin: 3, idle: 'yawn', celebrate: 'lap' }],
+      ['CHROME', { master: 'set', block: -2, power: -1, hops: -1 }, { hair: 'bowl', hairColor: 0, head: 'bear', eyes: 'none', face: 'thin', eyeColor: EYE_COLORS[0], eyeShape: 'round', chain: 'chrome', chainColor: METAL_COLORS[1], shirt: 'sweat', shirtNum: false, skin: 2, idle: 'yawn', celebrate: 'lap' }],   // (v11.1: Rome, from Truss's photo)
       ['BANKS', { master: 'pass', hit: -1 }, { hair: 'twists', knees: true, skin: 4 }]],
-    reward: { trick: 'shoot', gear: ['chain:chrome', 'idle:yawn', 'celebrate:lap'] },
+    reward: { trick: 'shoot', gear: ['chain:chrome', 'idle:yawn', 'celebrate:lap', 'head:bear'] },
     intro: [['CHROME', "Let's have fun."], ['CHROME', "I'm training the next legend in here. Figured I'd see if it's you."], ['CHROME', '*yawns* ...Sorry. Long day of winning.'], ['YOU', "Let's see how long it gets."]],
     outro: [['CHROME', '...Huh. That one was not too easy.'], ['CHROME', 'Okay, legend. One court left. The Isles, out on the cliffs.'], ['CHROME', "Sky-Kai plays out there. He doesn't talk much."], ['CHROME', "Ask him about your parents. Actually... maybe don't."]] },
   // ---- v11: THE ISLES (Kekai's cliffs): up to impossible
@@ -1954,7 +1975,7 @@ function cleanLegend(src) {
   L.points = Math.max(0, Math.round(Number(src.points) || 0)); L.earned = Math.max(L.points, Math.round(Number(src.earned) || 0));
   const strs = (a, ok) => (Array.isArray(a) ? [...new Set(a.filter((x) => typeof x === 'string' && ok(x)))] : []);
   L.tricks = strs(src.tricks, (x) => TRICK_IDS.includes(x));
-  L.gear = strs(src.gear, (x) => GEAR_IDS.includes(x));
+  L.gear = strs(Array.isArray(src.gear) ? src.gear.map((x) => (x === 'head:hood' ? 'shirt:hoodie' : x)) : [], (x) => GEAR_IDS.includes(x));   // (v11.1: the hood is a hoodie)
   L.roster = strs(src.roster, isRecruitId); for (const s of ['start:0', 'start:1']) if (!L.roster.includes(s)) L.roster.unshift(s);
   L.picks = strs(src.picks, (x) => L.roster.includes(x)).slice(0, 2);
   for (const r of L.roster) if (L.picks.length < 2 && !L.picks.includes(r)) L.picks.push(r);
@@ -2009,10 +2030,11 @@ function adoptLegend(src) {
   if (!L.friends.length && legend.friends && legend.friends.length) L.friends = legend.friends.slice();
   for (const k of Object.keys(L)) if (k !== 'look') legend[k] = L[k];
   Object.assign(profile, L.look);
-  // crews you'd already beaten when they got a new reward (v7) give it to you now
+  // crews you'd already beaten when they got a new reward (v7) give it to you now (v11.1: gear too: Chrome's bear hat)
   for (const id of legend.story.beaten) {
     const R = (crewById(id) || {}).reward;
     if (R && R.trick && !legend.tricks.includes(R.trick)) legend.tricks.push(R.trick);
+    if (R && R.gear) for (const g of R.gear) if (GEAR_IDS.includes(g) && !legend.gear.includes(g)) legend.gear.push(g);
   }
 }
 (function loadLegend() {
@@ -2414,8 +2436,8 @@ function surfTex(id) {
     }
     g.fillStyle = 'rgba(60,58,54,0.5)'; for (let i = 0; i < 6; i++) g.fillRect(R(0, 128), R(0, 128), R(4, 12), R(4, 12));   // patches
   }, 3, 2);
-  if (id === 'wood') return mk(128, 128, (g) => {   // maple boards with grain
-    const cols = ['#d6a468', '#cf9c5f', '#dbab70', '#c99658'];
+  if (id === 'wood') return mk(128, 128, (g) => {   // maple boards with grain (v11.1: light, like Vegas United's)
+    const cols = ['#e2b67a', '#dbae70', '#e7bf86', '#d6a96a'];
     for (let i = 0; i < 16; i++) { g.fillStyle = cols[i % 4]; g.fillRect(0, i * 8, 128, 8); }
     for (let i = 0; i < 16; i++) { const x = R(0, 128); g.fillStyle = 'rgba(90,50,20,0.35)'; g.fillRect(x, i * 8, 1, 8); }   // board ends
     g.strokeStyle = 'rgba(120,70,30,0.18)'; g.lineWidth = 1;
@@ -2436,7 +2458,7 @@ const SURF_LOOK = {
   sport: { apron: 0x15111f, line: 0x5ff6ff },
   wet: { apron: 0x222329, line: 0xc8c6c0 },
   cracked: { apron: 0x75736c, line: 0xe2d9a8 },
-  wood: { apron: 0x2b4f8f, line: 0xfbfaf4 },
+  wood: { apron: 0xe3c18a, line: 0x1f2a52, apronTex: true },   // (v11.1: Vegas United: maple all round, navy lines)
   rock: { apron: 0x2b2624, line: 0xece6da },
 };
 const surfTexCache = {};
@@ -2447,7 +2469,11 @@ function setSurface(id, rain) {
   const Lk = SURF_LOOK[S.id] || SURF_LOOK.grass;
   if (!surfTexCache[S.id]) surfTexCache[S.id] = surfTex(S.id);
   courtMesh.material = toon(0xffffff, surfTexCache[S.id]);
-  apronMesh.material = toon(Lk.apron);
+  if (Lk.apronTex) {   // (v11.1) the strip round the court in the same boards, lined up with the court's
+    const k = 'apron:' + S.id;
+    if (!surfTexCache[k]) { const t = surfTex(S.id), c = surfTexCache[S.id]; t.repeat.set(c.repeat.x * 25 / 16, c.repeat.y * 16 / 9); t.offset.set(1 - ((4.5 / 25) * t.repeat.x % 1), 1 - ((3.5 / 16) * t.repeat.y % 1)); surfTexCache[k] = t; }
+    apronMesh.material = toon(0xffffff, surfTexCache[k]);
+  } else apronMesh.material = toon(Lk.apron);
   lineMat.color.setHex(Lk.line);
 }
 const LW = 0.09, WHITE = new THREE.Color(0xffffff);
@@ -2772,6 +2798,38 @@ function banner3d(text, bg, fg, w, h) {
   });
   return new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshToonMaterial({ map: t, gradientMap: toonGrad, side: THREE.DoubleSide }));
 }
+// (v11.1) The Vegas United banner: navy, the name in red with a white edge, and a ball in red, white and blue (our own:
+// not the club's logo, and no sponsors)
+function vuBanner(w, h) {
+  const cw = 1024, ch = Math.round(cw * h / w);
+  const t = canvasTex(cw, ch, (g) => {
+    g.fillStyle = '#1b2a52'; g.fillRect(0, 0, cw, ch);
+    g.fillStyle = '#dfe5ef'; g.fillRect(0, ch * 0.07, cw, ch * 0.025); g.fillRect(0, ch * 0.905, cw, ch * 0.025);
+    const bx = ch * 0.62, by = ch / 2, r = ch * 0.33;
+    g.save(); g.beginPath(); g.arc(bx, by, r, 0, Math.PI * 2); g.clip();
+    g.fillStyle = '#f4f4f6'; g.fillRect(bx - r, by - r, r * 2, r * 2);
+    g.fillStyle = '#d6303a'; g.beginPath(); g.moveTo(bx - r, by - r * 0.15); g.quadraticCurveTo(bx - r * 0.1, by - r * 0.95, bx + r, by - r * 0.5); g.lineTo(bx + r, by - r); g.lineTo(bx - r, by - r); g.closePath(); g.fill();
+    g.fillStyle = '#244a9a'; g.beginPath(); g.moveTo(bx - r, by + r * 0.4); g.quadraticCurveTo(bx + r * 0.15, by - r * 0.25, bx + r, by + r * 0.2); g.lineTo(bx + r, by + r); g.lineTo(bx - r, by + r); g.closePath(); g.fill();
+    g.restore();
+    g.strokeStyle = '#0e1630'; g.lineWidth = ch * 0.03; g.beginPath(); g.arc(bx, by, r, 0, Math.PI * 2); g.stroke();
+    const tx = bx + r + ch * 0.3, maxW = cw - tx - ch * 0.25, text = 'VEGAS UNITED';
+    let fs = Math.round(ch * 0.52); g.font = `400 ${fs}px Bungee, Impact, sans-serif`;
+    while (g.measureText(text).width > maxW && fs > 10) { fs -= 2; g.font = `400 ${fs}px Bungee, Impact, sans-serif`; }
+    g.textAlign = 'left'; g.textBaseline = 'middle'; g.lineJoin = 'round';
+    g.lineWidth = fs * 0.18; g.strokeStyle = '#f4f4f6'; g.strokeText(text, tx, ch / 2 + ch * 0.03);
+    g.fillStyle = '#d6303a'; g.fillText(text, tx, ch / 2 + ch * 0.03);
+  });
+  return new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshToonMaterial({ map: t, gradientMap: toonGrad, side: THREE.DoubleSide }));
+}
+// The flag on the gym's end walls: thirteen stripes, and the blue corner with rows of white stars (dots, this small)
+function flagTex() {
+  return canvasTex(256, 136, (g) => {
+    for (let i = 0; i < 13; i++) { g.fillStyle = i % 2 ? '#f4f4f6' : '#c8283a'; g.fillRect(0, (i * 136) / 13, 256, 136 / 13 + 1); }
+    g.fillStyle = '#25356e'; g.fillRect(0, 0, 104, 73);
+    g.fillStyle = '#f4f4f6';
+    for (let r = 0; r < 9; r++) for (let c = 0; c < (r % 2 ? 5 : 6); c++) { g.beginPath(); g.arc(9 + c * 17 + (r % 2 ? 8.5 : 0), 5 + r * 7.6, 2.2, 0, 6.283); g.fill(); }
+  });
+}
 // Neon tubes in three states: steady, flickering, dying. Each its own material, so each stutters on its own.
 function neonLists() { return [[], [], []]; }
 function finishNeon(group, N, fog) {
@@ -2791,7 +2849,7 @@ const NEON_COLS = [0xff3fd2, 0x3ff7ff, 0x9b5cff, 0xff4d6d, 0x46ff9a, 0xffd23f];
 // A hooded person standing on their own (DOKJA's watchers)
 const HOOD_LOOK = (rnd, i) => {
   const look = randomLook({ color: [0x2a2a33, 0x3a2f4a, 0x1f2a3a, 0x33302a, 0x2b1f2e][i % 5] }, 'hitter', new Set(), rnd);
-  return Object.assign(look, { head: 'hood', shirt: 'longsleeve', pants: 'sweats', shorts: [0x1b1b22, 0x26262e, 0x2f2b3a][i % 3], shoeType: 'high', shoe: 0x1b1b22,
+  return Object.assign(look, { head: 'none', shirt: 'hoodie', hoodUp: true, pants: 'sweats', shorts: [0x1b1b22, 0x26262e, 0x2f2b3a][i % 3], shoeType: 'high', shoe: 0x1b1b22,
     sleeves: 'none', knees: false, bands: false, eyes: 'none', accent: 0x2a2a33, celebrate: 'flex' });
 };
 
@@ -3032,32 +3090,65 @@ const ROOF_Y = 7.0;   // the low roof: a ball that gets up this high hits it
 function buildGym() {
   const group = new THREE.Group(), rnd = seededRandom(717), R = (a, b) => a + (b - a) * rnd(), pick = (a) => a[Math.floor(rnd() * a.length)];
   const L = newLists();
-  const HX = 30, HZ = 20;
-  // the floor: maple all over, the court and the blue round it are their own (see SURFACES)
-  const fl = surfTex('wood'); fl.repeat.set(12, 7);
-  flat(HX * 2, HZ * 2, toon(0xf0e6d2, fl), -0.001, group);
-  // the walls (painted block, blue pads along the bottom) and the low roof (seen from below only)
-  const wallTex = canvasTex(64, 64, (g) => { g.fillStyle = '#e4ddd0'; g.fillRect(0, 0, 64, 64); g.fillStyle = 'rgba(0,0,0,0.07)'; for (let y = 0; y < 64; y += 8) g.fillRect(0, y, 64, 1); for (let y = 0; y < 64; y += 8) for (let x = (y / 8) % 2 ? 0 : 8; x < 64; x += 16) g.fillRect(x, y, 1, 8); });
+  const HX = 30, HZ = 20, LOW = 3.4;   // (v11.1: the pale lower walls go up LOW metres, black above)
+  // the floor: light maple all over, lined up with the court's boards (the court and the strip round it: SURF_LOOK.wood)
+  const fl = surfTex('wood'); fl.repeat.set(15, 40 / 6); fl.offset.set(0.5, 1 - ((15.5 / 40) * (40 / 6) % 1));
+  flat(HX * 2, HZ * 2, toon(0xffffff, fl), -0.001, group);
+  // blue painted boxes behind each end line (where you serve from), a navy line round the strip, and the next courts' lines
+  const paint = (x, z, w, d, col, y) => { const m = flat(w, d, toon(col), y || 0.0062, group); m.position.x = x; m.position.z = z; return m; };
+  for (const sx of [-1, 1]) for (const z of [-3.15, 0, 3.15]) paint(sx * 10.25, z, 2.7, 2.5, 0x2459a8);
+  const navy = 0x1f2a52;
+  for (const [x, z, w, d] of [[0, -8.05, 25.1, 0.08], [0, 8.05, 25.1, 0.08], [-12.55, 0, 0.08, 16.1], [12.55, 0, 0.08, 16.1]]) paint(x, z, w, d, navy, 0.0058);
+  for (const sx of [-1, 1]) {   // the next court over, end on behind the curtain: its lines, its net between navy pads
+    const cx = sx * 25;
+    for (const [x, z, w, d] of [[cx - 4, 0, 0.08, 16], [cx + 4, 0, 0.08, 16], [cx, -8, 8.08, 0.08], [cx, 8, 8.08, 0.08], [cx, -2.7, 8, 0.07], [cx, 2.7, 8, 0.07]]) paint(x, z, w, d, navy, 0.0012);
+    paint(cx, -5.4, 8, 2.6, 0x2459a8, 0.0008); paint(cx, 5.4, 8, 2.6, 0x2459a8, 0.0008);
+    for (const px of [cx - 4.7, cx + 4.7]) {
+      L.solid.push({ geo: PG.box, matrix: partMatrix(null, px, 1.0, 0, { s: [0.34, 2.0, 0.34] }), color: C3(0x1d2a55) });
+      L.small.push({ geo: PG.cyl, matrix: partMatrix(null, px, 1.25, 0, { s: [0.12, 2.5, 0.12] }), color: C3(0x55555e) });
+    }
+    L.small.push({ geo: PG.box, matrix: partMatrix(null, cx, 2.38, 0, { s: [9.2, 0.08, 0.05] }), color: C3(0xf4f1ea) });
+    const nt = canvasTex(32, 32, (g) => { g.strokeStyle = 'rgba(25,22,20,0.9)'; g.lineWidth = 2; g.strokeRect(1, 1, 30, 30); });
+    nt.wrapS = nt.wrapT = THREE.RepeatWrapping; nt.repeat.set(9.2 / 0.2, 0.95 / 0.2);
+    const n = new THREE.Mesh(new THREE.PlaneGeometry(9.2, 0.95), new THREE.MeshBasicMaterial({ map: nt, transparent: true, side: THREE.DoubleSide, depthWrite: false }));
+    n.position.set(cx, 1.86, 0); group.add(n);
+  }
+  // the walls: pale blue-grey block up to LOW, black above; the ceiling black
+  const wallTex = canvasTex(64, 64, (g) => { g.fillStyle = '#b8c3cf'; g.fillRect(0, 0, 64, 64); g.fillStyle = 'rgba(30,40,60,0.08)'; for (let y = 0; y < 64; y += 8) g.fillRect(0, y, 64, 1); for (let y = 0; y < 64; y += 8) for (let x = (y / 8) % 2 ? 0 : 8; x < 64; x += 16) g.fillRect(x, y, 1, 8); });
   wallTex.wrapS = wallTex.wrapT = THREE.RepeatWrapping;
   const wall = (x, z, w, rotY) => {
-    const t = wallTex.clone(); t.needsUpdate = true; t.repeat.set(w / 4, ROOF_Y / 4);
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, ROOF_Y), toon(0xffffff, t)); m.position.set(x, ROOF_Y / 2, z); m.rotation.y = rotY; group.add(m);
-    const pad = new THREE.Mesh(new THREE.PlaneGeometry(w, 1.8), toon(0x1f3f7a)); pad.position.set(x * 0.999, 0.9, z * 0.999); pad.rotation.y = rotY; group.add(pad);
+    const t = wallTex.clone(); t.needsUpdate = true; t.repeat.set(w / 4, LOW / 4);
+    const lo = new THREE.Mesh(new THREE.PlaneGeometry(w, LOW), toon(0xffffff, t)); lo.position.set(x, LOW / 2, z); lo.rotation.y = rotY; group.add(lo);
+    const hi = new THREE.Mesh(new THREE.PlaneGeometry(w, ROOF_Y - LOW), toon(0x17181c)); hi.position.set(x, (LOW + ROOF_Y) / 2, z); hi.rotation.y = rotY; group.add(hi);
   };
   wall(0, -HZ, HX * 2, 0); wall(0, HZ, HX * 2, Math.PI); wall(-HX, 0, HZ * 2, Math.PI / 2); wall(HX, 0, HZ * 2, -Math.PI / 2);
-  const roofTex = canvasTex(64, 64, (g) => { g.fillStyle = '#6b7080'; g.fillRect(0, 0, 64, 64); g.fillStyle = 'rgba(0,0,0,0.18)'; g.fillRect(0, 0, 64, 2); g.fillRect(0, 0, 2, 64); });
-  roofTex.wrapS = roofTex.wrapT = THREE.RepeatWrapping; roofTex.repeat.set(20, 14);
-  const roof = new THREE.Mesh(new THREE.PlaneGeometry(HX * 2, HZ * 2), toon(0xffffff, roofTex)); roof.rotation.x = Math.PI / 2; roof.position.y = ROOF_Y; group.add(roof);
-  // steel beams under the roof, and big lights between them
-  for (let x = -27; x <= 27; x += 6) L.solid.push({ geo: PG.box, matrix: partMatrix(null, x, ROOF_Y - 0.22, 0, { s: [0.35, 0.44, HZ * 2] }), color: C3(0x3a3f4c) });
-  for (let x = -24; x <= 24; x += 6) for (let z = -15; z <= 15; z += 7.5) {
-    L.small.push({ geo: PG.box, matrix: partMatrix(null, x, ROOF_Y - 0.12, z, { s: [1.6, 0.2, 1.6] }), color: C3(0x2a2d36) });
-    L.glow.push({ geo: PG.box, matrix: partMatrix(null, x, ROOF_Y - 0.23, z, { s: [1.3, 0.04, 1.3] }), color: C3(0xfffbea) });
+  const roof = new THREE.Mesh(new THREE.PlaneGeometry(HX * 2, HZ * 2), toon(0x111215)); roof.rotation.x = Math.PI / 2; roof.position.y = ROOF_Y; group.add(roof);
+  // the open ceiling: black steel joists, two big ducts down the length, and long white lights hanging in rows. (All of
+  // it hides when the camera rises above the roof: a tall phone held upright, the broadcast view.)
+  const CL = newLists(), ceil = new THREE.Group(); group.add(ceil);
+  for (let x = -28.5; x <= 28.5; x += 3) CL.small.push({ geo: PG.box, matrix: partMatrix(null, x, ROOF_Y - 0.16, 0, { s: [0.12, 0.3, HZ * 2] }), color: C3(0x1d1e23) });
+  for (const z of [-12, 0, 12]) CL.small.push({ geo: PG.box, matrix: partMatrix(null, 0, ROOF_Y - 0.38, z, { s: [HX * 2, 0.26, 0.22] }), color: C3(0x24262c) });
+  for (const z of [-7.4, 7.4]) {
+    CL.solid.push({ geo: PG.cyl, matrix: partMatrix(null, 0, ROOF_Y - 0.62, z, { s: [0.72, HX * 2, 0.72], r: [0, 0, Math.PI / 2] }), color: C3(0x2b2e35) });
+    for (let x = -24; x <= 24; x += 12) CL.small.push({ geo: PG.box, matrix: partMatrix(null, x, ROOF_Y - 0.62, z + (z > 0 ? -0.5 : 0.5), { s: [0.8, 0.3, 0.42] }), color: C3(0x2b2e35) });   // vents off it
   }
-  // windows high on the long walls: midday outside
-  for (let x = -26; x <= 26; x += 4.4) for (const z of [-HZ + 0.03, HZ - 0.03]) L.glow.push({ geo: PG.box, matrix: partMatrix(null, x, ROOF_Y - 1.4, z, { s: [3.2, 1.3, 0.04] }), color: C3(0xd2ecff) });
-  // the bleachers, both sides: five rows stepping up and back, his half and yours (split at the net)
-  const rows = 5, seatC = C3(0xc9a46a), riseC = C3(0x8a8f96);
+  const lamps = [];
+  for (let x = -25; x <= 25; x += 6.25) for (const z of [-15, -9, -3, 3, 9, 15]) {
+    const y = ROOF_Y - 0.5;
+    CL.small.push({ geo: PG.box, matrix: partMatrix(null, x, y + 0.05, z, { s: [2.3, 0.1, 0.5] }), color: C3(0x2a2c31) });
+    CL.glow.push({ geo: PG.box, matrix: partMatrix(null, x, y - 0.005, z, { s: [2.1, 0.04, 0.36] }), color: C3(0xf6fbff) });
+    for (const dx of [-0.9, 0.9]) CL.glow.push({ geo: PG.box, matrix: partMatrix(null, x + dx, (y + ROOF_Y) / 2 + 0.05, z, { s: [0.02, ROOF_Y - y - 0.1, 0.02] }), color: C3(0x1b1c20) });   // their wires
+    lamps.push([x, z]);
+  }
+  finishPark(ceil, CL);
+  // the floor shines: the lights in it, soft and long
+  const shine = canvasTex(64, 32, (g) => { const gr = g.createRadialGradient(32, 16, 1, 32, 16, 30); gr.addColorStop(0, 'rgba(255,255,255,0.9)'); gr.addColorStop(0.5, 'rgba(255,255,255,0.25)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 32); });
+  const shineMat = new THREE.MeshBasicMaterial({ map: shine, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false });
+  const shineGeo = new THREE.PlaneGeometry(3.4, 1.0).rotateX(-Math.PI / 2);
+  const shineMesh = new THREE.Mesh(mergeTextured(lamps.map(([x, z]) => ({ geo: shineGeo, matrix: partMatrix(null, x, 0.017, z), color: WHITE, uv: [1, 1] }))), shineMat);
+  shineMesh.renderOrder = 1; group.add(shineMesh);
+  // the bleachers, both sides: five rows stepping up and back, his half and yours (split at the net) (v11.1: dark, pull-out ones)
+  const rows = 5, seatC = C3(0x9aa1ab), riseC = C3(0x2e3138);
   const seats = [];   // [x, y, z, side (1 his, -1 yours), row]
   for (const sz of [-1, 1]) {
     for (let r = 0; r < rows; r++) {
@@ -3069,16 +3160,28 @@ function buildGym() {
     L.small.push({ geo: PG.box, matrix: partMatrix(null, 0, 0.95, sz * 9.65, { s: [30, 0.06, 0.06] }), color: C3(0xc5c9d0) });   // the rail
     for (let x = -15; x <= 15; x += 3) L.small.push({ geo: PG.cyl, matrix: partMatrix(null, x, 0.48, sz * 9.65, { s: [0.05, 0.96, 0.05] }), color: C3(0xc5c9d0) });
   }
-  // basketball backboards folded up at each end, a scoreboard-less clock, the doors
+  // navy pads on our posts; the doors (and their exit signs)
+  for (const z of [-5.15, 5.15]) L.solid.push({ geo: PG.box, matrix: partMatrix(null, 0, 0.98, z, { s: [0.36, 1.96, 0.36] }), color: C3(0x1d2a55) });
   for (const sx of [-1, 1]) {
-    L.solid.push({ geo: PG.box, matrix: partMatrix(null, sx * (HX - 0.6), 5.2, 0, { s: [0.12, 1.1, 1.8] }), color: C3(0xf4f1ea) });
-    L.small.push({ geo: PG.box, matrix: partMatrix(null, sx * (HX - 0.55), 5.0, 0, { s: [0.13, 0.45, 0.6] }), color: C3(0xe2552d) });
     L.small.push({ geo: PG.box, matrix: partMatrix(null, sx * (HX - 0.05), 1.1, sx * 12, { s: [0.08, 2.2, 1.8] }), color: C3(0x5a6070) });
     L.glow.push({ geo: PG.box, matrix: partMatrix(null, sx * (HX - 0.05), 2.45, sx * 12, { s: [0.06, 0.3, 0.7] }), color: C3(0x46ff9a) });
   }
+  // black mesh curtains between the courts, hung from a bar
+  const meshTex = canvasTex(32, 32, (g) => { g.fillStyle = 'rgba(16,16,20,0.62)'; g.fillRect(0, 0, 32, 32); g.strokeStyle = 'rgba(6,6,8,0.95)'; g.lineWidth = 3; g.strokeRect(0, 0, 32, 32); });
+  meshTex.wrapS = meshTex.wrapT = THREE.RepeatWrapping; meshTex.repeat.set(19 / 0.14, 3.6 / 0.14);
+  const meshMat = new THREE.MeshBasicMaterial({ map: meshTex, transparent: true, side: THREE.DoubleSide, depthWrite: false });
+  for (const sx of [-1, 1]) {
+    const c = new THREE.Mesh(new THREE.PlaneGeometry(19, 3.6), meshMat); c.position.set(sx * 19.5, 1.8, 0); c.rotation.y = Math.PI / 2; group.add(c);
+    L.small.push({ geo: PG.box, matrix: partMatrix(null, sx * 19.5, 3.62, 0, { s: [0.08, 0.08, 19.2] }), color: C3(0x1b1c20) });
+    L.small.push({ geo: PG.box, matrix: partMatrix(null, sx * 19.5, 0.08, 0, { s: [0.06, 0.16, 19] }), color: C3(0x1b1c20) });
+    for (const z of [-9.5, 0, 9.5]) L.glow.push({ geo: PG.box, matrix: partMatrix(null, sx * 19.5, (3.62 + ROOF_Y) / 2, z, { s: [0.025, ROOF_Y - 3.62, 0.025] }), color: C3(0x1b1c20) });
+  }
   finishPark(group, L);
-  // banners: the gym's name at both ends, THE HOUSE on his side, CHROME pennants
-  for (const sx of [-1, 1]) { const b = banner3d('VEGAS UNITED', '#1b1b22', '#d9a441', 12, 2.2); b.position.set(sx * (HX - 0.06), 3.7, 0); b.rotation.y = -sx * Math.PI / 2; group.add(b); }
+  // banners: VEGAS UNITED at both ends and on the long walls (navy, red letters, our own ball), the flag; THE HOUSE on
+  // his side, CHROME pennants
+  for (const sx of [-1, 1]) { const b = vuBanner(11, 1.8); b.position.set(sx * (HX - 0.06), LOW + 1.0, 0); b.rotation.y = -sx * Math.PI / 2; group.add(b); }
+  for (const sz of [-1, 1]) { const b = vuBanner(9, 1.5); b.position.set(-9, LOW + 0.85, sz * (HZ - 0.06)); b.rotation.y = sz > 0 ? Math.PI : 0; group.add(b); }
+  for (const sx of [-1, 1]) { const f = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 1.4), new THREE.MeshToonMaterial({ map: flagTex(), gradientMap: toonGrad, side: THREE.DoubleSide })); f.position.set(sx * (HX - 0.07), LOW + 1.0, sx * 8.4); f.rotation.y = -sx * Math.PI / 2; group.add(f); }
   for (const sz of [-1, 1]) { const b = banner3d('THE HOUSE ALWAYS WINS', '#c9ced6', '#1b1b22', 11, 1.4); b.position.set(7.5, ROOF_Y - 2.6, sz * (HZ - 0.06)); b.rotation.y = sz > 0 ? Math.PI : 0; group.add(b); }
   for (const sz of [-1, 1]) for (const x of [3, 8, 13]) { const b = banner3d('CHROME', '#dfe3ea', '#2a2d36', 2.2, 0.7); b.position.set(x, 4.5 + (x % 2) * 0.3, sz * 16.4); b.rotation.y = sz > 0 ? Math.PI : 0; group.add(b); }
   // the crowd (an instanced crowd: one body, head and arms each): his side packed, yours whoever you've got
@@ -3087,6 +3190,7 @@ function buildGym() {
   const murmur = { t: 1 };
   const tick = (dt) => {
     crowdTick(crowd, dt); gymRealTick(dt);
+    ceil.visible = camera.position.y < ROOF_Y - 0.05;   // (v11.1: from above the roof, the ceiling's clutter would sit over the court)
     murmur.t -= dt;
     if (murmur.t <= 0) { murmur.t = 2.2 + Math.random(); if (!G.demo && G.phase !== 'over') sfx('crowd', 0.18, true); }   // the hum of a full gym
   };
@@ -4782,16 +4886,26 @@ const landRing = new THREE.Mesh(new THREE.RingGeometry(0.3, 0.42, 28), new THREE
 landRing.rotation.x = -Math.PI / 2; scene.add(landRing);
 const spikeRing = new THREE.Mesh(new THREE.RingGeometry(0.4, 0.6, 32), new THREE.MeshBasicMaterial({ color: 0xffb31a, transparent: true, opacity: 0.95, depthWrite: false, side: THREE.DoubleSide }));
 spikeRing.rotation.x = -Math.PI / 2; spikeRing.visible = false; scene.add(spikeRing);
+// (v11.0.2) the dark edges under the rings on a light court
+const LIGHT_COURT = { sand: true, wood: true, cracked: true };
+const ringEdgeMat = new THREE.MeshBasicMaterial({ color: 0x17110d, transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide });
+const ringEdge = (r0, r1) => { const m = new THREE.Mesh(new THREE.RingGeometry(r0, r1, 32), ringEdgeMat); m.rotation.x = -Math.PI / 2; m.visible = false; m.renderOrder = 1; scene.add(m); return m; };
+const landRingEdge = ringEdge(0.19, 0.55), spikeRingEdge = ringEdge(0.32, 0.68);
+landRing.renderOrder = 2; spikeRing.renderOrder = 2;
 // Set-call marker: where the called set will come down
 const callTex = canvasTex(128, 128, (g) => {
-  g.strokeStyle = '#fff7ea'; g.lineWidth = 9; g.beginPath(); g.arc(64, 64, 46, 0, Math.PI * 2); g.stroke();
-  g.lineWidth = 8; for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2; g.beginPath(); g.moveTo(64 + Math.cos(a) * 30, 64 + Math.sin(a) * 30); g.lineTo(64 + Math.cos(a) * 62, 64 + Math.sin(a) * 62); g.stroke(); }
-  g.fillStyle = '#fff7ea'; g.beginPath(); g.arc(64, 64, 9, 0, Math.PI * 2); g.fill();
+  g.lineCap = 'round';
+  for (const [col, w] of [['rgba(23,17,13,0.6)', 5], ['#fff7ea', 0]]) {   // (v11.0.2: a dark outline under the white, for light courts)
+    g.strokeStyle = col; g.lineWidth = 9 + w; g.beginPath(); g.arc(64, 64, 46, 0, Math.PI * 2); g.stroke();
+    g.lineWidth = 8 + w; for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2; g.beginPath(); g.moveTo(64 + Math.cos(a) * 30, 64 + Math.sin(a) * 30); g.lineTo(64 + Math.cos(a) * 60, 64 + Math.sin(a) * 60); g.stroke(); }
+    g.fillStyle = col; g.beginPath(); g.arc(64, 64, 9 + w / 2, 0, Math.PI * 2); g.fill();
+  }
 });
 const callMark = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: callTex, transparent: true, opacity: 0.9, depthWrite: false }));
 callMark.visible = false; scene.add(callMark);
 const youRing = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.55, 32), new THREE.MeshBasicMaterial({ color: 0xffd23f, transparent: true, opacity: 0.95, depthWrite: false, side: THREE.DoubleSide }));
-youRing.rotation.x = -Math.PI / 2; scene.add(youRing);
+youRing.rotation.x = -Math.PI / 2; youRing.renderOrder = 2; scene.add(youRing);
+const youRingEdge = ringEdge(0.36, 0.61);
 const youArrow = addOutline(new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.32, 4), new THREE.MeshBasicMaterial({ color: 0xffd23f })));
 youArrow.rotation.x = Math.PI; scene.add(youArrow);
 
@@ -4825,12 +4939,48 @@ function limbGeo(len, r0, r1, o) {
   return colorize(g, (i) => cols[i % pts.length]);
 }
 // The torso from the hips up to the neck: shorts below the waistline, jersey above, a V-shaped chest
-function torsoGeo(w, shorts, jersey) {
-  const prof = [[0.0001, -0.2], [0.09, -0.19], [0.145, -0.15], [0.168, -0.08], [0.172, 0.0], [0.164, 0.06], [0.164, 0.0602],
-    [0.148, 0.12], [0.156, 0.2], [0.184, 0.3], [0.212, 0.4], [0.219, 0.47], [0.202, 0.53], [0.152, 0.578], [0.078, 0.603], [0.0001, 0.612]];
-  const pts = prof.map(([r, y]) => new V2(r, y)), g = new THREE.LatheGeometry(pts, 16);
+// (v11.1: `o` puts crisp bands across it ([from y, to y, colour]), moves the hem (where the shirt stops: a hoodie hangs
+// over your waist) and puffs the shirt out a little (a hoodie, a sweatshirt))
+const TORSO_PROF = [[0.0001, -0.2], [0.09, -0.19], [0.145, -0.15], [0.168, -0.08], [0.172, 0.0], [0.164, 0.06],
+  [0.148, 0.12], [0.156, 0.2], [0.184, 0.3], [0.212, 0.4], [0.219, 0.47], [0.202, 0.53], [0.152, 0.578], [0.078, 0.603], [0.0001, 0.612]];
+function torsoR(y) {
+  const P = TORSO_PROF;
+  for (let i = 1; i < P.length; i++) if (y <= P[i][1]) { const [r0, y0] = P[i - 1], [r1, y1] = P[i]; return r0 + (r1 - r0) * clamp((y - y0) / (y1 - y0), 0, 1); }
+  return 0.0001;
+}
+// How far the front (or back) of the shirt is from the middle, at height y
+const torsoFront = (w, y, puff) => torsoR(y) * 0.72 * (0.6 + 0.4 * w) * (1 + (puff || 0));
+function torsoGeo(w, shorts, jersey, o) {
+  o = o || {};
+  const hem = o.hem != null ? o.hem : 0.06, bands = o.bands || [], puff = o.puff || 0;
+  const ys = TORSO_PROF.map((p) => p[1]);
+  for (const e of [hem, ...bands.flatMap((b) => [b[0], b[1]])]) ys.push(e - 2e-4, e + 2e-4);   // (doubled: the colour changes on a line)
+  ys.sort((a, b) => a - b);
+  const colAt = (y) => { for (const [a, b, c] of bands) if (y >= a && y <= b) return c; return y <= hem ? shorts : jersey; };
+  const pts = ys.map((y) => new V2(Math.max(1e-4, torsoR(y) * (y > hem ? 1 + puff : 1)), y)), cols = ys.map(colAt);
+  const g = new THREE.LatheGeometry(pts, 16);
   g.scale(1.25 * w, 1, 0.72 * (0.6 + 0.4 * w));
-  return colorize(g, (i) => (prof[i % prof.length][1] <= 0.0601 ? shorts : jersey));
+  return colorize(g, (i) => cols[i % pts.length]);
+}
+// What shirt a look is wearing, and how (v11.1: a hood from v11 is a hoodie with its hood up)
+function shirtOf(look) {
+  const shirt = look.head === 'hood' ? 'hoodie' : look.shirt || 'tank';
+  return { shirt, hoodUp: look.head === 'hood' || (shirt === 'hoodie' && look.hoodUp === true),
+    puff: shirt === 'hoodie' ? 0.06 : shirt === 'sweat' ? 0.045 : 0, hem: shirt === 'hoodie' ? -0.035 : shirt === 'sweat' ? -0.02 : 0.06 };
+}
+// A thin part from p to q: where its middle goes, how it's turned (its length runs along y), how long it is
+const _sgq = new THREE.Quaternion(), _sge = new THREE.Euler(), _sgd = new V3(), _sgy = new V3(0, 1, 0);
+function segOf(p, q) {
+  _sgd.set(q[0] - p[0], q[1] - p[1], q[2] - p[2]); const len = _sgd.length();
+  _sgq.setFromUnitVectors(_sgy, _sgd.normalize()); _sge.setFromQuaternion(_sgq);
+  return { m: [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2, (p[2] + q[2]) / 2], r: [_sge.x, _sge.y, _sge.z], len };
+}
+// Headphones go round your neck when something big is on your head (a hood up, a bucket hat, a bear hat)
+const phonesOnNeck = (look) => shirtOf(look).hoodUp || look.head === 'bucket' || look.head === 'bear';
+// Ribbing: a shade darker than the shirt (a shade lighter on a very dark one)
+function ribOf(c) {
+  const k = c.r * 0.3 + c.g * 0.59 + c.b * 0.11;
+  return k < 0.16 ? new THREE.Color().copy(c).lerp(new THREE.Color(0xffffff), 0.16) : new THREE.Color().copy(c).multiplyScalar(0.78);
 }
 const G2 = {
   neck: new THREE.CylinderGeometry(0.056, 0.064, 0.17, 10),
@@ -4910,6 +5060,26 @@ const G2 = {
   watchFace: new THREE.CylinderGeometry(0.022, 0.022, 0.012, 10),
   collarFlap: new THREE.BoxGeometry(0.075, 0.012, 0.06),
   rashBand: new THREE.CylinderGeometry(0.2, 0.188, 0.06, 16, 1, true),
+  // v11.1: shirt trim, the hoodie and the sweatshirt, Chrome's bear hat, wireless earbuds, headphones
+  neckRib: new THREE.TorusGeometry(0.08, 0.014, 5, 18).rotateX(Math.PI / 2),
+  placket: new THREE.BoxGeometry(0.03, 1, 0.006),
+  pocket: new THREE.BoxGeometry(0.072, 0.08, 0.008),
+  vneck: new THREE.ConeGeometry(0.034, 0.065, 3).rotateZ(Math.PI),
+  kanga: new THREE.BoxGeometry(0.21, 0.115, 0.012),
+  hoodRoll: new THREE.TorusGeometry(0.104, 0.044, 6, 16, Math.PI * 1.25).rotateX(Math.PI / 2).rotateY(Math.PI * 1.125),
+  hoodFlat: new THREE.SphereGeometry(0.11, 14, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2),   // a bowl: the hood down, hanging open on your back
+  string: new THREE.CylinderGeometry(0.0065, 0.0065, 1, 4),
+  aglet: new THREE.CylinderGeometry(0.0085, 0.0085, 0.024, 5),
+  bearShell: new THREE.SphereGeometry(0.178, 16, 12, Math.PI * 0.73, Math.PI * 1.54, 0, Math.PI * 0.78),
+  bearTop: new THREE.SphereGeometry(0.181, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.34),
+  bearRim: new THREE.TorusGeometry(0.118, 0.03, 6, 20, Math.PI * 1.3),
+  fluff: new THREE.SphereGeometry(0.05, 10, 8),
+  bearEar: new THREE.SphereGeometry(0.052, 10, 8),
+  stem: new THREE.CylinderGeometry(0.0062, 0.0052, 0.042, 6),
+  phoneBand: new THREE.TorusGeometry(0.163, 0.013, 5, 22, Math.PI),
+  phoneNeck: new THREE.TorusGeometry(0.11, 0.013, 5, 18, Math.PI * 1.3).rotateX(Math.PI / 2).rotateY(Math.PI * 1.15),
+  cup: new THREE.CylinderGeometry(0.05, 0.05, 0.036, 16),
+  cushion: new THREE.CylinderGeometry(0.043, 0.043, 0.018, 16),
 };
 // Jersey numbers: front and back planes in one geometry that rides on the hips
 const NUM_GEO = (() => {
@@ -5001,8 +5171,14 @@ function makeRig(look) {
     parts.push({ geo, color, bone: bones.indexOf(b), matrix: partMatrix(b.matrixWorld, x, y, z, o), outline: !(o && o.outline === false) });
   };
   const small = { outline: false };
-  // Torso and neck
-  add(hips, torsoGeo(w, shorts, jersey), null, 0, 0, 0);
+  // Torso and neck (v11.1: the shirt decides the hem, the bulk and the bands: a hoodie's waistband, a rash guard's stripe,
+  // the waistband of your shorts showing under a shirt)
+  const SH = shirtOf(look), rib = ribOf(jersey), trimC = look.trimColor != null ? C(look.trimColor) : null, trimOr = (d) => trimC || d;
+  const rashC = trimOr(gear), tBands = [];
+  if (SH.shirt === 'hoodie' || SH.shirt === 'sweat') tBands.push([SH.hem, SH.hem + 0.05, trimOr(rib)]);
+  else tBands.push([0.022, 0.06, new THREE.Color().copy(shorts).multiplyScalar(0.8)]);
+  if (SH.shirt === 'rash') tBands.push([0.33, 0.42, rashC]);
+  add(hips, torsoGeo(w, shorts, jersey, { hem: SH.hem, puff: SH.puff, bands: tBands }), null, 0, 0, 0);
   add(hips, G2.neck, skin, 0, 0.64, 0.005, small);
   // Head: skull, jaw, face, then hair, headwear, facial hair and eyewear
   const hc = [0, 0.14, 0.01];
@@ -5025,49 +5201,96 @@ function makeRig(look) {
   H(G2.nose, skin, 0, -0.012, 0.138, { s: [0.8, 1.15, 1], outline: false });
   H(G2.mouth, dark, 0, -0.055, 0.126, { r: [0, 0, Math.PI], outline: false });
   addHead(H, look, hair, gear, skin, jersey);
+  // a thin piece (a cord, a drawstring) from point p to point q on a bone (v11.1)
+  const seg = (b, geo, col, p, q, th) => { const S = segOf(p, q); add(b, geo, col, S.m[0], S.m[1], S.m[2], { r: S.r, s: [th || 1, S.len, th || 1], outline: false }); };
   // Sideburns (v9)
   if (look.burns === 'short' || look.burns === 'long') for (const sx of [1, -1]) H(G2.burn, hair, 0.112 * sx, look.burns === 'long' ? -0.02 : -0.002, 0.022, { s: [1, look.burns === 'long' ? 1.35 : 0.7, 1], outline: false });
   // A shirt (v9): the tank top shows bare arms; a T-shirt or polo covers the shoulders, long sleeves go to the wrist.
   // A polo has a collar and buttons. Arm sleeves and wristbands (your gear colour) go over bare arms.
-  const shirt = look.shirt || 'tank', sl = look.sleeves || 'none', tatInk = new THREE.Color(0x22324a).lerp(skin, 0.22);
+  // v11.1: a closer look at all of them: a ribbed neck, hems and cuffs, a polo's placket, a collared shirt open at the
+  // neck with a pocket, a rash guard's stripe and shoulders; the HOODIE and the SWEATSHIRT. The trim takes your colour.
+  const shirt = SH.shirt, sl = look.sleeves || 'none', tatInk = new THREE.Color(0x22324a).lerp(skin, 0.22);
+  const fz = (y) => torsoFront(w, y, SH.puff);
+  if (shirt === 'tank' || shirt === 'tee' || shirt === 'longsleeve') add(hips, G2.neckRib, trimOr(rib), 0, 0.598, 0.004, { s: [1.24 * w, 0.8, 1.02], outline: false });
   if (shirt === 'polo') {
-    add(hips, G2.collar, new THREE.Color().copy(jersey).lerp(white, 0.12), 0, 0.592, 0.004, { s: [1.18 * w, 1, 0.92] });
-    for (const y of [0.535, 0.49]) add(hips, G2.button, white, 0, y, 0.122 * (0.6 + 0.4 * w) + 0.032, small);
+    const cc = trimOr(new THREE.Color().copy(jersey).lerp(white, 0.12));
+    add(hips, G2.collar, cc, 0, 0.592, 0.004, { s: [1.18 * w, 1, 0.92] });
+    add(hips, G2.placket, cc, 0, 0.5, fz(0.5) + 0.003, { s: [1, 0.09, 1], r: [-0.45, 0, 0], outline: false });
+    for (const y of [0.535, 0.49]) add(hips, G2.button, white, 0, y, fz(y) + 0.008, small);
   }
-  if (shirt === 'collar') {   // v11: a collared shirt, open at the neck, buttons down the front
-    const cc = new THREE.Color().copy(jersey).lerp(white, 0.2), dz = 0.122 * (0.6 + 0.4 * w) + 0.03;
+  if (shirt === 'collar') {   // v11: a collared shirt, open at the neck, buttons down the front (v11.1: and a pocket)
+    const cc = trimOr(new THREE.Color().copy(jersey).lerp(white, 0.2)), dk = new THREE.Color().copy(jersey).multiplyScalar(0.8);
     add(hips, G2.collar, cc, 0, 0.597, -0.01, { s: [1.24 * w, 1.3, 0.95] });
-    for (const sx of [1, -1]) add(hips, G2.collarFlap, cc, 0.05 * sx, 0.575, dz + 0.004, { r: [0.5, 0, sx * 0.6], s: [1, 1, 1] });
-    for (const y of [0.47, 0.4, 0.33, 0.26, 0.19]) add(hips, G2.button, new THREE.Color().copy(jersey).multiplyScalar(0.8), 0, y, 0.122 * (0.6 + 0.4 * w) + (y > 0.35 ? 0.045 : 0.036), small);
+    add(hips, G2.vneck, skin, 0, 0.556, fz(0.556) + 0.002, { s: [1.05, 1, 0.35], outline: false });   // open at the neck
+    for (const sx of [1, -1]) add(hips, G2.collarFlap, cc, 0.05 * sx, 0.575, fz(0.575) + 0.012, { r: [0.5, 0, sx * 0.6], s: [1, 1, 1] });
+    for (const [y0, y1] of [[0.53, 0.4], [0.4, 0.27], [0.27, 0.14]]) seg(hips, G2.placket, dk, [0, y0, fz(y0) + 0.003], [0, y1, fz(y1) + 0.003]);
+    for (const y of [0.47, 0.4, 0.33, 0.26, 0.19]) add(hips, G2.button, dk, 0, y, fz(y) + 0.008, small);
+    const px = 0.085 * w, pz = Math.sqrt(Math.max(0, 1 - Math.pow(px / (1.25 * w * torsoR(0.41)), 2))) * fz(0.41);
+    add(hips, G2.pocket, new THREE.Color().copy(jersey).multiplyScalar(0.92), px, 0.405, pz + 0.002, { r: [0.08, 0.2, 0], outline: false });
+    add(hips, G2.pocket, cc, px, 0.443, pz + 0.004, { s: [1.02, 0.12, 1.2], r: [0.08, 0.2, 0], outline: false });
   }
-  if (shirt === 'rash') {   // v11: a rash guard: snug long sleeves, a band across the chest in your gear colour
-    add(hips, G2.rashBand, gear, 0, 0.38, 0, { s: [1.27 * w, 1, 0.74 * (0.6 + 0.4 * w)], outline: false });
-  }
-  if (look.chain === 'gold' || look.chain === 'chrome') {   // v11: chains on the chest
-    const gold = look.chain === 'gold', mc = new THREE.Color(gold ? 0xf2c230 : 0xdfe6ee), dz = 0.07;
-    if (gold) {
-      [[0.585, 0.0, 1.0], [0.56, 0.015, 1.12], [0.53, 0.03, 1.24]].forEach(([y, z, k]) => add(hips, G2.chainRing, mc, 0, y, dz + z, { r: [1.15, 0, 0], s: [k * w, k, k], outline: false }));
-      for (const [x, y] of [[0, 0.47], [0.03, 0.455], [-0.03, 0.455]]) add(hips, G2.link, mc, x, y, 0.145 + dz * 0.4, { r: [0.25, 0, 0], k: 1.3, outline: false });
+  if (shirt === 'hoodie' || shirt === 'sweat') {   // v11.1: a ribbed neck; a hoodie's pocket, drawstrings, and its hood down
+    const hd = shirt === 'hoodie', ribC = trimOr(rib);
+    if (!hd) {
+      add(hips, G2.neckRib, ribC, 0, 0.598, 0.004, { s: [1.3 * w, 1.15, 1.08], outline: false });
+      add(hips, G2.vneck, ribC, 0, 0.566, fz(0.566) + 0.004, { s: [0.75, 0.7, 0.3], outline: false });   // the little V at the collar
     } else {
-      add(hips, G2.chainFat, mc, 0, 0.575, dz, { r: [1.15, 0, 0], s: [1.05 * w, 1.05, 1.05], outline: false });
-      add(hips, G2.medal, mc, 0, 0.485, 0.155, { r: [Math.PI / 2 - 0.25, 0, 0], k: 1.15, outline: false });
+      const hc = new THREE.Color().copy(jersey).multiplyScalar(0.94), strC = trimOr(white);
+      add(hips, G2.kanga, new THREE.Color().copy(jersey).multiplyScalar(0.9), 0, 0.17, fz(0.17) + 0.004, { s: [w, 1, 1], r: [0.12, 0, 0], outline: false });
+      for (const sx of [1, -1]) add(hips, G2.kanga, new THREE.Color().copy(jersey).multiplyScalar(0.7), 0.104 * w * sx, 0.17, fz(0.17) + 0.007, { s: [0.05, 0.92, 1.1], r: [0.12, 0, 0], outline: false });   // its openings
+      for (const sx of [1, -1]) {
+        const x = 0.034 * sx, y0 = 0.572, y1 = 0.44;
+        seg(hips, G2.string, strC, [x, y0, fz(y0) + 0.012], [x + 0.004 * sx, y1, fz(y1) + 0.01]);
+        add(hips, G2.aglet, strC, x + 0.004 * sx, y1 - 0.012, fz(y1 - 0.012) + 0.01, small);
+      }
+      if (!SH.hoodUp) {   // the hood down: rolled round the back of your neck, flat on your back
+        add(hips, G2.hoodRoll, hc, 0, 0.585, -0.014, { s: [1.13 * w, 1, 1.06] });
+        add(hips, G2.hoodFlat, hc, 0, 0.585, -fz(0.52) + 0.012, { s: [1.32 * w, 1.25, 0.5], r: [-0.12, 0, 0] });
+        add(hips, G2.neckRib, ribC, 0, 0.593, 0.008, { s: [1.0 * w, 0.9, 0.82], outline: false });
+      }
     }
   }
-  if (look.ears === 'earbuds') {   // v11: the earbud cords, down to a pocket
-    const wc = new THREE.Color(0xf7f7f4);
-    for (const sx of [1, -1]) add(hips, G2.cord, wc, 0.05 * sx, 0.5, 0.135, { s: [1, 0.2, 1], r: [0.25, 0, sx * 0.55], outline: false });
-    add(hips, G2.cord, wc, 0.02, 0.24, 0.155, { s: [1, 0.36, 1], r: [0.12, 0, 0.12], outline: false });
+  if (look.chain === 'gold' || look.chain === 'chrome') {   // v11: chains on the chest (v11.1: in any metal)
+    const gold = look.chain === 'gold', mc = new THREE.Color(look.chainColor != null ? look.chainColor : gold ? 0xf2c230 : 0xdfe6ee);
+    // (v11.1) a ring from the back of your neck down to a point on your chest: tilted so it lies on you
+    const drape = (geo, R0, yf, gap, kx) => {
+      const zf = fz(yf) + gap, yb = 0.648, zb = -0.052, D = Math.hypot(yb - yf, zf - zb), tilt = Math.atan2(yb - yf, zf - zb), k = D / 2 / R0;
+      add(hips, geo, mc, 0, (yf + yb) / 2, (zf + zb) / 2, { r: [tilt + Math.PI / 2, 0, 0], s: [0.084 * kx * (0.75 + 0.25 * w) / R0, k, k], outline: false });
+    };
+    if (gold) {
+      [[0.535, 0.008], [0.5, 0.009], [0.462, 0.01]].forEach(([yf, gap], i) => drape(G2.chainRing, 0.1, yf, gap, 1 + i * 0.06));
+      add(hips, G2.medal, mc, 0, 0.448, fz(0.448) + 0.014, { r: [Math.PI / 2 - 0.2, 0, 0], k: 0.55, outline: false });   // a little charm on the long one
+    } else {
+      drape(G2.chainFat, 0.108, 0.478, 0.014, 1.06);
+      add(hips, G2.medal, mc, 0, 0.452, fz(0.452) + 0.022, { r: [Math.PI / 2 - 0.2, 0, 0], k: 1.15, outline: false });
+    }
+  }
+  const earC = new THREE.Color(look.earColor != null ? look.earColor : 0xf7f7f4);
+  if (look.ears === 'earbuds' && !SH.hoodUp) {   // v11: the earbud cords, down to a pocket (v11.1: from under your jaw, down your neck)
+    for (const sx of [1, -1]) seg(hips, G2.cord, earC, [0.085 * sx, 0.705, 0.055], [0.012 * sx, 0.47, fz(0.47) + 0.012]);
+    seg(hips, G2.cord, earC, [0, 0.47, fz(0.47) + 0.012], [0.07 * w, 0.2, fz(0.2) + 0.012]);
+    seg(hips, G2.cord, earC, [0.07 * w, 0.2, fz(0.2) + 0.012], [0.15 * w, 0.03, fz(0.03) + 0.02]);
+  }
+  if (look.ears === 'phones' && phonesOnNeck(look)) {   // v11.1: headphones round your neck (there's a hat or a hood on your head)
+    const pad = ribOf(earC).multiplyScalar(0.6);
+    add(hips, G2.phoneNeck, earC, 0, 0.6, -0.004, { s: [1.04 * w, 1, 1.12] });
+    for (const sx of [1, -1]) {
+      add(hips, G2.cup, earC, 0.1 * w * sx, 0.582, 0.07, { r: [1.15, 0, sx * 0.55] });
+      add(hips, G2.cushion, pad, 0.096 * w * sx, 0.595, 0.058, { r: [1.15, 0, sx * 0.55], outline: false });
+    }
   }
   const tat = (which, sx) => which === 'both' || (which === 'left' && sx === 1) || (which === 'right' && sx === -1);
   [[armL, elbowL, 1], [armR, elbowR, -1]].forEach(([sh, el, sx]) => {
     const armC = sl === 'both' || (sl === 'one' && sx === -1) ? gear : skin;   // one sleeve goes on the hitting arm
-    const longS = shirt === 'longsleeve' || shirt === 'rash';   // (v11: a rash guard has long sleeves; a collared shirt comes to the elbow)
-    const upper = longS ? [[0, 1, jersey]] : shirt === 'tee' || shirt === 'polo' ? [[0, 0.42, jersey]] : shirt === 'collar' ? [[0, 0.62, jersey], [0.62, 0.7, new THREE.Color().copy(jersey).multiplyScalar(0.9)]] : [];
+    const longS = ['longsleeve', 'rash', 'hoodie', 'sweat'].includes(shirt);   // (v11: a rash guard has long sleeves; a collared shirt comes to the elbow)
+    const baggy = shirt === 'hoodie' || shirt === 'sweat' ? 1.1 : 1, hemC = trimOr(rib);
+    const upper = longS ? [[0, 1, jersey]] : shirt === 'tee' ? [[0, 0.37, jersey], [0.37, 0.43, hemC]] : shirt === 'polo' ? [[0, 0.37, jersey], [0.37, 0.43, trimOr(new THREE.Color().copy(jersey).lerp(white, 0.12))]]
+      : shirt === 'collar' ? [[0, 0.6, jersey], [0.6, 0.7, trimOr(new THREE.Color().copy(jersey).multiplyScalar(0.88))]] : [];
     if (armC === skin && !longS && tat(look.tatArm, sx)) upper.push([0.5, 0.58, tatInk], [0.63, 0.66, tatInk], [0.71, 0.8, tatInk]);
-    add(sh, G2.delt, shirt === 'tank' ? skin : jersey, 0, -0.012, 0, { k: 0.95 + 0.1 * w });
-    add(sh, limbGeo(0.29, 0.066 * w * (shirt === 'tank' ? 1 : shirt === 'rash' ? 1.03 : 1.08), 0.05 * w, { color: armC, bulge: 0.012 * w, at: 0.35, bands: upper }), null, 0, 0, 0);
-    const lower = longS ? (shirt === 'rash' ? [[0, 0.84, jersey], [0.84, 0.92, gear]] : [[0, 0.9, jersey]]) : look.bands ? [[0.76, 0.94, gear]] : [];
-    add(el, limbGeo(0.26, 0.054 * w, 0.042 * w, { color: armC, bulge: 0.008 * w, at: 0.25, bands: lower }), null, 0, 0, 0);
+    add(sh, G2.delt, shirt === 'tank' ? skin : shirt === 'rash' ? rashC : jersey, 0, -0.012, 0, { k: (0.95 + 0.1 * w) * (baggy > 1 ? 1.06 : 1) });
+    add(sh, limbGeo(0.29, 0.066 * w * (shirt === 'tank' ? 1 : shirt === 'rash' ? 1.03 : 1.08) * baggy, 0.05 * w * (longS ? 1.04 * baggy : 1), { color: armC, bulge: 0.012 * w, at: 0.35, bands: upper }), null, 0, 0, 0);
+    const lower = longS ? (shirt === 'rash' ? [[0, 0.84, jersey], [0.84, 0.92, rashC]] : baggy > 1 ? [[0, 0.8, jersey], [0.8, 0.92, trimOr(rib)]] : [[0, 0.84, jersey], [0.84, 0.9, hemC]]) : look.bands ? [[0.76, 0.94, gear]] : [];
+    add(el, limbGeo(0.26, 0.054 * w * (longS ? 1.05 * baggy : 1), 0.042 * w * (longS ? (baggy > 1 ? 1.22 : 1.08) : 1), { color: armC, bulge: 0.008 * w, at: 0.25, bands: lower }), null, 0, 0, 0);
     add(el, G2.hand, skin, 0, -0.31, 0, { s: [0.8, 1.2, 0.55] });
     add(el, G2.thumb, skin, -0.028 * sx, -0.285, 0.032, small);
     if (sx === 1 && look.idle === 'watch') {   // v11: a watch on the left wrist (to check, while he waits)
@@ -5096,7 +5319,7 @@ function makeRig(look) {
   body.frustumCulled = ink.frustumCulled = false;   // limbs swing outside the rest-pose bounds
   const num = numberTexture(look.number);
   const numMat = new THREE.MeshBasicMaterial({ map: num.t, transparent: true, depthWrite: false });
-  const numMesh = new THREE.Mesh(NUM_GEO, numMat); numMesh.scale.z = 0.6 + 0.4 * w;   // sits on the chest and back for every build
+  const numMesh = new THREE.Mesh(NUM_GEO, numMat); numMesh.scale.z = (0.6 + 0.4 * w) * (1 + SH.puff);   // sits on the chest and back for every build (and shirt)
   numMesh.visible = look.shirtNum !== false;
   hips.add(numMesh);
   const blob = new THREE.Mesh(blobGeo, blobMat); blob.renderOrder = -1; root.add(blob);
@@ -5108,8 +5331,9 @@ function makeRig(look) {
 }
 // Hair, headwear, facial hair and eyewear, placed relative to the centre of the head
 function addHead(H, look, hair, gear, skin, jersey) {
-  const small = { outline: false }, st = look.hair || 'buzz', hw = look.head || 'none';
-  const covered = hw === 'cap' || hw === 'capf' || hw === 'bandana' || hw === 'hood';
+  const SH = shirtOf(look), small = { outline: false }, st = look.hair || 'buzz', hw = SH.hoodUp ? 'hood' : look.head || 'none';   // (v11.1: a hood up covers any hat)
+  const hat = look.hatColor != null ? new THREE.Color(look.hatColor) : gear;   // (v11.1: a hat in its own colour, or your gear colour)
+  const covered = hw === 'cap' || hw === 'capf' || hw === 'bandana' || hw === 'hood' || hw === 'bear';
   const style = hw === 'hood' ? 'bald' : covered && ['afro', 'hightop', 'mohawk', 'curly', 'bun', 'spacebuns', 'spiky', 'topknot', 'puffs', 'twists', 'bowl', 'shaggy', 'surfcurls'].includes(st) ? 'buzz' : st;   // tall hair tucks under a cap (and all of it under a hood)
   const bucket = hw === 'bucket';   // (v11: a bucket hat sits down over the hair; what's below the brim still shows)
   const scalp = () => H(G2.cap, hair, 0, 0.004, -0.006, { s: [0.93, 1.08, 1.0] });
@@ -5189,21 +5413,21 @@ function addHead(H, look, hair, gear, skin, jersey) {
     curls.forEach(([x, y, z, ring], i) => { if (bucket && ring < 2) return; H(G2.puff, hair, x, y, z, { k: 0.95 + ((i * 29) % 7) / 18 }); });
   }
   // headwear
-  if (hw === 'headband') H(G2.band, gear, 0, 0.055, -0.005, { r: [-0.12, 0, 0], s: [0.93, 1, 0.99] });
-  else if (hw === 'visor') { H(G2.thinband, gear, 0, 0.05, -0.005, { r: [-0.1, 0, 0], s: [0.93, 1, 0.99] }); H(G2.brim, gear, 0, 0.045, 0.02, { r: [0.14, 0, 0] }); }
+  if (hw === 'headband') H(G2.band, hat, 0, 0.055, -0.005, { r: [-0.12, 0, 0], s: [0.93, 1, 0.99] });
+  else if (hw === 'visor') { H(G2.thinband, hat, 0, 0.05, -0.005, { r: [-0.1, 0, 0], s: [0.93, 1, 0.99] }); H(G2.brim, hat, 0, 0.045, 0.02, { r: [0.14, 0, 0] }); }
   else if (hw === 'cap' || hw === 'capf') {
     const fwd = hw === 'capf';
-    H(G2.dome, gear, 0, 0.008, -0.004, { s: [0.95, 1.06, 1.02] });
-    H(G2.brim, gear, 0, 0.035, fwd ? 0.03 : -0.03, { r: [fwd ? 0.12 : -0.12, fwd ? 0 : Math.PI, 0] });
-  } else if (hw === 'bandana') { H(G2.dome, gear, 0, 0.004, -0.004, { s: [0.95, 1.04, 1.02] }); H(G2.knot, gear, 0.022, 0.0, -0.142); H(G2.knot, gear, -0.02, -0.022, -0.148); }
+    H(G2.dome, hat, 0, 0.008, -0.004, { s: [0.95, 1.06, 1.02] });
+    H(G2.brim, hat, 0, 0.035, fwd ? 0.03 : -0.03, { r: [fwd ? 0.12 : -0.12, fwd ? 0 : Math.PI, 0] });
+  } else if (hw === 'bandana') { H(G2.dome, hat, 0, 0.004, -0.004, { s: [0.95, 1.04, 1.02] }); H(G2.knot, hat, 0.022, 0.0, -0.142); H(G2.knot, hat, -0.02, -0.022, -0.148); }
   else if (hw === 'catears') {   // v11: a thin band and two ears standing up
-    H(G2.thinband, gear, 0, 0.05, -0.012, { r: [-0.55, 0, 0], s: [0.95, 1, 1.0] });
+    H(G2.thinband, hat, 0, 0.05, -0.012, { r: [-0.55, 0, 0], s: [0.95, 1, 1.0] });
     for (const sx of [1, -1]) {
-      H(G2.catEar, gear, 0.085 * sx, 0.165, 0.0, { r: [0.1, Math.PI / 6, -0.32 * sx], s: [1, 1.1, 0.55] });
+      H(G2.catEar, hat, 0.085 * sx, 0.165, 0.0, { r: [0.1, Math.PI / 6, -0.32 * sx], s: [1, 1.1, 0.55] });
       H(G2.catEar, new THREE.Color(0xf2a6b8), 0.085 * sx + 0.004 * sx, 0.158, 0.012, { r: [0.1, Math.PI / 6, -0.32 * sx], s: [0.55, 0.7, 0.3], outline: false });
     }
-  } else if (hw === 'bucket') {   // v11: Sky-Kai's bucket hat: blue and white checks
-    const B = new THREE.Color(0x2f6fd0), Wt = new THREE.Color(0xf4f6fb);
+  } else if (hw === 'bucket') {   // v11: Sky-Kai's bucket hat: blue and white checks (v11.1: or your colour and white)
+    const B = new THREE.Color(look.hatColor != null ? look.hatColor : 0x2f6fd0), Wt = new THREE.Color(B.r + B.g + B.b > 2.4 ? 0x8f99a8 : 0xf4f6fb);
     for (let i = 0; i < 12; i++) {
       const a = (i / 12) * Math.PI * 2;
       H(G2.bucketPiece, i % 2 ? B : Wt, 0, 0.142, -0.006, { r: [0, a, 0] });
@@ -5211,11 +5435,25 @@ function addHead(H, look, hair, gear, skin, jersey) {
       H(G2.bucketBrim, i % 2 ? B : Wt, 0, 0.06, -0.006, { r: [0, a, 0] });
     }
     H(G2.bucketTop, Wt, 0, 0.164, -0.006, { s: [0.97, 1, 0.97] });
-  } else if (hw === 'hood') {   // v11: a hood up (in the shirt's colour), shadowing the face a little
-    const hc = new THREE.Color().copy(jersey || gear).multiplyScalar(0.72);
+  } else if (hw === 'hood') {   // v11: a hood up; v11.1: the hoodie's hood, in its colour, the lining in its trim
+    const hc = new THREE.Color().copy(jersey || gear).multiplyScalar(0.9), lining = look.trimColor != null ? new THREE.Color(look.trimColor) : ribOf(hc).multiplyScalar(0.8);
     H(G2.hoodBack, hc, 0, 0.0, -0.016, { s: [1.02, 1.16, 1.06] });
     H(G2.dome, hc, 0, 0.02, -0.01, { s: [1.04, 1.06, 1.04] });
-    H(G2.hoodRim, new THREE.Color().copy(hc).multiplyScalar(0.7), 0, 0.012, 0.098, { r: [0, 0, -0.24], s: [1.0, 1.12, 0.7] });   // the edge of it, round the face
+    H(G2.hoodRim, lining, 0, 0.012, 0.098, { r: [0, 0, -0.24], s: [1.0, 1.12, 0.7] });   // the edge of it, round the face
+  } else if (hw === 'bear') {   // v11.1: Chrome's bear hat (Truss's photo of Rome): plush, round ears, the bear's snout up top,
+    // the face framed all round, flaps down the jaw to two pom-poms under the chin
+    const B = new THREE.Color(look.hatColor != null ? look.hatColor : 0x8f5a2a), Lt = new THREE.Color().copy(B).lerp(new THREE.Color(0xf2dcc0), 0.3), Dk = new THREE.Color().copy(B).multiplyScalar(0.62);
+    H(G2.bearShell, B, 0, 0.0, -0.012, { s: [1.0, 1.05, 1.02] });
+    H(G2.bearTop, B, 0, 0.006, -0.008, { s: [1.0, 1.05, 1.03] });
+    H(G2.bearRim, B, 0, -0.012, 0.118, { r: [0, 0, -Math.PI * 0.15], s: [1.02, 1.12, 0.6] });
+    H(G2.fluff, B, 0, 0.142, 0.112, { s: [1.3, 0.85, 1.1] });   // the snout
+    H(G2.fluff, Dk, 0, 0.158, 0.163, { s: [0.38, 0.28, 0.3], outline: false });   // its nose
+    for (const sx of [1, -1]) {
+      H(G2.bearEar, B, 0.13 * sx, 0.132, -0.02, { s: [0.5, 1, 0.95], r: [0, 0, -0.5 * sx] });
+      H(G2.bearEar, Lt, 0.137 * sx, 0.13, -0.006, { s: [0.24, 0.62, 0.6], r: [0, 0, -0.5 * sx], outline: false });
+      H(G2.fluff, B, 0.114 * sx, -0.095, 0.036, { s: [0.62, 1.75, 0.82], r: [0, 0, 0.22 * sx] });   // a flap
+      H(G2.fluff, B, 0.044 * sx, -0.19, 0.068, { k: 0.9 });   // a pom-pom
+    }
   }
   // facial hair
   const fh = look.face || 'none';
@@ -5226,6 +5464,7 @@ function addHead(H, look, hair, gear, skin, jersey) {
     H(G2.stache, hair, 0, -0.035, 0.127, small);
   } else if (fh === 'goatee') { H(G2.goatee, hair, 0, -0.092, 0.1, { s: [1, 1.2, 0.8], outline: false }); H(G2.stache, hair, 0, -0.035, 0.127, small); }
   else if (fh === 'mustache') H(G2.stache, hair, 0, -0.035, 0.127, small);
+  else if (fh === 'thin') H(G2.stache, new THREE.Color().copy(hair).lerp(skin, 0.4), 0, -0.034, 0.128, { s: [0.86, 0.48, 0.7], outline: false });   // (v11.1)
   // eyewear
   const ew = look.eyes || 'none';
   if (ew === 'shades' || ew === 'aviators') {
@@ -5243,10 +5482,20 @@ function addHead(H, look, hair, gear, skin, jersey) {
       H(G2.liner, ink, 0.079 * sx, 0.037, 0.112, { r: [0, -0.5 * sx, 0.45 * sx], s: [0.7, 1.1, 1], outline: false });
     }
   }
-  // v11: white wired earbuds (the cords run down the chest: see makeRig)
-  if (look.ears === 'earbuds') for (const sx of [1, -1]) {
-    H(G2.bud, new THREE.Color(0xf7f7f4), 0.125 * sx, -0.002, 0.012, small);
-    H(G2.cord, new THREE.Color(0xf7f7f4), 0.122 * sx, -0.05, 0.01, { s: [1, 0.09, 1], outline: false });
+  // v11: white wired earbuds (the cords run down the chest: see makeRig); v11.1: in any colour, wireless ones, headphones
+  const earC = new THREE.Color(look.earColor != null ? look.earColor : 0xf7f7f4);
+  if (hw !== 'hood' && (look.ears === 'earbuds' || look.ears === 'pods')) for (const sx of [1, -1]) {
+    H(G2.bud, earC, 0.125 * sx, -0.002, 0.014, small);
+    if (look.ears === 'pods') H(G2.stem, earC, 0.127 * sx, -0.03, 0.024, { r: [0.28, 0, 0], outline: false });
+    else { const S = segOf([0.123 * sx, -0.012, 0.016], [0.085 * sx, -0.135, 0.045]); H(G2.cord, earC, S.m[0], S.m[1], S.m[2], { r: S.r, s: [1, S.len, 1], outline: false }); }   // down to your jaw
+  }
+  if (look.ears === 'phones' && !phonesOnNeck(look)) {   // on your head, over your hair (or a cap)
+    const pad = ribOf(earC).multiplyScalar(0.6), k = st === 'afro' && !covered ? 1.25 : (st === 'puffs' || st === 'spacebuns') && !covered ? 1.12 : hw === 'cap' || hw === 'capf' || hw === 'bandana' ? 1.035 : 1;
+    H(G2.phoneBand, earC, 0, 0.004, -0.008, { s: [0.93 * k, 1.03 * k, 1] });
+    for (const sx of [1, -1]) {
+      H(G2.cup, earC, 0.152 * k * sx, -0.004, -0.002, { r: [0, 0, Math.PI / 2] });
+      H(G2.cushion, pad, 0.131 * k * sx, -0.004, -0.002, { r: [0, 0, Math.PI / 2], outline: false });
+    }
   }
 }
 // Shoes (v9): low-tops, high-tops, clogs, flip-flops, slides or dress shoes, on the shin bone
@@ -5763,6 +6012,8 @@ function lookFromProfile(L, color) {
     burns: L.burns, eyeShape: L.eyeShape, eyeColor: EYE_COLORS[L.eyeColor], eyeColor2: L.hetero ? EYE_COLORS[L.eyeColor2] : null,
     shirt: L.shirt, shirtNum: L.shirtNum, pants: L.pants, shoeType: L.shoeType, tatArm: L.tatArm, tatLeg: L.tatLeg,
     chain: L.chain, ears: L.ears, idle: L.idle,   // v11
+    hoodUp: L.hoodUp, hatColor: L.hatCol >= 0 ? ITEM_COLORS[L.hatCol] : null, earColor: ITEM_COLORS[L.earCol] != null ? ITEM_COLORS[L.earCol] : ITEM_COLORS[0],   // v11.1
+    chainColor: METAL_COLORS[L.chainCol] != null ? METAL_COLORS[L.chainCol] : METAL_COLORS[0], trimColor: L.trimCol >= 0 ? ITEM_COLORS[L.trimCol] : null,
   };
 }
 function customLook() { return Object.assign(lookFromProfile(profile), { custom: true }); }
@@ -6238,7 +6489,7 @@ function netCollision(px, yc) {
 function checkBlock() {
   if (G.phase !== 'live' || ball.lastKind === 'serve' || ball.lastKind === 'block' || G.blockSerial === G.touchSerial) return false;
   for (const p of allPlayers) {
-    if (p.grounded || !p.act || p.act.kind !== 'block') continue;
+    if (p.grounded || !p.act || p.act.kind !== 'block' || p.act.fake) continue;   // (v11.0.2: a beaten block never gets a hand on it)
     // online, a guest's block is judged on the ball's path over their lag (it may have crossed already on the host)
     const remote = G.host && p.ctl && !p.ctl.local;
     if (G.poss.team === p.team && !(remote && G.lastToucher && G.lastToucher.team !== p.team)) continue;
@@ -6826,7 +7077,7 @@ function think(team) {
   const tl = timeToHeight(BALL_R);
   const land = tl === null ? { x: ball.p.x, z: ball.p.z } : ballAt(tl);
   let need = 0;
-  if (!(ball.serveFlight && ours) && count < 3 && land.x * s > 0) need = count + 1;
+  if (!(ball.serveFlight && ours) && count < 3 && (land.x * s > 0 || playableHere(s))) need = count + 1;
   // Smart leave: a ball from the other team that is clearly heading out
   if (need === 1 && !ours && G.lastToucher && G.lastToucher.team !== team) {
     const outBy = Math.max(Math.abs(land.x) - COURT_X, Math.abs(land.z) - COURT_Z);
@@ -6863,6 +7114,13 @@ function think(team) {
 }
 
 const TOUCH_H = { pass: PT.pass.up, bumpset: PT.pass.up, free: PT.pass.up, set: PT.set.up, attack: SPIKE_H };
+// v11.0.2: a ball on our side heading for the net (a tight pass, say) that would come down on the far side of it: it's
+// still ours if, before it gets there, it comes through a height we can play it at on our side
+function playableHere(s) {
+  if (ball.p.x * s <= 0.3 || ball.v.x * s >= 0) return false;
+  for (const h of [PT.set.up, 1.4, PT.pass.up + 0.2]) { const t = timeToHeight(h); if (t !== null && ballAt(t).x * s > 0.55) return true; }
+  return false;
+}
 function chooseType(need, team) {
   if (need === 1) return 'pass';
   const tS = timeToHeight(SPIKE_H), cS = tS !== null ? ballAt(tS) : null;
@@ -6878,7 +7136,7 @@ function chooseType(need, team) {
 function planTouch(team, need, ours) {
   // The kind of touch is decided once per incoming ball, so a spike plan doesn't flip to a dig mid-approach
   const key = G.touchSerial * 4 + need;
-  if (team.planKey !== key) { team.planKey = key; team.planType = chooseType(need, team); }
+  if (team.planKey !== key) { team.planKey = key; team.planType = chooseType(need, team); team.planT0 = G.time; }
   let type = team.planType, h = TOUCH_H[type];
   let t = timeToHeight(h);
   if (t === null) {
@@ -6900,8 +7158,15 @@ function planTouch(team, need, ours) {
     if (!p.grounded && p !== team.lastAssignee) continue;
     const d = Math.hypot(c.x - p.pos.x, c.z - p.pos.z);
     const ai = aiControlled(p);
-    const eta = Math.max(0, d - 0.6) / ((ai ? p.team.ai.speed : HUMAN.speed) * p.speedK) + (ai ? Math.max(0, p.react) : 0.05);
+    let eta = Math.max(0, d - 0.6) / ((ai ? p.team.ai.speed : HUMAN.speed) * p.speedK) + (ai ? Math.max(0, p.react) : 0.05);
+    // (v11.0.2) still up from a swing or a block that's done with: no running for this one until they're down
+    if (!p.grounded && !(type === 'attack' && p.atk && p.atk.key === G.touchSerial) && !(p.act && p.act.kind === 'set' && !p.act.done)) eta += landIn(p) + 0.1;
     let score = t - eta;
+    if (!ai && bias && need !== 2) {   // (v11.0.2) a person: a moment to see it's theirs, and a teammate goes if they don't
+      if (need === 1) score -= 0.2;
+      const toward = (p.vel.x * (c.x - p.pos.x) + p.vel.z * (c.z - p.pos.z)) / Math.max(d, 0.1);
+      if (G.time - (team.planT0 || 0) > 0.35 && d > 1.1 && toward < 1.2) score -= 0.8;
+    }
     if (need === 1 && p.role === 'setter' && n > 2) score -= 0.3;
     if (need === 2 && type !== 'attack') { if (p.role === 'setter') score += 0.8; if (bias && !ai && n > 2) score -= 0.45; }
     if (type === 'attack') { if (p === team.plannedAttacker) score += 0.7; if (bias && !ai) score += 0.4; if (p.role === 'setter') score -= 0.3; if (team.setterSwing === p && need === 2) score += 1.6; }   // (v11)
@@ -6918,6 +7183,8 @@ function planTouch(team, need, ours) {
   team.contact = { type, h, t, c };
   if (aiControlled(best)) best.task = { type, h, t, c, need, serial: G.touchSerial };
 }
+// how long until a player in the air is back on their feet
+function landIn(p) { return p.grounded ? 0 : (p.vy + Math.sqrt(Math.max(0, p.vy * p.vy + 2 * G_PLAYER * Math.max(0, p.pos.y)))) / G_PLAYER; }
 function planServe(p) {
   const jump = p.serveKind === 'jump', h = jump ? 2.95 : 2.0, t = timeToHeight(h);
   if (t === null) return;
@@ -6949,7 +7216,17 @@ function planBlock(team, opp) {
   team.blocker = best; team.blockSpot = { x: bx, z: bz, t: oc.t };
   if (aiControlled(best)) {
     if (bp.go) best.task = { type: 'block', t: oc.t, c: { x: bx, z: bz }, serial: G.touchSerial };
-    else team.blocker = null;   // reading the dig instead of blocking
+    else {
+      team.blocker = null;   // no read on it...
+      // ...but it's coming at them: up they go anyway, beaten (v11.0.2), if they can get there in time (the lower the
+      // level, the closer it has to be to them; otherwise they drop back to dig, as before)
+      if (!G.demo && (bp.fakeOn || bd < [1.3, 1.6, 2.2, 2.2, 2.2][team.ai.at || 0])) {
+        if (!bp.fake) { bp.fake = Math.random() < 0.25 ? 'late' : 'early'; bp.fakeZ = (Math.random() < 0.5 ? -1 : 1) * rand(0.75, 1.1); }
+        const lead = bp.fake === 'early' ? (2 * blockV(best)) / G_PLAYER + 0.08 : 0.03;
+        if (!bp.fakeOn && Math.max(0, bd - 0.3) / (SPEED.approach * up(best, 'block', 0.3)) < oc.t - lead) bp.fakeOn = best;   // (once they're on their way, they keep going)
+        if (bp.fakeOn === best) best.task = { type: 'block', t: oc.t, c: { x: bx, z: clamp(bz + bp.fakeZ, -NET_HALF + 0.3, NET_HALF - 0.3) }, serial: G.touchSerial, fake: bp.fake };
+      }
+    }
   }
 }
 
@@ -7310,6 +7587,7 @@ function aiStep(p) {
   if (tk && (tk.type === 'attack' || tk.type === 'serve')) { aiAttack(p, tk); return; }
   if (tk && tk.type === 'block') { aiBlock(p, tk); return; }
   let gx = p.pos.x, gz = p.pos.z, spd = ai.speed * p.speedK, faceTo = null;
+  if (tk && p.act && p.act.kind === 'windup' && p.grounded) p.act = null;   // (v11.0.2: a swing given up for a dig or a set)
   if (tk) {
     const pt = tk.type === 'set' ? PT.set : PT.pass, aim = sendHint(p.team, tk);
     let fx = aim.x - tk.c.x, fz = aim.z - tk.c.z; const fl = Math.hypot(fx, fz) || 1; fx /= fl; fz /= fl;
@@ -7481,8 +7759,9 @@ function aiBlock(p, tk) {
   const s = p.team.side, bp = p.team.blockPlan, tUp = blockV(p) / G_PLAYER;
   faceToward(p, -s, 0, 0.35);
   if (!p.grounded) return;
-  const jumpAt = tk.t + 0.06 - tUp + (bp ? bp.err : 0);
-  if (jumpAt <= 0 && Math.abs(p.pos.x) < 1.3 && p.react <= 0) { blockJump(p, aiBlockStyle(p)); return; }
+  // (v11.0.2: a beaten block: up and back down before the hit, or still on the way up as it goes by; a small hop if late)
+  const jumpAt = tk.fake === 'early' ? tk.t - 2 * tUp - 0.08 : tk.fake === 'late' ? tk.t - 0.03 : tk.t + 0.06 - tUp + (bp ? bp.err : 0);
+  if (jumpAt <= 0 && Math.abs(p.pos.x) < 1.3 && p.react <= 0) { blockJump(p, tk.fake ? null : aiBlockStyle(p)); if (tk.fake && p.act) { p.act.fake = true; if (tk.fake === 'late') p.vy *= 0.7; } return; }
   if (p.react > 0) brake(p, 0.2); else steer(p, tk.c.x, tk.c.z, SPEED.approach * up(p, 'block', 0.3));   // Blocking: faster to the net
 }
 
@@ -10369,8 +10648,10 @@ function storyContinue() {
 }
 // ---- Create your player: LOOK / GEAR / BODY tabs, every change shows on the live 3D model.
 // Some gear starts locked: tap it to unlock it with points.
-const SW_LISTS = { color: TEAM_COLORS, skin: SKINS, hairColor: HAIR_COLORS, gear: GEAR_COLORS, shoe: SHOE_COLORS, shorts: SHORTS_COLORS, eyeColor: EYE_COLORS, eyeColor2: EYE_COLORS };
-const CHIP_LISTS = { hair: HAIR_STYLES, face: FACE_HAIR, eyes: EYEWEAR, head: HEADWEAR, sleeves: SLEEVES, build: BUILDS, celebrate: CELEBRATIONS,
+const SW_LISTS = { color: TEAM_COLORS, skin: SKINS, hairColor: HAIR_COLORS, gear: GEAR_COLORS, shoe: SHOE_COLORS, shorts: SHORTS_COLORS, eyeColor: EYE_COLORS, eyeColor2: EYE_COLORS,
+  hatCol: ITEM_COLORS, earCol: ITEM_COLORS, chainCol: METAL_COLORS, trimCol: ITEM_COLORS };   // (v11.1)
+const SW_AUTO = { hatCol: true, trimCol: true };   // (v11.1: these start with A, the usual colour)
+const CHIP_LISTS = { hair: HAIR_STYLES, face: FACE_HAIR, eyes: EYEWEAR, head: HAT_PICKS, sleeves: SLEEVES, build: BUILDS, celebrate: CELEBRATIONS,
   burns: SIDEBURNS, eyeShape: EYE_SHAPES, shirt: SHIRTS, pants: PANTS, shoeType: SHOE_TYPES, tatArm: TATS, tatLeg: TATS, chain: CHAINS, ears: EARS, idle: IDLE_MOVES };
 let creatorTab = 'look';
 function creatorChanged(rebuild) { saveProfile(); syncCreator(); if (rebuild !== false) buildShowcase(); syncMenus(); }
@@ -10386,10 +10667,11 @@ async function pickLook(key, v, apply) {
 }
 document.querySelectorAll('[data-sw]').forEach((el) => {
   const key = el.dataset.sw;
-  SW_LISTS[key].forEach((c, i) => {
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'sw';
-    if (c < 0) { b.classList.add('team'); b.textContent = 'T'; b.setAttribute('aria-label', 'Team color'); }
+  (SW_AUTO[key] ? [null] : []).concat(SW_LISTS[key]).forEach((c, k) => {
+    const b = document.createElement('button'), i = SW_AUTO[key] ? k - 1 : k;
+    b.type = 'button'; b.className = 'sw'; b.dataset.i = String(i);
+    if (c === null) { b.classList.add('auto'); b.textContent = 'A'; b.setAttribute('aria-label', 'The usual color'); }
+    else if (c < 0) { b.classList.add('team'); b.textContent = 'T'; b.setAttribute('aria-label', 'Team color'); }
     else { b.style.background = hexCss(c); b.setAttribute('aria-label', 'Color ' + (i + 1)); }
     b.addEventListener('click', () => pickLook(key, i, () => { profile[key] = i; creatorChanged(); }));
     el.appendChild(b);
@@ -10448,11 +10730,17 @@ function syncCreator() {
     b.classList.toggle('lock', locked);
     if (locked) b.dataset.price = fmtPts(gearPrice(key, v)); else delete b.dataset.price;
   };
-  document.querySelectorAll('[data-sw]').forEach((el) => [...el.children].forEach((b, i) => { b.setAttribute('aria-pressed', String(i === profile[el.dataset.sw])); lockUp(b, el.dataset.sw, i); }));
+  document.querySelectorAll('[data-sw]').forEach((el) => [...el.children].forEach((b) => { const i = Number(b.dataset.i); b.setAttribute('aria-pressed', String(i === profile[el.dataset.sw])); lockUp(b, el.dataset.sw, i); }));
   document.querySelectorAll('[data-chips]').forEach((el) => [...el.children].forEach((b) => { b.setAttribute('aria-pressed', String(b.dataset.v === profile[el.dataset.chips])); lockUp(b, el.dataset.chips, b.dataset.v); }));
   document.querySelectorAll('[data-toggle]').forEach((el) => [...el.children].forEach((b) => { b.setAttribute('aria-pressed', String(String(profile[el.dataset.toggle]) === b.dataset.v)); lockUp(b, el.dataset.toggle, b.dataset.v); }));
   document.querySelectorAll('.sw.team').forEach((b) => { b.style.background = hexCss(TEAM_COLORS[profile.color]); });
   $('eye2Field').hidden = !profile.hetero;
+  // v11.1: a colour row shows when you've got the thing on; the A swatch shows what the usual colour is
+  $('hatColField').hidden = profile.head === 'none'; $('chainColField').hidden = profile.chain === 'none'; $('earColField').hidden = profile.ears === 'none';
+  $('hoodField').hidden = profile.shirt !== 'hoodie';
+  const hatAuto = profile.head === 'bucket' ? 0x2f6fd0 : profile.head === 'bear' ? 0x8f5a2a : GEAR_COLORS[profile.gear];
+  document.querySelectorAll('[data-sw="hatCol"] .sw.auto').forEach((b) => { b.style.background = hexCss(hatAuto); });
+  document.querySelectorAll('[data-sw="trimCol"] .sw.auto').forEach((b) => { const t = new THREE.Color(TEAM_COLORS[profile.color]); b.style.background = '#' + ribOf(t).getHexString(); });
   document.querySelectorAll('#cTabs button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tab === creatorTab)));
   document.querySelectorAll('.cpane').forEach((el) => { el.hidden = el.dataset.pane !== creatorTab; });
   fadeSoon();
@@ -10990,19 +11278,22 @@ function render(dt) {
   // Ball shadow + landing ring
   const hgt = Math.max(0, ballMesh.position.y - BALL_R), bs = (0.62 + hgt * 0.07) * (BALL_R / 0.26);
   ballShadow.position.set(ballMesh.position.x, 0.021, ballMesh.position.z); ballShadow.scale.set(bs, bs, 1);
-  ballShadow.material.opacity = clamp(0.6 - hgt * 0.06, 0.15, 0.6);
+  const lightCourt = !!LIGHT_COURT[SURF.id];
+  ballShadow.material.opacity = lightCourt ? clamp(0.75 - hgt * 0.05, 0.35, 0.75) : clamp(0.6 - hgt * 0.06, 0.15, 0.6);
   // Gold ring: when your team's set is coming to you, where the ball drops through hitting height
   const sp = !replaying && !G.demo ? spikeSpot(G.human) : null, spikeOn = !!sp;
   if (sp) { spikeRing.position.set(sp.x, 0.03, sp.z); spikeRing.scale.setScalar(1 + Math.sin(G.time * 9) * 0.07); }
   spikeRing.visible = spikeOn;
+  spikeRingEdge.visible = spikeOn && lightCourt; if (spikeRingEdge.visible) { spikeRingEdge.position.set(sp.x, 0.028, sp.z); spikeRingEdge.scale.copy(spikeRing.scale); }
   spikeRing.material.color.setHex(fire ? 0xff5a1f : 0xffb31a);
   // White ring: where the ball will land (hidden while the gold ring is up)
   let ringOn = false;
   if (!spikeOn && !replaying && (G.phase === 'live' || (G.phase === 'serve' && G.servePhase === 'tossed')) && !ball.held && hgt > 0.05) {
     const t = timeToHeight(BALL_R);
-    if (t !== null) { const c = ballAt(t); landRing.position.set(c.x, 0.026, c.z); ringOn = true; landRing.scale.setScalar(1 + Math.sin(G.time * 10) * 0.08); }
+    if (t !== null) { const c = ballAt(t); landRing.position.set(c.x, 0.026, c.z); ringOn = true; landRing.scale.setScalar((1 + Math.sin(G.time * 10) * 0.08) * (LIGHT_COURT[SURF.id] ? 1.25 : 1)); }   // (v11.0.2: a bigger ring on a light court)
   }
   landRing.visible = ringOn;
+  landRingEdge.visible = ringOn && lightCourt; if (landRingEdge.visible) { landRingEdge.position.set(landRing.position.x, 0.024, landRing.position.z); landRingEdge.scale.copy(landRing.scale); }
   landRing.material.color.setHex(fire ? 0xff7a2f : 0xfff7ea);
   // Attack marker on the net while you're defending
   const myT = G.human ? G.human.team : null;
@@ -11021,11 +11312,13 @@ function render(dt) {
   // "You" markers
   const h = G.human, showYou = !!h && !G.demo && !replaying && !G.cut;
   youRing.visible = youArrow.visible = showYou;
+  youRingEdge.visible = showYou && !!LIGHT_COURT[SURF.id];
   if (showYou) {
     const yours = G.phase === 'live' && (teams[0].assignee === h || teams[0].blocker === h);
     youRing.position.set(h.pos.x, 0.03, h.pos.z);
     youRing.scale.setScalar(yours ? 1.1 + Math.sin(G.time * 12) * 0.12 : 1);
     youRing.material.color.setHex(yours ? 0xffffff : 0xffd23f);
+    youRingEdge.position.set(h.pos.x, 0.028, h.pos.z); youRingEdge.scale.copy(youRing.scale);
     youArrow.position.set(h.pos.x, h.pos.y + 2.25 + Math.sin(G.time * 5) * 0.06, h.pos.z);
   }
   updateCalls(replaying);
@@ -11553,9 +11846,15 @@ function packLook(L) {
     SIDEBURNS.indexOf(L.burns), EYE_SHAPES.indexOf(L.eyeShape), L.eyeColor, L.hetero ? 1 : 0, L.eyeColor2, SHIRTS.indexOf(L.shirt), L.shirtNum ? 1 : 0,
     PANTS.indexOf(L.pants), SHOE_TYPES.indexOf(L.shoeType), TATS.indexOf(L.tatArm), TATS.indexOf(L.tatLeg),
     // v11
-    CHAINS.indexOf(L.chain || 'none'), EARS.indexOf(L.ears || 'none'), IDLE_MOVES.indexOf(L.idle || 'mix')];
+    CHAINS.indexOf(L.chain || 'none'), EARS.indexOf(L.ears || 'none'), IDLE_MOVES.indexOf(L.idle || 'mix'),
+    // v11.1
+    HEADWEAR.indexOf(L.head), SHIRTS.indexOf(L.shirt), L.hoodUp ? 1 : 0, L.hatCol, L.earCol, L.chainCol, L.trimCol]
+    .map((v, i) => (i === 6 ? lookOldHead(L) : i === 21 ? lookOldShirt(L) : v));
 }
-const LOOK_LEN = 30;
+const OLD_HEADS = 8, OLD_SHIRTS = 6;   // (what a v11.0 phone has)
+const lookOldHead = (L) => (L.shirt === 'hoodie' && L.hoodUp ? HEADWEAR.indexOf('hood') : Math.max(0, HEADWEAR.indexOf(L.head)) < OLD_HEADS ? Math.max(0, HEADWEAR.indexOf(L.head)) : 0);
+const lookOldShirt = (L) => { const i = SHIRTS.indexOf(L.shirt); return i >= 0 && i < OLD_SHIRTS ? i : SHIRTS.indexOf('longsleeve'); };
+const LOOK_LEN = 37;
 // A packed look back into the option form `profile` uses (cleaned), and into a look to build a rig from
 function unpackProfile(a) {
   a = Array.isArray(a) ? a : [];
@@ -11566,6 +11865,7 @@ function unpackProfile(a) {
     burns: of(SIDEBURNS, 16), eyeShape: of(EYE_SHAPES, 17), eyeColor: n(18), hetero: !!a[19], eyeColor2: n(20), shirt: of(SHIRTS, 21), shirtNum: a.length > 22 ? !!a[22] : true,
     pants: of(PANTS, 23), shoeType: of(SHOE_TYPES, 24), tatArm: of(TATS, 25), tatLeg: of(TATS, 26),
     chain: a.length > 27 ? of(CHAINS, 27) : 'none', ears: a.length > 28 ? of(EARS, 28) : 'none', idle: a.length > 29 ? of(IDLE_MOVES, 29) : 'mix',   // (v11)
+    ...(a.length > 36 ? { head: of(HEADWEAR, 30), shirt: of(SHIRTS, 31), hoodUp: !!a[32], hatCol: n(33), earCol: n(34), chainCol: n(35), trimCol: n(36) } : {}),   // (v11.1)
   });
 }
 function unpackLook(a, team) { return lookFromProfile(unpackProfile(a), team.color); }
@@ -12609,7 +12909,8 @@ function palPump(dt) {
 }
 // Who's playing (looks and names), for a watcher to build the same match
 const RIG_KEYS = ['color', 'skin', 'hair', 'hairColor', 'number', 'face', 'eyes', 'head', 'accent', 'sleeves', 'knees', 'bands', 'shoe', 'shorts', 'height', 'build', 'celebrate',
-  'burns', 'eyeShape', 'eyeColor', 'eyeColor2', 'shirt', 'shirtNum', 'pants', 'shoeType', 'tatArm', 'tatLeg'];
+  'burns', 'eyeShape', 'eyeColor', 'eyeColor2', 'shirt', 'shirtNum', 'pants', 'shoeType', 'tatArm', 'tatLeg',
+  'chain', 'ears', 'idle', 'hoodUp', 'hatColor', 'earColor', 'chainColor', 'trimColor'];   // (v11.1)
 const packRig = (L) => RIG_KEYS.map((k) => (L[k] === undefined ? null : L[k]));
 function unpackRig(a) {
   a = Array.isArray(a) ? a : [];
@@ -12621,6 +12922,8 @@ function unpackRig(a) {
     build: of(BUILDS, 15, 'athletic'), celebrate: of(CELEBRATIONS, 16, 'flex'), burns: of(SIDEBURNS, 17, 'none'), eyeShape: of(EYE_SHAPES, 18, 'round'), eyeColor: col(19, EYE_COLORS[0]),
     eyeColor2: a[20] == null ? null : col(20, EYE_COLORS[4]), shirt: of(SHIRTS, 21, 'tank'), shirtNum: a[22] !== false, pants: of(PANTS, 23, 'shorts'), shoeType: of(SHOE_TYPES, 24, 'low'),
     tatArm: of(TATS, 25, 'none'), tatLeg: of(TATS, 26, 'none'),
+    chain: of(CHAINS, 27, 'none'), ears: of(EARS, 28, 'none'), idle: of(IDLE_MOVES, 29, 'mix'), hoodUp: a[30] === true,   // (v11.1)
+    hatColor: a[31] == null ? null : col(31, 0), earColor: col(32, ITEM_COLORS[0]), chainColor: col(33, METAL_COLORS[0]), trimColor: a[34] == null ? null : col(34, 0),
   };
 }
 function palConfig() {
@@ -14903,6 +15206,7 @@ window.__grass = {
   cues: () => (G.human ? cues(G.human) : NO_CUE), spikeSpot: () => spikeSpot(G.human), get hitStop() { return hitStop; },
   get pixelRatio() { return pixelRatio; }, HUMAN, REACH,
   rigKit: { makeRig, applyRig, disposeRig, randomLook, customLook, BASE_POSE, scene, showPanel },
+  packLookTest: () => packLook(profile), unpackProfile, cleanLook, lookFromProfile, LOOK_LEN, shirtOf, ITEM_COLORS, METAL_COLORS,   // (v11.1)
   setupServe, consts: { FOOT_LINE, NET_BOTTOM, SERVE_ZONE, COURT_X, NET_HALF, ANT_R, ANT_TOP, BALL_R },
   legend, setPark, PARKS, CREWS, recruitDef, startStory, nextCrew, saveLegend, adoptLegend, settleMatch, playScene, sceneNext, endScene,
   get Save() { return Save; }, showMenu, rollRookie, playParents, get stage() { return stage; }, openStory, renderLegendPanel, buyLevel, confirmBox, closeConfirm,
