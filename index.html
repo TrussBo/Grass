@@ -263,6 +263,13 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
   border: 2px solid var(--ink); border-radius: 8px; padding: 3px 10px; box-shadow: 2px 2px 0 var(--ink);
 }
 #prompt.now { background: var(--chalk); animation: nudge 0.26s ease-in-out infinite alternate; }
+/* v11.2: the joust meter: top middle, both sides' taps */
+#joust { position: absolute; z-index: 12; pointer-events: none; left: 50%; top: calc(var(--inT, 0px) + 58px); transform: translateX(-50%); text-align: center;
+  background: var(--ink); color: var(--chalk); border: 2px solid var(--chalk); border-radius: 10px; padding: 5px 14px 7px; box-shadow: 3px 3px 0 rgba(0,0,0,0.4); }
+#joust b { display: block; font: 400 22px var(--font-display, var(--font-ui)); letter-spacing: 0.06em; color: var(--sun); }
+#joust span { display: block; font-weight: 800; font-size: 12px; letter-spacing: 0.16em; animation: nudge 0.2s ease-in-out infinite alternate; }
+#joust .jbars { display: flex; gap: 6px; margin-top: 5px; width: 190px; height: 10px; }
+#joust .jbars i { display: block; height: 100%; border-radius: 4px; border: 1.5px solid var(--chalk); min-width: 4px; transition: width 0.08s; }
 @keyframes nudge { from { transform: scale(1); } to { transform: scale(1.1); } }
 /* set calls: speech bubbles over the setter and over you */
 #calls { position: absolute; inset: 0; z-index: 9; pointer-events: none; overflow: hidden; }
@@ -944,6 +951,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
   <div id="hostPause" hidden role="status">PAUSED<small>BY THE HOST</small></div>
   <button id="btnReplay" type="button" hidden>REPLAY<small>WATCH IT AGAIN</small></button>
   <div id="prompt" hidden></div>
+  <div id="joust" hidden><b>JOUST!</b><span>MASH HIT</span><div class="jbars"><i id="joustA"></i><i id="joustB"></i></div></div>
   <div id="tossMeter" hidden><i id="tossFill"></i></div>
 
   <div id="controls" hidden>
@@ -959,7 +967,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
       <button class="btn" id="bJump" data-a="jump" type="button">JUMP</button>
     </div>
     <div id="dogBar" hidden></div>
-    <div id="callBar" hidden role="group" aria-label="Call for a set"><button type="button" id="callQuick" data-call="quick">QUICK</button><button type="button" id="callHigh" data-call="high">HIGH</button><button type="button" id="callBack" data-call="back">BACK</button><button type="button" id="callSky" data-call="sky">SKY</button><button type="button" id="callShoot" data-call="shoot" hidden>SHOOT</button></div>
+    <div id="callBar" hidden role="group" aria-label="Call for a set"><button type="button" id="callQuick" data-call="quick">QUICK</button><button type="button" id="callHigh" data-call="high">HIGH</button><button type="button" id="callBack" data-call="back">BACK</button><button type="button" id="callSky" data-call="sky">SKY</button><button type="button" id="callShoot" data-call="shoot" hidden>SHOOT</button><button type="button" id="callPipe" data-call="pipe" hidden>PIPE</button></div>
   </div>
 
   <!-- Main menu: your player in 3D beside the court on the left, what to play on the right -->
@@ -1139,6 +1147,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
           <div class="field"><span class="lbl">KNEE PADS</span><div class="seg" data-toggle="knees"><button type="button" data-v="true">ON</button><button type="button" data-v="false">OFF</button></div></div>
           <div class="field"><span class="lbl">WRISTBANDS</span><div class="seg" data-toggle="bands"><button type="button" data-v="true">ON</button><button type="button" data-v="false">OFF</button></div></div>
           <div class="field wide"><span class="lbl">SHIRT</span><div class="chipset" data-chips="shirt"></div></div>
+          <div class="field wide"><span class="lbl">SHIRT COLOR <small>T: your team's</small></span><div class="swatches" data-sw="shirtCol"></div></div>
           <div class="field"><span class="lbl">NUMBER ON IT</span><div class="seg" data-toggle="shirtNum"><button type="button" data-v="true">ON</button><button type="button" data-v="false">OFF</button></div></div>
           <div class="field" id="hoodField"><span class="lbl">HOOD</span><div class="seg" data-toggle="hoodUp"><button type="button" data-v="true">UP</button><button type="button" data-v="false">DOWN</button></div></div>
           <div class="field wide"><span class="lbl">SHIRT TRIM <small>collar · cuffs · hems · strings · A: goes with the shirt</small></span><div class="swatches" data-sw="trimCol"></div></div>
@@ -1405,7 +1414,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 (() => {
 'use strict';
 // The version: shown in SETTINGS and on the cover of the guide book. Raise it with every update, then rebuild the guide.
-const VERSION = '11.1';
+const VERSION = '11.2';
 const $ = (id) => document.getElementById(id);
 const errBox = $('err');
 function showError(msg) { errBox.textContent = msg; errBox.hidden = false; }
@@ -1492,6 +1501,7 @@ const DEFAULT_LOOK = {
   burns: 'none', eyeShape: 'round', eyeColor: 0, hetero: false, eyeColor2: 4, shirt: 'tank', shirtNum: true, pants: 'shorts', shoeType: 'low', tatArm: 'none', tatLeg: 'none',
   chain: 'none', ears: 'none', idle: 'mix',   // v11
   hoodUp: false, hatCol: -1, earCol: 0, chainCol: 0, trimCol: -1,   // v11.1
+  shirtCol: -1,   // v11.1.1: your shirt's colour (-1: your team's)
 };
 function cleanLook(src) {
   const L = Object.assign({}, DEFAULT_LOOK, src && typeof src === 'object' ? src : {});
@@ -1513,6 +1523,7 @@ function cleanLook(src) {
   const cx = (v, lo, n) => { const k = Math.round(Number(v)); return Number.isFinite(k) ? clamp(k, lo, n - 1) : lo; };
   L.hoodUp = L.hoodUp === true; L.hatCol = cx(L.hatCol, -1, ITEM_COLORS.length); L.earCol = cx(L.earCol, 0, ITEM_COLORS.length);
   L.chainCol = cx(L.chainCol, 0, METAL_COLORS.length); L.trimCol = cx(L.trimCol, -1, ITEM_COLORS.length);
+  L.shirtCol = cx(L.shirtCol, -1, ITEM_COLORS.length);   // (v11.1.1)
   L.height = clamp(Math.round(Number(L.height) || 0), -2, 3);   // (3: Sky-Kai, the tallest there is; the creator stops at 2)
   L.knees = L.knees === true; L.bands = L.bands !== false;
   L.name = String(L.name || 'YOU').toUpperCase().replace(/[^A-Z0-9 .'-]/g, '').slice(0, 10).trim() || 'YOU';
@@ -1567,6 +1578,17 @@ const TRICKS = [
   { id: 'deekay', name: 'DEEKAY', how: "Fake it: run out wide, cut back in, jump and HIT a QUICK set. Their block goes with the fake", price: 800 },
   { id: 'shoot', name: 'SHOOT', how: 'A new set: stick up and out to one side as you SET (or call SHOOT). Fast and flat, out to the antenna', price: 700 },
   { id: 'monster', name: 'MISTER MONSTER', how: 'A one-hand BLOCK timed just right, at the very top of your jump: straight down, and nobody can dig it', price: 900 },
+  // v11.2: ten more (Truss's quiz)
+  { id: 'hurry', name: 'HURRY-UP SERVE', how: 'Serving: toss within a second of getting the ball. Anyone not back in place yet is slow to it', price: 300, serve: true },
+  { id: 'onehandset', name: 'ONE-HAND SET', how: "Automatic: SET a pass that's tight to the net and you reach up and set it with one hand", price: 350 },
+  { id: 'poke', name: 'KNUCKLE POKE', how: 'Stick pulled back as you HIT into a block: a short, hard poke just over their fingers (with no block up, it\'s a tip)', price: 400 },
+  { id: 'combatroll', name: 'COMBAT ROLL', how: 'JUMP as you land from a dive: you roll straight back up onto your feet', price: 400 },
+  { id: 'swingblock', name: 'SWING BLOCK', how: 'BLOCK while you run along the net: you go up higher and cover more of it', price: 450 },
+  { id: 'nolookset', name: 'NO-LOOK SET', how: 'Setting: call your set on the call bar, then SET with the stick pointing the other way. You look there, their block follows your eyes', price: 500 },
+  { id: 'joust', name: 'JOUST', how: 'A hit meets the block (yours or theirs) with you both up at the net, or a ball sits on the net: it sticks on top between your hands. Mash HIT: more taps than them wins, and it goes down on their side', price: 500 },
+  { id: 'pipe', name: 'PIPE', how: 'A new set call (PIPE on the call bar, key 6): fast to the middle, off the net, for a hitter running in from deep', price: 600 },
+  { id: 'tweener', name: 'TWEENER', how: 'A ball flying away from you: run it down and DIG. You hit it between your legs, back over your head to your team', price: 600 },
+  { id: 'tornado', name: 'TORNADO SERVE', how: 'Serving: after the toss, double-tap JUMP, then HIT. A full spin in the air: faster, and a big Gamebreaker boost', price: 650, serve: true },
 ];
 const TRICK_IDS = TRICKS.map((t) => t.id);
 const trickName = (id) => (TRICKS.find((t) => t.id === id) || { name: id.toUpperCase() }).name;
@@ -1861,7 +1883,7 @@ const CREWS = [
     outro: [['TIKA', "Okay, so you can play indoors. Chrome's warming up. Well... he's yawning."]] },
   { id: 'jackpot', court: 4, name: 'JACKPOT', color: 0x17b3a3, ai: 'veryhard', aiAt: 3.68, lvl: 5,
     p: [['JACKIE', { set: -2, pass: -1 }, { hair: 'braids', eyes: 'shades', skin: 4 }], ['CHIP', { hit: -1, block: -1 }, { hair: 'bald', face: 'beard', skin: 3 }], ['SEVEN', { hit: -1, set: -1 }, { hair: 'cornrows', build: 'strong', height: 2, skin: 6 }]],
-    reward: { gear: ['celebrate:shimmy', 'shirt:polo'] },
+    reward: { trick: 'tornado', gear: ['celebrate:shimmy', 'shirt:polo'] },   // (v11.2: a trick too)
     intro: [['JACKIE', "Chrome's training the next legend. You're just practice."]],
     outro: [['JACKIE', "Huh. Maybe YOU'RE the next legend. Go on. The House is open."]] },
   { id: 'house', court: 4, boss: true, star: 'CHROME', title: 'CHROME', name: 'THE HOUSE', color: 0x23232f, ai: 'veryhard', aiAt: 3.8, lvl: 5,
@@ -1874,17 +1896,17 @@ const CREWS = [
   // ---- v11: THE ISLES (Kekai's cliffs): up to impossible
   { id: 'tidepool', court: 5, name: 'TIDE POOLERS', color: 0x2fd9c8, ai: 'impossible', aiAt: 3.8, lvl: 5,
     p: [['NALU', { set: -2, block: -1 }, { hair: 'long', hairColor: 0, shirt: 'rash', pants: 'trunks', skin: 4 }], ['KOA', { hit: -1, power: -1 }, { hair: 'curly', face: 'stubble', skin: 4 }], ['LEILANI', { hit: -2, set: -1 }, { hair: 'braids', hairColor: 0, head: 'headband', skin: 3 }]],
-    reward: { gear: ['shoeType:flipflops', 'celebrate:guitar'] },
+    reward: { trick: 'combatroll', gear: ['shoeType:flipflops', 'celebrate:guitar'] },   // (v11.2: a trick too)
     intro: [['NALU', "The goat's been up here longer than the court. Don't fight the goat."]],
     outro: [['NALU', "Okay, you can play. But Sky-Kai's watching. From the stones."]] },
   { id: 'lavaflow', court: 5, name: 'LAVA FLOW', color: 0xff5a1f, ai: 'impossible', aiAt: 3.87, lvl: 5,
     p: [['MAKANI', { set: -2, pass: -1 }, { hair: 'mohawk', build: 'strong', skin: 5 }], ['IOLANI', { hit: -1, block: -1 }, { hair: 'bun', skin: 3 }], ['KEOLA', { hit: -1, set: -1 }, { hair: 'dreads', skin: 4 }]],
-    reward: { gear: ['tatArm:both', 'celebrate:pushups'] },
+    reward: { trick: 'joust', gear: ['tatArm:both', 'celebrate:pushups'] },   // (v11.2: a trick too)
     intro: [['MAKANI', 'This rock was lava once. It still plays hot.']],
     outro: [['MAKANI', 'Cooled off. Just like that. The Sea Mist are up by the cliffs.']] },
   { id: 'seamist', court: 5, name: 'SEA MIST', color: 0xb8c4ff, ai: 'impossible', aiAt: 3.94, lvl: 5,
     p: [['HAZE', { set: -2, block: -1 }, { hair: 'spacebuns', skin: 2 }], ['DRIFT', { hit: -1, power: -1 }, { hair: 'long', hairColor: 5, skin: 0 }], ['SHOAL', { hit: -2, set: -1 }, { hair: 'dreads', skin: 6 }]],
-    reward: { gear: ['shoeType:slides', 'celebrate:bow'] },
+    reward: { trick: 'nolookset', gear: ['shoeType:slides', 'celebrate:bow'] },   // (v11.2: a trick too)
     intro: [['HAZE', "The mist rolls in at sunset. You won't see the serve till it's on you."]],
     outro: [['HAZE', "You saw it. Hm. Sky-Kai's going to want to see you now."]] },
   { id: 'cliffhangers', court: 5, boss: true, star: 'SKY-KAI', title: 'SKY-KAI', name: 'CLIFFHANGERS', color: 0x2f86e8, ai: 'impossible', aiAt: 4, lvl: 5,
@@ -2190,6 +2212,7 @@ const SETS = {
   sky: { apex: 8.4, depth: 1.15, label: 'SKY BALL' },
   back: { apex: 5.6, depth: 1.05, label: 'BACK SET' },
   shoot: { apex: 3.2, depth: 0.85, label: 'SHOOT SET' },   // v11 (Chrome): fast and flat, out to the antenna
+  pipe: { apex: 4.2, depth: 2.7, label: 'PIPE' },   // v11.2: to the middle, off the net, for a hitter coming in from deep
 };
 // v11: Vegas United's low roof: no skyball serves, no SKY sets
 const noSky = () => G.park === 'gym';
@@ -4672,7 +4695,7 @@ function gymFill() {
   for (const r of g.real || []) { g.group.remove(r.rig.root); disposeRig(r.rig); }
   g.real = [];
   const mine = [];
-  for (const f of (legend.friends || []).slice(0, 12)) if (Array.isArray(f.lk)) { const L = unpackProfile(f.lk); mine.push({ look: lookFromProfile(L, null), shirt: TEAM_COLORS[L.color], skin: SKINS[L.skin], real: true }); }
+  for (const f of (legend.friends || []).slice(0, 12)) if (Array.isArray(f.lk)) { const L = unpackProfile(f.lk); mine.push({ look: lookFromProfile(L, null), shirt: L.shirtCol >= 0 ? ITEM_COLORS[L.shirtCol] : TEAM_COLORS[L.color], skin: SKINS[L.skin], real: true }); }
   for (const c of CREWS) {
     if (c.court > 2 || !legend.story.beaten.includes(c.id)) continue;
     c.p.forEach((_, i) => { const d = recruitDef(c.id + ':' + i); if (d) mine.push({ look: d.look, shirt: c.color, skin: d.look.skin, real: !!c.boss }); });
@@ -5154,7 +5177,7 @@ function makeRig(look) {
   const root = new THREE.Group();
   const C = (hex) => new THREE.Color(hex);
   const w = (BODY.build[look.build] || BODY.build.athletic).w;
-  const jersey = C(look.color), skin = C(look.skin), white = C(0xf4f1ea), dark = C(0x17110d);
+  const jersey = C(look.shirtColor != null ? look.shirtColor : look.color), skin = C(look.skin), white = C(0xf4f1ea), dark = C(0x17110d);   // (v11.1.1: a shirt in its own colour)
   const shorts = C(look.shorts == null ? 0x26262e : look.shorts < 0 ? look.color : look.shorts);
   const gear = C(look.accent != null ? look.accent : 0xf4f1ea), hair = C(look.hairColor), shoe = C(look.shoe != null ? look.shoe : 0xf4f1ea);
   const bone = (parent, x, y, z) => { const b = new THREE.Bone(); b.position.set(x, y, z); parent.add(b); return b; };
@@ -6014,6 +6037,7 @@ function lookFromProfile(L, color) {
     chain: L.chain, ears: L.ears, idle: L.idle,   // v11
     hoodUp: L.hoodUp, hatColor: L.hatCol >= 0 ? ITEM_COLORS[L.hatCol] : null, earColor: ITEM_COLORS[L.earCol] != null ? ITEM_COLORS[L.earCol] : ITEM_COLORS[0],   // v11.1
     chainColor: METAL_COLORS[L.chainCol] != null ? METAL_COLORS[L.chainCol] : METAL_COLORS[0], trimColor: L.trimCol >= 0 ? ITEM_COLORS[L.trimCol] : null,
+    shirtColor: L.shirtCol >= 0 ? ITEM_COLORS[L.shirtCol] : null,   // v11.1.1 (null: the team's colour, `color`)
   };
 }
 function customLook() { return Object.assign(lookFromProfile(profile), { custom: true }); }
@@ -6245,11 +6269,84 @@ function contact(p, kind, v, opts) {
   ball.shot = (opts && opts.shot) || null;   // 'roll' for roll shots (they can roll out)
   if (p.act) { p.act.done = true; p.act.doneT = p.act.t; }
   afterTouch(p, kind, Math.hypot(v.vx, v.vz));
+  if (kind === 'serve' && G.hurry) hurryHit(p);   // (v11.2: after the usual reaction times are dealt out)
   if (ballLook === 'slapme') ballVoice(kind === 'attack' || kind === 'serve' ? 'big' : 'soft');   // (v11: Nick's head yells)
   else if (ballLook === 'goat' && kind === 'attack' && Math.random() < 0.6) bleat();
   sfx(kind === 'serve' || kind === 'attack' ? 'hit' : kind === 'set' ? 'set' : 'dig', clamp(Math.hypot(v.vx, v.vy, v.vz) / 16, 0.3, 1.2));
   if (kind !== 'serve' && kind !== 'block' && team.gb.active && !G.demo && !PRAC.on && !G.client) G.cutAsk = { team, by: p, n: G.poss.count };   // v10.2: their Gamebreaker play starts from this touch
   return true;
+}
+// ---- v11.2: JOUST ----
+function joustHud() {
+  const J = G.joust, el = $('joust');
+  setHidden(el, !J || G.demo);
+  if (!J || G.demo) return;
+  const me = G.human, mine = me && J.p.includes(me), tot = Math.max(1, J.taps[0] + J.taps[1]);
+  el.querySelector('span').textContent = mine ? 'MASH HIT' : J.taps[0] + ' · ' + J.taps[1];
+  J.p.forEach((q, i) => { const b = $(i ? 'joustB' : 'joustA'); b.style.width = Math.round((J.taps[i] / tot) * 100) + '%'; b.style.background = hexCss(q.team.color); });
+}
+const JOUST_T = 0.8;   // how long it holds
+
+const jousting = (p) => !!(G.joust && G.joust.p.includes(p));
+function joustCheck() {
+  if (G.phase !== 'live' || G.joust || G.demo || PRAC.on || ball.held || G.joustSerial === G.touchSerial || ball.lastKind === 'block' || ball.lastKind === 'serve' || ball.monster === G.touchSerial) return;
+  if (Math.abs(ball.p.x) > 0.32 || ball.p.y < NET_TOP + 0.05 || ball.p.y > NET_TOP + 1.05 || Math.hypot(ball.v.x, ball.v.z) > 8 || Math.abs(ball.v.x) > 6) return;   // (a spike's too quick: that's a block)
+  // a player from each side up in the air, hands right there at it (whoever just played it can be a little further off)
+  const pk = ball.poke && ball.poke.serial === G.touchSerial ? ball.poke.blocker : null;   // (a knuckle poke goes just over those fingers)
+  const near = (p) => {
+    if (p.grounded || p === pk) return false;
+    const by = !!(G.lastToucher && G.lastToucher.team === p.team);
+    return Math.abs(p.pos.x) < (by ? 1.5 : 1.0) && Math.hypot(ball.p.z - p.pos.z, ball.p.y - (p.pos.y + 1.95 * (p.reachK || 1))) < (by ? 1.25 : 0.8);
+  };
+  const A = teams[0].players.filter(near), B = teams[1].players.filter(near);
+  if (!A.length || !B.length) return;
+  joustStart(A[0], B[0]);
+}
+// someone who starts one: you, if you have the trick; an AI player, if their crew's the one that gives it (LAVA FLOW)
+const joustStarts = (p) => (aiControlled(p) ? crewTrick(p.team) === 'joust' : canTrick(p, 'joust'));
+function joustStart(x, y) {   // (one from each side)
+  if (G.joust || G.demo || PRAC.on || G.phase !== 'live' || !x || !y || x.team === y.team || (!joustStarts(x) && !joustStarts(y))) return false;
+  const a = x.team === teams[0] ? x : y, b = a === x ? y : x;
+  G.joust = { t: 0, p: [a, b], taps: [0, 0], acc: [0, 0], y: clamp(ball.p.y, NET_TOP + 0.25, NET_TOP + 0.9), z: clamp(ball.p.z, -NET_HALF + 0.3, NET_HALF - 0.3) };
+  G.joustSerial = G.touchSerial;
+  for (const q of G.joust.p) { q.trick = { kind: 'joust', t: 0 }; q.vy = 0; q.windup = false; q.charging = false; if (q.act && q.act.kind !== 'block') q.act = null; }
+  flash('JOUST!', false, true); sfx('block', 0.6); shake(0.15);
+  return true;
+}
+function joustStep() {   // (instead of the ball, while it's on)
+  const J = G.joust;
+  if (G.phase !== 'live') { G.joust = null; for (const q of J.p) { q.trick = null; q.vy = -0.5; } return; }
+  J.t += DT;
+  ball.p.set(0, J.y + Math.sin(J.t * 34) * 0.025, J.z); ball.v.set(0, 0, 0);
+  J.p.forEach((q, i) => {
+    q.trick = { kind: 'joust', t: 0 }; q.vel.x = q.vel.z = 0;
+    const k = Math.min(1, DT * 10); q.pos.x += (q.team.side * 0.42 - q.pos.x) * k; q.pos.z += (J.z - q.pos.z) * k;   // (leaning in: hands on it)
+    if (!aiControlled(q) && q.ctl) { if (!q.ctl.local && q.ctl.hitTaps) { J.taps[i] += q.ctl.hitTaps; q.ctl.hitTaps = 0; } }   // a guest's taps (yours count in humanStep)
+    else {   // the AI mashes: faster the better the crew (and Power)
+      J.acc[i] += [5.5, 6.5, 7.5, 8.5, 9.5][q.team.ai.at || 0] * (0.9 + 0.3 * (sv(q, 'power') - 0.6)) * DT * rand(0.6, 1.4);
+      while (J.acc[i] >= 1) { J.acc[i] -= 1; J.taps[i]++; }
+    }
+  });
+  if (J.t < JOUST_T) return;
+  const [a, b] = J.p, d = J.taps[0] - J.taps[1];
+  const win = d > 0 ? a : d < 0 ? b : a.pos.y > b.pos.y + 0.05 ? a : b.pos.y > a.pos.y + 0.05 ? b : Math.random() < 0.5 ? a : b, lose = win === a ? b : a;
+  G.joust = null;
+  for (const q of J.p) { q.trick = null; q.vy = -0.5; }
+  // the winner shoves it down on the loser's side (it doesn't use one of anyone's touches: they get all three)
+  const s = lose.team.side;
+  ball.p.set(s * (BALL_R + 0.12), J.y, J.z);
+  ball.v.set(s * rand(1.6, 3.2), -rand(4.5, 6.5), rand(-1.2, 1.2));
+  G.lastToucher = win; G.touchSerial++; G.rallyTouches++; markTouch(win, 'attack');
+  G.joustSerial = G.blockSerial = G.touchSerial;   // (the shove goes straight down: no block on it, no second joust)
+  ball.lastKind = 'attack'; ball.serveFlight = false; ball.wobble = 0; ball.curve = null; ball.dip = null; ball.shot = null; ball.apex = ball.p.y;
+  G.poss = { team: win.team, count: 0, last: win };
+  afterTouch(win, 'attack', 3);
+  sfx('hit', 0.8); shake(0.25); burst(ball.p.clone(), 0xffd23f, 0.9, false);
+  const me = G.human;
+  if (win === me) { flash('JOUST WON!', false, true, true); bigTrick(); }
+  else if (lose === me) flash('JOUST LOST', true, false, true);
+  addStyle(win.team, win.isHuman && !aiControlled(win) ? 12 : 8);
+  STATS.jousts = (STATS.jousts || 0) + 1;
 }
 // Shared bookkeeping after any touch (including blocks): AI reaction delays and read errors
 function afterTouch(p, kind, hSpeed) {
@@ -6497,8 +6594,9 @@ function checkBlock() {
     if (ball.v.x * s <= 0) continue;                       // only balls heading toward the blocker's side
     // One hand reaches further to the side and a little higher but covers less; a backward block covers less.
     // Blocking widens the hands.
-    const a = p.act, one = !!a.hand, W = (one ? 0.34 : a.back ? 0.4 : 0.48) * up(p, 'block', 0.3);
-    const hx = s * 0.2, hy = p.pos.y + (one ? 1.8 : 1.72) * (p.reachK || 1), hz = p.pos.z + (one ? a.hand * 0.42 : 0);
+    const a = p.act, one = !!a.hand, W = (one ? 0.34 : a.back ? 0.4 : 0.48) * up(p, 'block', 0.3) * (a.swing ? 1.3 : 1);   // (v11.2: a swing block spreads wider)
+    const hx = s * 0.2, hy = p.pos.y + (one ? 1.8 : 1.72) * (p.reachK || 1) + (a.swing ? 0.06 : 0), hz = p.pos.z + (one ? a.hand * 0.42 : 0);
+    if (ball.poke && ball.poke.serial === G.touchSerial && ball.poke.blocker === p) continue;   // (v11.2: a knuckle poke goes just over these fingers)
     const tool = ball.tool && ball.tool.serial === G.touchSerial && ball.tool.blocker === p ? 1 : 0;   // aimed at these hands
     const hits = (x, y, z) => Math.abs(x - hx) < 0.32 + PLAY_R + 0.1 * tool && Math.abs(y - hy) < 0.32 + PLAY_R * 0.7 + 0.35 * tool && Math.abs(z - hz) < W + PLAY_R * 0.6 + 0.45 * tool;
     if (hits(ball.p.x, ball.p.y, ball.p.z)) { doBlock(p, ball.p.z - hz, ball.p.y - hy, W); return true; }
@@ -6530,6 +6628,8 @@ function doBlock(p, dz, dy, W) {
     outcome = Math.random() < pTool ? 'tool' : 'stuff';
     ball.tool = null;
   }
+  const mine = (q) => !aiControlled(q) && canTrick(q, 'joust');
+  if (outcome === 'soft' && !T && hitter && !hitter.grounded && Math.abs(hitter.pos.x) < 1.6 && (mine(hitter) || mine(p) || Math.random() < 0.55) && joustStart(hitter, p)) return;   // (v11.2: JOUST)
   if (outcome === 'monster') {   // (v11) slammed straight down, right at the net, faster than anyone can get to
     ball.p.x = -s * (BALL_R + 0.06);
     ball.v.set(-s * 0.5, -15, ball.v.z * 0.08);
@@ -6703,6 +6803,10 @@ function aiSetPlan(team, setter) {
     return { type: 'quick', w: sw + out * 1.1, attacker: star };
   }
   team.deekay = null;
+  if (goodPass && others.length > 1 && (team.ai.at || 0) >= 3 && aiPick(setter, ['pipe']) === 'pipe') {   // (v11.2)
+    const deep = others.reduce((b, q) => (!b || Math.abs(q.pos.x) > Math.abs(b.pos.x) ? q : b), null);
+    return { type: 'pipe', w: 0, attacker: deep };
+  }
   if (!goodPass) type = noSky() ? 'high' : 'sky';
   else if (r < 0.2 && Math.abs(aw - (sw - 1.1)) < 2.4) { type = 'quick'; w = sw - 1.1; }
   else if (r < 0.42 && aw > sw + 0.4) { type = 'back'; w = clamp(Math.max(aw, sw + 2.2), -3.2, 3.2); }
@@ -6802,6 +6906,25 @@ function sendBicycle(p) {
   }
   if (contact(p, n >= 3 ? 'free' : 'pass', v)) { if (aiControlled(p)) aiFlourish(p, 'BICYCLE KICK!', 16); else { flash('BICYCLE KICK!', false, true); addStyle(team, 16); bigTrick(); } shake(0.25); }
 }
+// v11.2: TWEENER: you're running away from the net after it, it's low and just ahead of you, heading away too
+function tweenerOk(p) {
+  const s = p.team.side;
+  if (p.vel.x * s < 2.2 || ball.v.x * s < 0.3 || ball.p.y > 1.0 || ball.p.y < 0.15 || ball.v.y > 1.5 || ball.p.x * s < p.pos.x * s - 0.2) return false;
+  return Math.hypot(ball.p.x - (p.pos.x + s * 0.45), ball.p.z - p.pos.z) < 0.85;
+}
+// ...between your legs, high back over your head to your team (on the third touch, back over the net)
+function sendTweener(p) {
+  const team = p.team, s = team.side, n = touchNo(team);
+  let v;
+  if (n >= 3) v = lob(ball.p, scatter(openSpot(other(team), true), 1.6), 1.4);
+  else {
+    const tgt = scatter(toWorld(team, SET_SPOT[0] + 0.9, SET_SPOT[1]), rand(0.6, 1.8) * down(p, 'pass', 0.8));
+    if (tgt.x * s < 0.8) tgt.x = s * 0.8;
+    v = solveApex(ball.p, tgt.x, tgt.z, PT.set.up, Math.max(rand(5.2, 6.4), ball.p.y + 1.5));
+  }
+  p.trick = { kind: 'tweener', t: 0 };
+  if (contact(p, n >= 3 ? 'free' : 'pass', v)) { if (aiControlled(p)) aiFlourish(p, 'TWEENER!', 14); else { flash('TWEENER!', false, true); addStyle(team, 14); bigTrick(); } shake(0.2); }
+}
 // A diving dig that pops straight up to a hittable ball near the net
 function sendDiveSet(p, q) {
   const team = p.team, s = team.side;
@@ -6819,12 +6942,24 @@ function sendSet(p, q, human, how) {
   if (n === 1) return sendPass(p, q, human, how === 'hands');
   let type = 'high', w = 0, label;
   const sw = -s * p.pos.z;
+  let noLook = null;   // (v11.2)
   if (human) {
     // Stick picks the set: centre = high to the nearest hitter, up = quick, down = sky, left/right = that side
     const st = stickOf(p);
     const near = PRAC.on ? null : team.players.filter((x) => x !== p).sort((a, b) => Math.abs(a.pos.z - p.pos.z) - Math.abs(b.pos.z - p.pos.z))[0];   // (practice: Chai T's the hitter)
     w = near ? clamp(-s * near.pos.z, -3.2, 3.2) : -3;
-    if (st.m >= 0.3) {
+    // v11.2: you called your own set (the call bar, while you're the one setting): that's the set you give
+    const own = team.call && team.call.by === p && !PRAC.on && (team.call.type !== 'pipe' || canTrick(p, 'pipe')) && (team.call.type !== 'shoot' || canTrick(p, 'shoot')) ? team.call.type : null;
+    if (own) {
+      const look = canTrick(p, 'nolookset') && st.m >= 0.3;   // NO-LOOK SET: the stick is where you look
+      let by = near || p;
+      if (!look && st.m >= 0.3 && Math.abs(st.w) > 0.35) by = team.players.filter((x) => x !== p).sort((a, b) => (st.w > 0 ? 1 : -1) * (s * a.pos.z - s * b.pos.z))[0] || by;   // (no NO-LOOK: the stick picks which hitter)
+      const cp = callPlan(team, p, { type: own, by });
+      type = cp.type; w = cp.w;
+      if (look) { const lw = st.w < -0.35 ? -3.0 : st.w > 0.35 ? 3.0 : st.f > 0.5 ? sw - 1.1 : null; if (lw !== null && Math.abs(lw - w) > 1.8) noLook = { w: lw }; }
+      team.call = null;
+    }
+    else if (st.m >= 0.3) {
       if (st.f > 0.42 && Math.abs(st.w) > 0.42 && canTrick(p, 'shoot')) { type = 'shoot'; w = st.w < 0 ? -3.9 : 3.9; }   // (v11)
       else if (st.f > 0.5) { type = 'quick'; w = sw - 1.1; }
       else if (st.f < -0.5) type = noSky() ? 'high' : 'sky';
@@ -6838,6 +6973,8 @@ function sendSet(p, q, human, how) {
     if (plan.called && plan.attacker && plan.attacker.team === team && plan.attacker !== p) plan = Object.assign({}, plan, callPlan(team, p, { type: plan.type, by: plan.attacker }));
     if (team.call && team.call.by !== p) team.call = null;   // used
     type = plan.type; w = plan.w; team.plannedAttacker = plan.attacker;
+    // v11.2: a setter whose crew knows the NO-LOOK SET: looks at the other side as it sets this one
+    if (others3(team) && crewTrick(team) === 'nolookset' && aiPick(p, ['nolookset']) === 'nolookset') noLook = { w: clamp(w >= sw ? sw - 2.6 : sw + 2.6, -3.2, 3.2) };
   }
   if (how === 'bump') type = type === 'quick' || type === 'shoot' ? 'high' : type;
   if (type === 'sky' && noSky()) type = 'high';   // (v11: the low roof)
@@ -6861,9 +6998,18 @@ function sendSet(p, q, human, how) {
   if (ok && jumpSet) other(team).lateRead = G.touchSerial;
   if (ok && !human && jumpSet) aiFlourish(p, oneLeg ? 'ONE-LEG JUMP SET!' : type === 'back' ? 'JUMP BACK SET!' : 'JUMP SET!', oneLeg ? 11 : type === 'back' ? 12 : 8);
   if (ok && type === 'shoot') { other(team).lateRead = G.touchSerial; if (!human) aiFlourish(p, 'SHOOT SET!', 9); }   // (v11: their block's late to it)
+  if (ok && type === 'pipe') other(team).lateRead = G.touchSerial;   // (v11.2: their block's still watching the outsides)
+  if (ok && noLook) {   // (v11.2) the setter looks there; their block goes with the eyes
+    const lz = toWorld(team, 1.0, noLook.w).z;
+    team.noLook = { serial: G.touchSerial, z: lz }; other(team).lateRead = G.touchSerial;
+    faceToward(p, 0, lz - p.pos.z, 1);
+    if (!human) aiFlourish(p, 'NO-LOOK SET!', 10);
+  }
   if (ok && team.deekay && team.deekay.by === team.plannedAttacker && type === 'quick') team.deekayAtk = { serial: G.touchSerial, by: team.plannedAttacker, z: team.deekay.z };   // (v11: the fake's on)
   if (ok && human) {
-    if (type === 'shoot') { flash('SHOOT SET!', false, true); addStyle(p.team, 9); bigTrick(); }
+    if (noLook) { flash('NO-LOOK SET!', false, true); addStyle(p.team, 10); bigTrick(); }   // (v11.2)
+    else if (type === 'pipe') { flash('PIPE SET!', false, true); addStyle(p.team, 7); }   // (v11.2)
+    else if (type === 'shoot') { flash('SHOOT SET!', false, true); addStyle(p.team, 9); bigTrick(); }
     else if (jumpSet) { flash(oneLeg ? 'ONE-LEG JUMP SET!' : type === 'back' ? 'JUMP BACK SET!' : 'JUMP SET!', false, true); addStyle(p.team, oneLeg ? 11 : type === 'back' ? 12 : 8); bigTrick(); }
     else if (type === 'back' && how !== 'bump') { flash('BEHIND THE BACK!'); addStyle(p.team, 8); }
     else if (q > 0.82 && how !== 'bump') { flash('PERFECT SET'); addStyle(p.team, 6); }
@@ -6944,6 +7090,32 @@ function sendTool(p, q, power, blk) {
     if (aiControlled(p)) aiFlourish(p, 'TOOL SHOT!', 8); else { flash('TOOL SHOT!', false, true); addStyle(p.team, 8); bigTrick(); }
   }
 }
+// v11.2: KNUCKLE POKE: a short, hard poke just over the blocker's fingers into the gap right behind them
+function pokeSpot(opp, blk) {   // the spot just behind their block that their diggers would take longest to get to
+  let best = null, bt = -1;
+  for (let i = 0; i < 6; i++) {
+    const c = { x: opp.side * rand(1.6, 2.5), z: clamp(blk.pos.z + rand(-1.2, 1.2), -4.2, 4.2) };
+    let t = 9;
+    for (const r of opp.players) {
+      if (r === blk) continue;
+      const ai = aiControlled(r), sp = ai ? r.team.ai.speed * (r.speedK || 1) : HUMAN.speed, late = ai ? (r.team.ai.defReact || [0.06, 0.14])[1] + 0.3 : 0.3;
+      t = Math.min(t, Math.max(0, Math.hypot(r.pos.x - c.x, r.pos.z - c.z) - 0.9) / sp + late);
+    }
+    if (t > bt) { bt = t; best = c; }
+  }
+  return { c: best, t: bt };   // (t: how long the quickest of them takes)
+}
+function sendPoke(p, q, blk, at) {
+  const opp = other(p.team), so = opp.side;
+  const tgt = scatter(at || { x: so * rand(1.6, 2.5), z: clamp(blk.pos.z + rand(-0.7, 0.7), -4.2, 4.2) }, (1 - q) * 0.9 * down(p, 'hit', 1.1));
+  if (tgt.x * so < 1.2) tgt.x = so * 1.2;
+  const v = solveApex(ball.p, tgt.x, tgt.z, BALL_R, Math.max(ball.p.y + 0.32, NET_TOP + 1.2));
+  if (contact(p, 'attack', v)) {
+    ball.poke = { serial: G.touchSerial, blocker: blk };
+    for (const r of opp.players) if (aiControlled(r) && r !== blk) r.react = Math.max(r.react, 0) + 0.3;   // short and quick: the back row, set for a hard swing, is late to it
+    if (aiControlled(p)) aiFlourish(p, 'KNUCKLE POKE!', 9); else { flash('KNUCKLE POKE!', false, true); addStyle(p.team, 9); bigTrick(); }
+  }
+}
 function sendTip(p, q, human, aim) {
   const so = other(p.team).side;
   const tgt = scatter(aim || shortSpot(other(p.team)), (human ? (1 - q) * 0.9 : 0.4) * down(p, 'hit', 1.1));
@@ -7014,13 +7186,32 @@ function sendServe(p, q, human, aim, jump, power, trick, risk) {
   if (contact(p, 'serve', v, { wobble, dip, curve })) {
     if (curve && curve.az) { const e = opp.readErr || { x: 0, z: 0 }; opp.readErr = { x: e.x * 1.5, z: e.z * 1.5 + rand(-0.6, 0.6) }; }   // hard to read off the hand
     if (jump && trick !== 'HYBRID SERVE!') { burst(ball.p.clone(), trick || big ? 0xff5a2a : 0xffd23f, trick || big ? 1.2 : 0.8, !!(trick || big)); shake(trick || big ? 0.34 : 0.2); }
-    if (human && trick) { flash(trick, false, true); addStyle(p.team, 9); freeze(0.06); bigTrick(); }
-    else if (!human && trick) aiFlourish(p, trick, 9);
+    const tw = trick === 'TORNADO SERVE!' ? 16 : 9;   // (v11.2: a tornado fills the meter)
+    if (human && trick) { flash(trick, false, true); addStyle(p.team, tw); freeze(0.06); bigTrick(); }
+    else if (!human && trick) aiFlourish(p, trick, tw);
     else if (human && big) { flash('POWER SERVE!', false, true); addStyle(p.team, 4); freeze(0.05); }
     else if (human) { flash(jump ? 'JUMP SERVE' : 'FLOAT SERVE', true); addStyle(p.team, jump ? 4 : 2); }
   }
 }
 
+// v11.2: HURRY-UP SERVE: tossed within a second of getting the ball (yours if you have it, or an AI server's pick)...
+function hurryCheck(p) {
+  G.hurry = G.phase === 'serve' && G.serveT < 1.0 && !PRAC.on && ((!aiControlled(p) && canTrick(p, 'hurry')) || (aiControlled(p) && p.hurryServe)) ? { by: p } : null;
+  p.hurryServe = false;
+}
+// ...and when it's struck, everyone on their side still getting back into place is slow to it (the further off their
+// spot, the slower), and even those in place weren't quite ready
+function hurryHit(p) {
+  const h = G.hurry; G.hurry = null;
+  if (!h || h.by !== p) return;
+  const opp = other(p.team), F = FORM[opp.players.length];
+  for (const r of opp.players) {
+    if (!aiControlled(r)) continue;
+    const f = F.receive[r.role] || [5, 0], w = toWorld(opp, f[0], f[1]), d = Math.hypot(r.pos.x - w.x, r.pos.z - w.z);
+    r.react = Math.max(r.react, 0) + 0.08 + 0.13 * Math.min(d, 2);
+  }
+  if (aiControlled(p)) aiFlourish(p, 'HURRY-UP SERVE!', 7); else { flash('HURRY-UP SERVE!', false, true); addStyle(p.team, 7); }
+}
 // KICK SERVE: a foot volley off the toss, a low hard line drive (less control than your hands)
 function sendKick(p, q) {
   const opp = other(p.team), so = opp.side, aim = humanAim(p, true);
@@ -7037,6 +7228,7 @@ function sendKick(p, q) {
 // court. It hangs forever and it's hard to read; Control keeps it in.
 function sendSkyball(p) {
   const opp = other(p.team), so = opp.side;
+  hurryCheck(p);   // (v11.2)
   ball.held = null; holdPoint(p, ball.p); ball.p.y = 0.95;
   const aim = humanAim(p, true);
   let tgt = aim ? { x: so * clamp(Math.abs(aim.x) + 1.2, 4.8, 7.2), z: aim.z } : { x: so * rand(5.0, 7.0), z: rand(-3.4, 3.4) };
@@ -7213,6 +7405,8 @@ function planBlock(team, opp) {
   let bz = clamp(oc.c.z * 0.85 + bp.lat, -NET_HALF + 0.4, NET_HALF - 0.4);
   const dk = opp.deekayAtk && opp.deekayAtk.serial === G.touchSerial ? opp.deekayAtk : null;
   if (dk) { bz = clamp(dk.z * 0.9, -NET_HALF + 0.4, NET_HALF - 0.4); bp.late = true; }   // (v11: DEEKAY: they bit on the fake)
+  const nl = opp.noLook && opp.noLook.serial === G.touchSerial ? opp.noLook : null;
+  if (nl && !dk) { bz = clamp(nl.z * 0.9, -NET_HALF + 0.4, NET_HALF - 0.4); bp.late = true; }   // (v11.2: NO-LOOK SET: they followed the eyes)
   team.blocker = best; team.blockSpot = { x: bx, z: bz, t: oc.t };
   if (aiControlled(best)) {
     if (bp.go) best.task = { type: 'block', t: oc.t, c: { x: bx, z: bz }, serial: G.touchSerial };
@@ -7335,11 +7529,19 @@ function blockJump(p, style) {
   else if (style === 'back') { p.act.back = true; p.face = Math.atan2(s, 0); p.yawFx = Math.PI; }
   p.windup = false; p.charging = false;
 }
+// v11.2: SWING BLOCK: off a run along the net: up higher, the hands spread wider, still drifting the way you were going
+function swingBlock(p, vz) {
+  if (!p.act || p.act.kind !== 'block') return;
+  p.vy *= 1.12; p.vel.z = clamp(vz, -5, 5) * 0.7; p.act.swing = true;
+  if (aiControlled(p)) return;
+  flash('SWING BLOCK!', true); addStyle(p.team, 3);
+}
 // The toss goes up and out in front: the higher you toss, the further forward it goes, so you run into it.
 // A HIGH TOSS (SET while you hold the ball) goes about twice as high but comes down about as far out, so you get
 // longer to run in; hit it at the top of your jump and it's a POWER SERVE.
 function toss(p, power, fwd, high) {
   const s = p.team.side;
+  hurryCheck(p);   // (v11.2)
   ball.held = null;
   holdPoint(p, ball.p); ball.p.y = 1.45;
   const f = fwd != null ? fwd : high ? lerp(0.75, 1.25, power) : lerp(0.5, 2.0, power);
@@ -7361,8 +7563,10 @@ function aiToss(p) {
 
 function physicsPlayer(p) {
   const s = p.team.side;
+  if (jousting(p) && !p.grounded) { p.vy = 0; p.vel.x = p.vel.z = 0; if (p.act) p.act.t += DT; return; }   // (v11.2: held up there in the joust)
   if (!p.grounded) {
-    let g = p.spin && p.spin.t < 0.34 ? G_PLAYER * 0.3 : G_PLAYER;   // spinning spike: hang in the air
+    let g = p.spin && p.spin.t < 0.34 ? G_PLAYER * 0.3 : p.tornado && p.tornado.t < 0.3 ? G_PLAYER * 0.5 : G_PLAYER;   // spinning spike: hang in the air (v11.2: a tornado serve, a little)
+    if (p.tornado) p.tornado.t += DT;
     if (Math.abs(p.vy) < 2.2) g *= down(p, 'hops', 0.35);              // Hops: hang time at the top
     p.pos.y += p.vy * DT - 0.5 * g * DT * DT; p.vy -= g * DT;
     if (p.spin) p.spin.t += DT;
@@ -7371,7 +7575,7 @@ function physicsPlayer(p) {
       p.landT = G.time; p.landK = clamp(-p.vy / 9, 0.35, 1);
       if (p.vy < -5) p.landSlowT = G.time + 0.12 * down(p, 'hops', 1.6);   // Hops: back on your feet sooner after a big jump
       const keepV = lerp(0.35, 0.82, 1 - SURF.grip);   // (v11: a slippery court keeps you sliding)
-      p.pos.y = 0; p.vy = 0; p.grounded = true; p.vel.x *= keepV; p.vel.z *= keepV; p.spin = null; p.windT = 0;
+      p.pos.y = 0; p.vy = 0; p.grounded = true; p.vel.x *= keepV; p.vel.z *= keepV; p.spin = null; p.windT = 0; p.tornado = null;
       if (p.act && (p.act.kind === 'windup' || p.act.kind === 'block')) p.act = null;
     }
   }
@@ -7392,7 +7596,16 @@ function physicsPlayer(p) {
   }
   p.fresh = false;
   if (p.act && p.act.kind === 'dive' && p.act.t < DT * 1.5) p.diveSerial = G.touchSerial;
-  if (p.act) { p.act.t += DT; if (p.act.t > p.act.dur) { if (p.act.kind === 'dive') p.recover = 0.42 * down(p, 'speed', 0.6); p.act = null; } }
+  if (p.act) {
+    p.act.t += DT;
+    if (p.act.t > p.act.dur) {
+      if (p.act.kind === 'dive') {   // (v11.2: an AI player who has the COMBAT ROLL rolls straight back up)
+        if (aiControlled(p) && G.phase === 'live' && aiPick(p, ['combatroll']) === 'combatroll') { p.recover = 0.04; p.trick = { kind: 'combatroll', t: 0 }; }
+        else p.recover = 0.42 * down(p, 'speed', 0.6);
+      }
+      p.act = null;
+    }
+  }
   if (p.recover > 0 && !p.act) p.recover -= DT;
   if (p.yawFx) { p.yawFx *= 0.82; if (Math.abs(p.yawFx) < 0.01) p.yawFx = 0; }
 }
@@ -7425,6 +7638,7 @@ function setCrewTeams(crew) {
   if (crew) { teams[1].crewId = crew.id; teams[1].boss = !!crew.boss; }
 }
 const crewTrick = (team) => { const c = team.crewId ? crewById(team.crewId) : null; return c && c.reward ? c.reward.trick : null; };
+const others3 = (team) => team.players.length > 2;   // (v11.2) three a side: two hitters besides the setter
 // Pick a trick for this chance, or none: more often the harder the crew. The crew's own trick (the one you win from
 // them) comes up three times as often, and a boss reaches for it whenever the match is on the line.
 function aiPick(p, ids) {
@@ -7581,6 +7795,7 @@ function aiGamebreaker(team) {
 const ZERO = { x: 0, z: 0 };
 function aiStep(p) {
   if (p.react > 0) p.react -= DT;
+  if (jousting(p)) return;   // (v11.2)
   const s = p.team.side, tk = p.task, ai = p.team.ai;
   if (G.phase === 'serve' && p === G.server && G.servePhase === 'hold') { brake(p, 0.3); faceToward(p, -s, 0, 0.3); return; }
   if (G.phase === 'serve' && p === G.server && G.servePhase === 'tossed' && p.serveTrick === 'kick') { aiKick(p); return; }
@@ -7710,6 +7925,7 @@ function aiAttack(p, tk) {
   } else {
     if (!p.act) { p.act = { kind: 'windup', t: 0, dur: 2 }; p.prevD = 99; }
     if (tr === 'spin' && !p.spin && p.vy < 1.2 && G.phase === 'live') p.spin = { t: 0 };   // hang up there, then whip it
+    if (tr === 'tornado' && serve && !p.tornado && p.vy < 2.4) p.tornado = { t: 0 };   // (v11.2) the spin, near the top
     if (p.act.kind === 'windup') aiSwing(p, tk);
   }
 }
@@ -7725,10 +7941,10 @@ function aiSwing(p, tk) {
   const q = 1 - d / reach, tr = p.atk && p.atk.trick, rk = down(p, 'control', 1.25), opp = other(p.team);
   p.act = { kind: 'swing', t: 0, dur: 0.24, done: true };
   if (tk.type === 'serve') {
-    const T = tr === 'hybrid' && !p.grounded ? 'HYBRID SERVE!' : tr === 'rocket' && !p.grounded && p.jumpCharge > 0.9 ? 'ROCKET SERVE!' : tr === 'sidespin' && p.grounded ? 'SIDESPIN SERVE!' : null;
+    const T = tr === 'hybrid' && !p.grounded ? 'HYBRID SERVE!' : tr === 'rocket' && !p.grounded && p.jumpCharge > 0.9 ? 'ROCKET SERVE!' : tr === 'sidespin' && p.grounded ? 'SIDESPIN SERVE!' : tr === 'tornado' && p.tornado ? 'TORNADO SERVE!' : null;   // (v11.2: tornado)
     if (T === 'HYBRID SERVE!') p.act.hybrid = true;
     if (T === 'ROCKET SERVE!') p.act.style = 'jumbo';
-    sendServe(p, q, false, p.atk.aim, tk.jump, 0.6, T, T === 'ROCKET SERVE!' ? 0.55 * rk : T ? 0.3 * rk : 0);
+    sendServe(p, q, false, p.atk.aim, tk.jump, T === 'TORNADO SERVE!' ? 0.74 : 0.6, T, T === 'ROCKET SERVE!' ? 0.55 * rk : T === 'TORNADO SERVE!' ? 0.4 * rk : T ? 0.3 * rk : 0);
     return;
   }
   if (p.atk.roll) { sendTip(p, q, false, p.atk.aim); return; }
@@ -7738,6 +7954,7 @@ function aiSwing(p, tk) {
     sendTool(p, q, rand(0.6, 0.95), blk);
     return;
   }
+  if (blk && !G.demo) { const ps = pokeSpot(other(p.team), blk); if (ps.t > 0.9 && aiPick(p, ['poke']) === 'poke') { sendPoke(p, q, blk, ps.c); return; } }   // (v11.2) or pokes it just over them, into a hole
   let trick = null, risk = 0, power = rand(0.55, 0.95), aim = null;
   if (p.trick180) { trick = '180 SPIN!'; p.trick180 = false; }
   else if (p.spin && tr === 'spin') { trick = 'SPIN SPIKE!'; power = Math.min(1.25, power + 0.12); }
@@ -7750,6 +7967,7 @@ function aiSwing(p, tk) {
   else if (tr === 'slide' && !p.grounded && p.slide === G.touchSerial) { trick = 'SLIDE!'; risk = 0.25 * rk; }
   else if (tr === 'jumbo' && !p.grounded && p.jumpCharge > 0.95 && p.approached) { trick = 'JUMBO SWING!'; power = Math.min(1.25, power + 0.14); risk = 0.5 * rk; p.act.style = 'jumbo'; }
   else if (tr === 'deekay' && !p.grounded) { trick = 'DEEKAY!'; power = Math.min(1.2, power + 0.12); risk = 0.15 * rk; }   // (v11)
+  else if (!trick && !p.grounded && ball.setType === 'pipe' && ball.lastKind === 'set' && p.pos.x * p.team.side > 1.6) { trick = 'PIPE!'; risk = 0.15 * rk; }   // (v11.2)
   // a smart hitter (Hitting) finds the hole; a weak one swings at roughly where it's open
   if (!aim) aim = openSpot(opp, false, ball.p, 4, 1.6 * clamp(1.35 - smarts(p, 'hit'), 0.25, 1.15));
   sendAttack(p, q, false, aim, power, trick, risk);
@@ -7759,9 +7977,19 @@ function aiBlock(p, tk) {
   const s = p.team.side, bp = p.team.blockPlan, tUp = blockV(p) / G_PLAYER;
   faceToward(p, -s, 0, 0.35);
   if (!p.grounded) return;
+  if (!p.blockFrom || p.blockFrom.serial !== tk.serial) p.blockFrom = { serial: tk.serial, z: p.pos.z };   // (v11.2: where it set off from)
   // (v11.0.2: a beaten block: up and back down before the hit, or still on the way up as it goes by; a small hop if late)
   const jumpAt = tk.fake === 'early' ? tk.t - 2 * tUp - 0.08 : tk.fake === 'late' ? tk.t - 0.03 : tk.t + 0.06 - tUp + (bp ? bp.err : 0);
-  if (jumpAt <= 0 && Math.abs(p.pos.x) < 1.3 && p.react <= 0) { blockJump(p, tk.fake ? null : aiBlockStyle(p)); if (tk.fake && p.act) { p.act.fake = true; if (tk.fake === 'late') p.vy *= 0.7; } return; }
+  if (jumpAt <= 0 && Math.abs(p.pos.x) < 1.3 && p.react <= 0) {
+    const gap = tk.c.z - p.pos.z, sty = tk.fake ? null : aiBlockStyle(p), vz0 = p.vel.z;
+    blockJump(p, sty);
+    if (tk.fake && p.act) { p.act.fake = true; if (tk.fake === 'late') p.vy *= 0.7; }
+    else if (!sty) {   // (v11.2) a long run along the net to get there (or still on the move): the swing block
+      const run = p.pos.z - p.blockFrom.z;
+      if ((Math.abs(run) > 1.4 || Math.abs(vz0) > 2.2) && aiPick(p, ['swingblock']) === 'swingblock') swingBlock(p, Math.abs(vz0) > 2.2 ? vz0 : Math.sign(run) * 2.2);
+    }
+    return;
+  }
   if (p.react > 0) brake(p, 0.2); else steer(p, tk.c.x, tk.c.z, SPEED.approach * up(p, 'block', 0.3));   // Blocking: faster to the net
 }
 
@@ -7773,6 +8001,7 @@ function isDefending(team) {
 }
 function humanStep(p) {
   if (p.act && p.act.kind === 'pushup') { brake(p, 0.5); return; }   // v10: down for push-ups
+  if (jousting(p)) { if (p.ctl && p.ctl.edge && p.ctl.edge.hitDown && !G.client) G.joust.taps[G.joust.p.indexOf(p)]++; return; }   // (v11.2: mash HIT)
   const s = p.team.side, C = p.ctl, E = C.edge, held = C.held;
   const mx = C.wx, mz = C.wz;
   const mag = Math.min(1, Math.hypot(mx, mz));
@@ -7791,6 +8020,11 @@ function humanStep(p) {
     }
     return;
   }
+  // v11.2: COMBAT ROLL: JUMP as you land from a dive (or while you're getting up): roll straight back onto your feet
+  if (E.jumpDown && canTrick(p, 'combatroll') && G.phase === 'live' && ((p.act && p.act.kind === 'dive' && p.act.t > p.act.dur * 0.5) || (p.recover > 0 && !p.act))) {
+    p.act = null; p.recover = 0; p.trick = { kind: 'combatroll', t: 0 }; p.vel.x *= 0.5; p.vel.z *= 0.5; E.jumpDown = false;
+    flash('COMBAT ROLL!', true); addStyle(p.team, 4);
+  }
   const locked = (p.act && (p.act.kind === 'dive' || p.act.kind === 'slip')) || p.recover > 0;   // (v11: down on a hotdog, or the goat got you)
   const landing = p.grounded && G.time < (p.landSlowT || 0);   // just landed from a big jump
   const defending = isDefending(p.team);
@@ -7802,6 +8036,8 @@ function humanStep(p) {
     if (p.charge >= 1) p.chargeHold = (p.chargeHold || 0) + DT;
     if (!held.jump || p.chargeHold > 0.4 * sv(p, 'hops')) { p.charging = false; if (p.grounded) jump(p, p.charge); }
   }
+  // v11.2: TORNADO SERVE: after your toss, JUMP, then tap JUMP again in the air: a full spin before you HIT
+  if (E.jumpDown && !p.grounded && G.phase === 'serve' && G.server === p && G.servePhase === 'tossed' && !p.tornado && canTrick(p, 'tornado') && !(p.act && p.act.kind === 'swing' && p.act.done)) { p.tornado = { t: 0 }; sfx('jump', 0.4); }
   // HYBRID SERVE: after your toss, JUMP, then SET in the air: you meet it with an open hand (a jump float)
   if (E.setDown && G.phase === 'serve' && G.server === p && G.servePhase === 'tossed' && !p.grounded && canTrick(p, 'hybrid') && !(p.act && p.act.kind === 'swing' && !p.act.done)) {
     p.act = { kind: 'swing', t: 0, dur: 1.0, fireT: null, hybrid: true }; p.prevD = 99; p.windup = true; E.setDown = false;
@@ -7814,8 +8050,10 @@ function humanStep(p) {
       const st = stickOf(p);
       let style = st.m > 0.5 && st.f < -0.55 ? 'back' : st.m > 0.5 && Math.abs(st.w) > 0.6 && Math.abs(st.f) < 0.5 ? (st.w > 0 ? 'right' : 'left') : null;
       if ((style === 'back' && !canTrick(p, 'nolook')) || ((style === 'left' || style === 'right') && !canTrick(p, 'onehand') && !canTrick(p, 'monster'))) style = null;
+      const vz0 = p.vel.z, swingOn = !style && canTrick(p, 'swingblock') && Math.abs(vz0) > 2.6 && Math.abs(vz0) > Math.abs(p.vel.x) && Math.abs(p.pos.x) < 1.8;   // (v11.2: on the run along the net)
       if (style !== 'back') faceToward(p, -s, 0, 1);
       blockJump(p, style);
+      if (swingOn) swingBlock(p, vz0);
     }
     else if (!(p.act && p.act.kind === 'swing' && !p.act.done)) {
       p.act = { kind: 'swing', t: 0, dur: 2.2, fireT: null }; p.prevD = 99; p.windup = true;
@@ -7910,9 +8148,10 @@ function humanStep(p) {
 function syncCallBar() {   // (v11)
   const mine = !!(localCtl && localCtl.tricks && localCtl.tricks.has('shoot'));
   setHidden(callShootEl, !mine); setHidden(callSkyEl, noSky());
+  setHidden(callPipeEl, !(localCtl && localCtl.tricks && localCtl.tricks.has('pipe')));   // (v11.2)
 }
-const CALL_TEXT = { high: 'HIGH!', quick: 'QUICK!', sky: 'SKY BALL!', back: 'BACK!', shoot: 'SHOOT!' };
-const CALL_TYPES = ['quick', 'high', 'back', 'sky', 'shoot'];   // (v11: SHOOT, once you have it)
+const CALL_TEXT = { high: 'HIGH!', quick: 'QUICK!', sky: 'SKY BALL!', back: 'BACK!', shoot: 'SHOOT!', pipe: 'PIPE!' };
+const CALL_TYPES = ['quick', 'high', 'back', 'sky', 'shoot', 'pipe'];   // (v11: SHOOT, once you have it; v11.2: PIPE)
 function canCall(p) {
   const T = p.team;
   if (G.phase !== 'live' || !T.assignee || T.assignee === p || inReach(p, PT.set, reachOf(p, 'set', true), 0.5)) return false;
@@ -7922,6 +8161,7 @@ function canCall(p) {
 function makeCall(p, type) {
   if (!(G.phase === 'serve' || G.phase === 'live' || (PRAC.on && G.phase === 'drill'))) return;
   const T = p.team, sp = T.setPlan;
+  if ((type === 'shoot' || type === 'pipe') && !canTrick(p, type)) return;   // (v11.2)
   T.call = { type: CALL_TEXT[type] ? type : 'high', by: p, t: G.time };
   // the setter's about to set: it changes its set (right up until it touches the ball)
   if (T.need === 2 && sp && sp.key === G.touchSerial && sp.setter !== p && aiControlled(sp.setter)) Object.assign(sp, callPlan(T, sp.setter, T.call));
@@ -7931,6 +8171,7 @@ function makeCall(p, type) {
 function pressCall(type) {
   const p = G.human;
   if (!p || G.demo || G.spectate || G.replay || !(G.phase === 'serve' || G.phase === 'live' || (PRAC.on && G.phase === 'drill')) || !CALL_TEXT[type]) return;
+  if ((type === 'shoot' || type === 'pipe') && !canTrick(p, type)) return;   // (v11.2: only once you have it)
   if (G.client) { NET.callN = (NET.callN || 0) + 1; NET.callT = NET_SETS.indexOf(type); NET.callAt = performance.now(); p.team.call = { type, by: p, t: G.time }; sfx('call'); }
   else makeCall(p, type);
 }
@@ -7947,6 +8188,7 @@ function callPlan(team, setter, call) {
   if (call.type === 'quick') w = clamp(sw + (hw >= sw ? 1.1 : -1.1), -3.2, 3.2);
   else if (call.type === 'back') w = clamp(Math.max(hw, sw + 2.2), -3.2, 3.2);
   else if (call.type === 'shoot') w = (hw >= sw ? 1 : -1) * 3.9;   // (v11: out to the antenna on your side)
+  else if (call.type === 'pipe') w = 0;   // (v11.2: the middle, off the net)
   const type = call.type === 'sky' && noSky() ? 'high' : call.type;
   return { type, w, attacker: call.by, called: true };
 }
@@ -7997,22 +8239,26 @@ function humanTouch(p) {
     const blk = !serving && !p.grounded ? toolBlocker(p) : null;   // a block up in front of you: wipe it off their hands
     if (serving) {
       const st = stickOf(p);
-      if (!p.grounded && a.hybrid && canTrick(p, 'hybrid')) { trick = 'HYBRID SERVE!'; risk = 0.3 * rk; }   // SET in the air: an open hand
+      if (!p.grounded && p.tornado && canTrick(p, 'tornado')) { trick = 'TORNADO SERVE!'; power = Math.min(1.4, power + 0.16); risk = (0.25 + 1.1 * Math.max(0, 0.7 - q)) * rk; }   // (v11.2) the timing's tighter
+      else if (!p.grounded && a.hybrid && canTrick(p, 'hybrid')) { trick = 'HYBRID SERVE!'; risk = 0.3 * rk; }   // SET in the air: an open hand
       else if (!p.grounded && p.jumpCharge > 0.95 && (p.takeoffV || 0) > 3.8 && canTrick(p, 'rocket')) { trick = 'ROCKET SERVE!'; power = Math.min(1.4, power + 0.18); risk = 0.55 * rk; }
       else if (p.grounded && st.m > 0.6 && Math.abs(st.w) > 0.75 && Math.abs(st.f) < 0.5 && canTrick(p, 'sidespin')) { trick = 'SIDESPIN SERVE!'; risk = 0.3 * rk; }
     }
     else if (p.trick180) { trick = '180 SPIN!'; p.trick180 = false; }
     else if (p.spin) { trick = 'SPIN SPIKE!'; power = Math.min(1.25, power + 0.12); }
     else if (p.grounded && ball.p.y > 1.75 && canTrick(p, 'tomahawk')) { trick = 'TOMAHAWK!'; risk = 0.6 * rk; }   // a standing overhead chop
+    else if (blk && stickOf(p).f < -0.45 && canTrick(p, 'poke')) { trick = 'KNUCKLE POKE!'; risk = 0.2 * rk; }   // (v11.2)
     else if (blk && stickOf(p).f > 0.5 && canTrick(p, 'tool')) { trick = 'TOOL SHOT!'; risk = 0.15 * rk; }
     else if (!p.grounded && aim && aim.cut) { trick = 'CUT SHOT!'; risk = 0.45 * rk; }
     else if (!p.grounded && p.slide === G.touchSerial && canTrick(p, 'slide')) { trick = 'SLIDE!'; risk = 0.25 * rk; }
     else if (!p.grounded && p.deekay != null && p.deekay === G.touchSerial && canTrick(p, 'deekay')) { trick = 'DEEKAY!'; power = Math.min(1.2, power + 0.1); risk = 0.2 * rk; }   // (v11)
+    else if (!p.grounded && ball.setType === 'pipe' && ball.lastKind === 'set' && p.pos.x * p.team.side > 1.6 && canTrick(p, 'pipe')) { trick = 'PIPE!'; power = Math.min(1.2, power + 0.06); risk = 0.15 * rk; }   // (v11.2) in from deep
     else if (!p.grounded && p.jumpCharge > 0.95 && p.approached && canTrick(p, 'jumbo')) { trick = 'JUMBO SWING!'; power = Math.min(1.25, power + 0.14); risk = 0.5 * rk; }
     a.style = trick === 'TOMAHAWK!' ? 'tomahawk' : trick === 'JUMBO SWING!' || trick === 'ROCKET SERVE!' ? 'jumbo' : null;
     if (serving) sendServe(p, q, true, aim, !p.grounded, power, trick, risk);
     else if (aim && aim.tip && !trick) sendTip(p, q, true, aim);
     else if (trick === 'TOOL SHOT!') sendTool(p, q, power, blk);
+    else if (trick === 'KNUCKLE POKE!') sendPoke(p, q, blk);   // (v11.2)
     else sendAttack(p, q, true, aim, power, trick, risk);
     return;
   }
@@ -8031,10 +8277,14 @@ function humanTouch(p) {
     return;
   }
   if (a.kind === 'dig' || a.kind === 'dive' || a.kind === 'set') {
-    if (!ballPlayable(p)) return;
+    // v11.2: ONE-HAND SET: a pass tight to the net (even just over it): reach up with one hand
+    const oneHand = a.kind === 'set' && canTrick(p, 'onehandset') && Math.abs(ball.p.x) < 0.95 && ball.p.y > NET_TOP - 0.25 && touchNo(p.team) === 2;
+    if (!ballPlayable(p) && !(oneHand && G.phase === 'live' && !ball.held && ball.p.x * p.team.side > -0.3)) return;
+    // v11.2: TWEENER: running it down away from the net, the ball low and just ahead: between your legs, back to your team
+    if (a.kind === 'dig' && canTrick(p, 'tweener') && tweenerOk(p)) { a.done = true; sendTweener(p); return; }
     const set = a.kind === 'set', dive = a.kind === 'dive';
     contactPoint(p, set ? PT.set : dive ? PT.dive : PT.pass, _cp);
-    const reach = set ? reachOf(p, 'set', true) : reachOf(p, 'pass', true) + (dive ? 0.25 : 0);
+    const reach = set ? reachOf(p, 'set', true) + (oneHand ? 0.35 : 0) : reachOf(p, 'pass', true) + (dive ? 0.25 : 0);
     const bp = touchBall(p), d = _cp.distanceTo(bp), dNow = _cp.distanceTo(ball.p);
     const go = d < reach && (d < 0.35 || dNow > p.prevD + 1e-4 || dNow > d + 0.05);
     p.prevD = dNow;
@@ -8051,6 +8301,9 @@ function humanTouch(p) {
     a.done = true;
     let q = touchQ(d, reach, p);
     coachGrade(p, q, set ? 'set' : 'dig');   // the timing, before a hard-driven ball takes its share
+    if (oneHand && (d > reach - 0.5 || ball.p.x * p.team.side < 0.3)) {   // (v11.2) it took the one hand
+      p.trick = { kind: 'onehandset', t: 0 }; q *= 0.92; flash('ONE-HAND SET!', false, true); addStyle(p.team, 7);
+    }
     if (!set && ball.netBall && ball.netBall.serial === G.touchSerial) {   // out of the net: only great timing saves it
       if (gradeOf(q) >= 3) { flash('NET SAVE!', false, true); addStyle(p.team, 8); countLuck('netSave'); q = Math.max(q, 0.85); }
       else q = Math.min(q, 0.05);
@@ -8940,6 +9193,7 @@ function setupServe() {
   setBallLook(G.ballLook);
   G.phase = 'serve'; G.servePhase = 'hold'; G.serveT = 0; G.tossHeld = false; G.tossCharge = 0; G.tossHigh = false;
   G.poss = { team: null, count: 0, last: null }; G.lastToucher = null; G.touchSerial++; G.rallyTouches = 0; G.netCool = 0;
+  G.joust = null; G.hurry = null;   // (v11.2)
   G.bounce10 = false; G.bounceBy = null; G.lucky = null; G.luckyFlash = null; dogsHome();
   G.coachEv = null; coach.state = 'sit';
   for (const p of allPlayers) p.drill = null;
@@ -8951,8 +9205,11 @@ function setupServe() {
     t.plannedAttacker = null; t.lastAssignee = null; t.assignee = null; t.need = 0; t.contact = null; t.blocker = null; t.setPlan = null; t.call = null;
     const F = FORM[t.players.length];
     for (const p of t.players) {
-      const f = (t === team ? F.defense : F.receive)[p.role], w = toWorld(t, f[0], f[1]);
+      const f = (t === team ? F.defense : F.receive)[p.role], w = toWorld(t, f[0], f[1]), px = p.pos.x, pz = p.pos.z;
       p.pos.set(w.x, 0, w.z); p.vel.x = p.vel.z = 0; p.vy = 0; p.grounded = true;
+      // (v11.2) the receivers (the AI) start the last couple of metres off their spot, and walk it back in
+      if (t !== team && aiControlled(p) && !G.demo && G.match && G.ptCount > 0) { const dx = px - w.x, dz = pz - w.z, d = Math.hypot(dx, dz); if (d > 0.3 && d < 40) { const k = Math.min(d, 2.4) / d; p.pos.set(w.x + dx * k, 0, w.z + dz * k); } }
+      p.tornado = null;   // (v11.2)
       p.act = null; p.task = null; p.charging = false; p.windup = false; p.recover = 0; p.react = 0; p.atk = null;
       p.spin = null; p.trick180 = false; p.trick = null; p.yawFx = 0; p.turn = null; p.cutYaw = 0;
       p.face = Math.atan2(-t.side, 0);
@@ -8963,9 +9220,10 @@ function setupServe() {
   const sv = G.server;
   if (aiControlled(sv)) {
     sv.serveKind = Math.random() < 0.5 ? 'jump' : 'float';
-    const st = aiPick(sv, noSky() ? ['kick', 'hybrid', 'rocket', 'sidespin'] : ['skyball', 'kick', 'hybrid', 'rocket', 'sidespin']);   // v10.2: trick serves (v11: no skyball under a roof)
-    sv.serveTrick = st === 'skyball' ? 'sky' : st;
-    if (st) sv.serveKind = st === 'hybrid' || st === 'rocket' ? 'jump' : 'float';
+    const st = aiPick(sv, (noSky() ? ['kick', 'hybrid', 'rocket', 'sidespin'] : ['skyball', 'kick', 'hybrid', 'rocket', 'sidespin']).concat(['hurry', 'tornado']));   // v10.2: trick serves (v11: no skyball under a roof; v11.2: hurry-up, tornado)
+    sv.hurryServe = st === 'hurry';
+    sv.serveTrick = st === 'skyball' ? 'sky' : st === 'hurry' ? null : st;
+    if (st && st !== 'hurry') sv.serveKind = st === 'hybrid' || st === 'rocket' || st === 'tornado' ? 'jump' : 'float';
     sv.pos.set(team.side * (sv.serveKind === 'jump' ? (st === 'rocket' ? rand(11.7, 12.2) : rand(10.7, 11.2)) : rand(8.9, 9.5)), 0, rand(-2.2, 2.2));
   } else sv.pos.set(team.side * 9.6, 0, 0);
   holdPoint(sv, ball.p);
@@ -8978,6 +9236,8 @@ function step() {
   if (localCtl) {
     const d = stickWorld();
     localCtl.wx = d.x; localCtl.wz = d.z; localCtl.held = input.held; localCtl.edge = input.edge; localCtl.auto = settings.autoSwitch;
+    const T = window.__grassStick;   // (tests: { f, w } in the team's terms)
+    if (T && localCtl.p) { const s = localCtl.p.team.side; localCtl.wx = -s * T.f; localCtl.wz = -s * T.w; }
   }
   if (G.host) netReadInputs();
   if (G.phase === 'gbcut') {   // v10.2: a Gamebreaker play: the script runs everyone (buttons wait)
@@ -8998,10 +9258,10 @@ function step() {
   if (G.phase === 'serve') {
     G.serveT += DT;
     const waitUp = guestsWatching() && G.serveT < 9;   // someone's watching their replay
-    if (G.servePhase === 'hold' && aiControlled(G.server) && G.serveT > (G.demo ? 0.9 : 1.2) && !waitUp) aiServeGo(G.server);
+    if (G.servePhase === 'hold' && aiControlled(G.server) && G.serveT > (G.demo ? 0.9 : G.server.hurryServe ? 0.45 : 1.2) && !waitUp) aiServeGo(G.server);   // (v11.2: a hurry-up serve)
     else if (G.online && G.servePhase === 'hold' && G.serveT > 12) toss(G.server, 0.5);   // online, nobody waits forever
   }
-  if (G.phase === 'live' || G.phase === 'serve') { think(teams[0]); think(teams[1]); autoSwitch(); aiGamebreaker(teams[0]); aiGamebreaker(teams[1]); }
+  if ((G.phase === 'live' || G.phase === 'serve') && !G.joust) { think(teams[0]); think(teams[1]); autoSwitch(); aiGamebreaker(teams[0]); aiGamebreaker(teams[1]); }   // (v11.2: not while a joust holds it)
   eventsStep();
   if (G.phase === 'coach') coachStep();
   if (G.phase === 'dead') {
@@ -9036,7 +9296,9 @@ function step() {
     if (p.ctl && !G.autoplay) checkSlide(p);
   }
   separate();
-  if (G.phase !== 'coach' && !(PRAC.on && (PRAC.holder === 'coach' || PRAC.holder === 'toss'))) stepBall();
+  if (G.phase !== 'coach' && !(PRAC.on && (PRAC.holder === 'coach' || PRAC.holder === 'toss'))) {
+    if (G.joust) joustStep(); else { joustCheck(); if (!G.joust) stepBall(); }   // (v11.2)
+  }
   coachCheck();
   if (G.cutAsk) { const a = G.cutAsk; G.cutAsk = null; if (G.phase === 'live' && a.team.gb.active) startCut(a.team, a.by, a.n); }   // v10.2
   if (G.host) recordBall();
@@ -9348,8 +9610,8 @@ function gbHoldTick() {
   }
 }
 const KEYMAP = { Space: 'jump', KeyJ: 'dig', KeyK: 'set', KeyL: 'hit' };
-const CALLKEYS = { Digit1: 'quick', Digit2: 'high', Digit3: 'back', Digit4: 'sky', Digit5: 'shoot' };
-const callBar = $('callBar'), callBtns = [...callBar.querySelectorAll('button')], callShootEl = $('callShoot'), callSkyEl = $('callSky');
+const CALLKEYS = { Digit1: 'quick', Digit2: 'high', Digit3: 'back', Digit4: 'sky', Digit5: 'shoot', Digit6: 'pipe' };
+const callBar = $('callBar'), callBtns = [...callBar.querySelectorAll('button')], callShootEl = $('callShoot'), callSkyEl = $('callSky'), callPipeEl = $('callPipe');
 for (const b of callBtns) b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); pressCall(b.dataset.call); });
 const MOVEKEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
 let gKeyT = 0;
@@ -9684,7 +9946,7 @@ function record() {
   if (G.demo || G.autoplay || G.replay) return;
   const f = { n: REC.n++, b: [ball.p.x, ball.p.y, ball.p.z], q: ballMesh.quaternion.toArray(), pl: [], lk: ballLook };
   for (const p of allPlayers) {
-    const arr = [p.pos.x, p.pos.y, p.pos.z, p.face + p.yawFx + (p.cutYaw || 0) + (p.spin ? Math.min(1, p.spin.t / 0.32) * Math.PI * 2 : 0)];
+    const arr = [p.pos.x, p.pos.y, p.pos.z, p.face + p.yawFx + (p.cutYaw || 0) + (p.spin ? Math.min(1, p.spin.t / 0.32) * Math.PI * 2 : 0) + (p.tornado ? Math.min(1, p.tornado.t / 0.3) * Math.PI * 2 : 0)];
     for (const k of POSE_KEYS) arr.push(p.pose[k]);
     f.pl.push(arr);
   }
@@ -9918,6 +10180,7 @@ function setClass(el, cls, on) { const k = el.id + cls; if (hudCache[k] !== on) 
 function setHidden(el, h) { const k = el.id + ':h'; if (hudCache[k] !== h) { hudCache[k] = h; el.hidden = h; } }
 function updateHud() {
   setHidden($('btnReplay'), !myReplayOffer() || !!G.panel);
+  joustHud();   // (v11.2)
   if (G.demo) return;
   if (G.spectate) { spectateHud(); return; }
   setHidden($('meter'), false);
@@ -9959,7 +10222,7 @@ function updateHud() {
   setText('bDig', holding ? 'TOSS' : 'DIG');
   setText('bSet', holding ? 'HIGH\nTOSS' : 'SET'); setClass(btnEls.set, 'two', holding);
   // the call bar: whenever you've an AI teammate who can set you, from the serve until the point's over
-  const callOn = !!(playing && h.team.players.some((q) => q !== h && aiControlled(q)));
+  const callOn = !!(playing && !G.joust && h.team.players.some((q) => q !== h && aiControlled(q)));   // (v11.2: not during a joust)
   setHidden(callBar, !callOn);
   if (callOn) {
     syncCallBar();   // (v11: SHOOT once you have it; no SKY under the gym's roof)
@@ -10651,6 +10914,8 @@ function storyContinue() {
 const SW_LISTS = { color: TEAM_COLORS, skin: SKINS, hairColor: HAIR_COLORS, gear: GEAR_COLORS, shoe: SHOE_COLORS, shorts: SHORTS_COLORS, eyeColor: EYE_COLORS, eyeColor2: EYE_COLORS,
   hatCol: ITEM_COLORS, earCol: ITEM_COLORS, chainCol: METAL_COLORS, trimCol: ITEM_COLORS };   // (v11.1)
 const SW_AUTO = { hatCol: true, trimCol: true };   // (v11.1: these start with A, the usual colour)
+const SW_TEAM = { shirtCol: true };   // (v11.1.1: this one starts with T, your team's colour)
+SW_LISTS.shirtCol = ITEM_COLORS;
 const CHIP_LISTS = { hair: HAIR_STYLES, face: FACE_HAIR, eyes: EYEWEAR, head: HAT_PICKS, sleeves: SLEEVES, build: BUILDS, celebrate: CELEBRATIONS,
   burns: SIDEBURNS, eyeShape: EYE_SHAPES, shirt: SHIRTS, pants: PANTS, shoeType: SHOE_TYPES, tatArm: TATS, tatLeg: TATS, chain: CHAINS, ears: EARS, idle: IDLE_MOVES };
 let creatorTab = 'look';
@@ -10667,10 +10932,12 @@ async function pickLook(key, v, apply) {
 }
 document.querySelectorAll('[data-sw]').forEach((el) => {
   const key = el.dataset.sw;
-  (SW_AUTO[key] ? [null] : []).concat(SW_LISTS[key]).forEach((c, k) => {
-    const b = document.createElement('button'), i = SW_AUTO[key] ? k - 1 : k;
+  const lead = SW_AUTO[key] || SW_TEAM[key];
+  (lead ? [null] : []).concat(SW_LISTS[key]).forEach((c, k) => {
+    const b = document.createElement('button'), i = lead ? k - 1 : k;
     b.type = 'button'; b.className = 'sw'; b.dataset.i = String(i);
-    if (c === null) { b.classList.add('auto'); b.textContent = 'A'; b.setAttribute('aria-label', 'The usual color'); }
+    if (c === null && SW_TEAM[key]) { b.classList.add('team'); b.textContent = 'T'; b.setAttribute('aria-label', 'Team color'); }
+    else if (c === null) { b.classList.add('auto'); b.textContent = 'A'; b.setAttribute('aria-label', 'The usual color'); }
     else if (c < 0) { b.classList.add('team'); b.textContent = 'T'; b.setAttribute('aria-label', 'Team color'); }
     else { b.style.background = hexCss(c); b.setAttribute('aria-label', 'Color ' + (i + 1)); }
     b.addEventListener('click', () => pickLook(key, i, () => { profile[key] = i; creatorChanged(); }));
@@ -10740,7 +11007,7 @@ function syncCreator() {
   $('hoodField').hidden = profile.shirt !== 'hoodie';
   const hatAuto = profile.head === 'bucket' ? 0x2f6fd0 : profile.head === 'bear' ? 0x8f5a2a : GEAR_COLORS[profile.gear];
   document.querySelectorAll('[data-sw="hatCol"] .sw.auto').forEach((b) => { b.style.background = hexCss(hatAuto); });
-  document.querySelectorAll('[data-sw="trimCol"] .sw.auto').forEach((b) => { const t = new THREE.Color(TEAM_COLORS[profile.color]); b.style.background = '#' + ribOf(t).getHexString(); });
+  document.querySelectorAll('[data-sw="trimCol"] .sw.auto').forEach((b) => { const t = new THREE.Color(profile.shirtCol >= 0 ? ITEM_COLORS[profile.shirtCol] : TEAM_COLORS[profile.color]); b.style.background = '#' + ribOf(t).getHexString(); });
   document.querySelectorAll('#cTabs button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tab === creatorTab)));
   document.querySelectorAll('.cpane').forEach((el) => { el.hidden = el.dataset.pane !== creatorTab; });
   fadeSoon();
@@ -10991,7 +11258,7 @@ function poseTarget(p, o) {
     else { o.lean = 0.7; crouch(o, 0.12); o.shLx = o.shRx = -0.95; o.elL = o.elR = -0.1; o.headX = 0.35; }
     return o;
   }
-  if (p.trick && p.trick.t < (p.trick.kind === 'bicycle' ? 0.6 : p.trick.kind === 'sky' || p.trick.kind === 'kick' ? 0.45 : 0.35)) {
+  if (p.trick && p.trick.t < (p.trick.kind === 'bicycle' ? 0.6 : p.trick.kind === 'sky' || p.trick.kind === 'kick' || p.trick.kind === 'tweener' ? 0.45 : 0.35)) {
     if (p.trick.kind === 'bicycle') {   // flat out in the air, back to the net, one leg whipping up over the head
       const e = Math.min(1, p.trick.t / 0.22);
       o.lean = lerp(-0.4, -1.35, e); o.headX = -0.35; o.hipY = 0.05;
@@ -11011,6 +11278,16 @@ function poseTarget(p, o) {
     }
     else if (p.trick.kind === 'face') {   // took it right in the face: head snaps back, arms fly up
       o.headX = -0.75; o.lean = -0.45; o.shLx = -2.2; o.shRx = -1.6; o.elL = -0.6; o.elR = -1.2; o.shLz = 0.9; o.shRz = -0.7; crouch(o, 0.1, 0.2); o.thR -= 0.4;
+    } else if (p.trick.kind === 'tweener') {   // (v11.2) bent right over, both arms swinging through between the legs
+      const e = Math.min(1, p.trick.t / 0.16);
+      o.lean = 1.25; crouch(o, 0.22, 0.25); o.headX = 0.5; o.shLx = o.shRx = lerp(-0.3, 1.1, e); o.elL = o.elR = -0.05; o.shLz = 0.12; o.shRz = -0.12;
+    } else if (p.trick.kind === 'combatroll') {   // (v11.2) tucked up tight off the dive, then popping back up
+      const e = Math.min(1, p.trick.t / 0.32);
+      o.lean = lerp(1.3, 0.2, e); crouch(o, lerp(0.42, 0.05, e), lerp(0.5, 0.08, e)); o.shLx = o.shRx = lerp(-1.2, -0.4, e); o.elL = o.elR = lerp(-1.9, -0.6, e); o.headX = lerp(0.9, 0.1, e);
+    } else if (p.trick.kind === 'onehandset') {   // (v11.2) one hand up high to the ball, the other out for balance
+      o.shRx = -3.05; o.elR = -0.15; o.shRz = -0.12; o.shLx = -0.6; o.elL = -0.5; o.shLz = 0.5; o.headX = -0.35; o.lean = -0.1;
+    } else if (p.trick.kind === 'joust') {   // (v11.2) both hands up on the ball over the net, pushing
+      o.shLx = o.shRx = -2.85; o.elL = o.elR = -0.35; o.shLz = 0.18; o.shRz = -0.18; o.headX = -0.4; o.lean = 0.18;
     } else if (p.trick.kind === 'pancake') {   // flat on the grass, hand flat under the ball
       o.lean = 1.45; o.hipY = -0.34; o.shLx = o.shRx = -1.75; o.elL = o.elR = 0; o.shLz = -0.15; o.shRz = 0.15; o.thL = 0.6; o.thR = 0.75; o.knL = 0.4; o.knR = 0.3;
     }
@@ -11063,7 +11340,8 @@ function poseTarget(p, o) {
       if (right) { o.shRx = -2.95; o.shRz = -0.7; o.elR = 0; o.shLx = -0.45; o.shLz = 0.25; o.elL = -0.7; o.roll = 0.24; }
       else { o.shLx = -2.95; o.shLz = 0.7; o.elL = 0; o.shRx = -0.45; o.shRz = -0.25; o.elR = -0.7; o.roll = -0.24; }
       o.thL = right ? 0.05 : -0.35; o.thR = right ? -0.35 : 0.05;
-    } else { o.shLx = o.shRx = -3.08; o.elL = o.elR = 0; o.shLz = 0.18; o.shRz = -0.18; }
+    } else if (a.swing) { o.shLx = o.shRx = -2.9; o.elL = o.elR = 0; o.shLz = 0.5; o.shRz = -0.5; o.lean = -0.1; }   // (v11.2: SWING BLOCK, wide)
+    else { o.shLx = o.shRx = -3.08; o.elL = o.elR = 0; o.shLz = 0.18; o.shRz = -0.18; }
     return o;
   }
   if (a && a.kind === 'toss') { o.shRx = -2.9; o.elR = 0; o.shLx = -1.0; return o; }
@@ -11195,7 +11473,7 @@ function updateRig(p, dt) {
     ox = p.vo.x; oz = p.vo.z;
   }
   r.root.position.set(p.pos.x + ox + cx, p.pos.y + hop, p.pos.z + oz + cz);
-  r.root.rotation.y = yaw + (p.cutYaw || 0) + (p.spin ? Math.min(1, p.spin.t / 0.32) * Math.PI * 2 : 0);
+  r.root.rotation.y = yaw + (p.cutYaw || 0) + (p.spin ? Math.min(1, p.spin.t / 0.32) * Math.PI * 2 : 0) + (p.tornado ? Math.min(1, p.tornado.t / 0.3) * Math.PI * 2 : 0);
   applyRig(r, P);
   placeBlob(r);
 }
@@ -11824,10 +12102,10 @@ const NET_PHASES = ['serve', 'live', 'dead', 'over', 'coach', 'drill'];
 const NET_ACTS = ['', 'dig', 'dive', 'set', 'swing', 'block', 'toss', 'windup', 'kick', 'pushup', 'gb', 'slip'];   // (v10.2: gb; v11: slip)
 const NET_STYLES = ['', 'tomahawk', 'jumbo', 'boost', 'launch', 'stairs', 'fall', 'cheer', 'glow', 'yawn', 'watch'];   // (v10.2: a play's moves; v11: yawn, watch)
 const NET_KINDS = ['', 'serve', 'pass', 'set', 'attack', 'block', 'free', 'dump', 'diveset'];
-const NET_TRICKS = ['', 'foot', 'head', 'face', 'pancake', 'bicycle', 'sky', 'kick'];
+const NET_TRICKS = ['', 'foot', 'head', 'face', 'pancake', 'bicycle', 'sky', 'kick', 'tweener', 'combatroll', 'onehandset', 'joust'];   // (v11.2: the last four)
 const LUCKY_KINDS = ['', 'tape', 'roll', 'gone'];
 const NET_CTYPES = ['', 'pass', 'set', 'bumpset', 'attack', 'free', 'serve'];
-const NET_SETS = ['high', 'quick', 'sky', 'back', 'shoot'];   // (v11: shoot; an older phone reads it as high)
+const NET_SETS = ['high', 'quick', 'sky', 'back', 'shoot', 'pipe'];   // (v11: shoot; v11.2: pipe; an older phone reads them as high)
 // Snapshot player fields
 const PX = { x: 0, y: 1, z: 2, vx: 3, vz: 4, vy: 5, face: 6, gr: 7, act: 8, at: 9, ad: 10, aid: 11, ft: 12, st: 13, hand: 14, back: 15, fl: 16, ch: 17, spin: 18, tk: 19, tt: 20, jc: 21, tp: 22, slot: 23 };
 // Guest body report fields
@@ -11848,13 +12126,15 @@ function packLook(L) {
     // v11
     CHAINS.indexOf(L.chain || 'none'), EARS.indexOf(L.ears || 'none'), IDLE_MOVES.indexOf(L.idle || 'mix'),
     // v11.1
-    HEADWEAR.indexOf(L.head), SHIRTS.indexOf(L.shirt), L.hoodUp ? 1 : 0, L.hatCol, L.earCol, L.chainCol, L.trimCol]
+    HEADWEAR.indexOf(L.head), SHIRTS.indexOf(L.shirt), L.hoodUp ? 1 : 0, L.hatCol, L.earCol, L.chainCol, L.trimCol,
+    // v11.1.1
+    L.shirtCol == null ? -1 : L.shirtCol]
     .map((v, i) => (i === 6 ? lookOldHead(L) : i === 21 ? lookOldShirt(L) : v));
 }
 const OLD_HEADS = 8, OLD_SHIRTS = 6;   // (what a v11.0 phone has)
 const lookOldHead = (L) => (L.shirt === 'hoodie' && L.hoodUp ? HEADWEAR.indexOf('hood') : Math.max(0, HEADWEAR.indexOf(L.head)) < OLD_HEADS ? Math.max(0, HEADWEAR.indexOf(L.head)) : 0);
 const lookOldShirt = (L) => { const i = SHIRTS.indexOf(L.shirt); return i >= 0 && i < OLD_SHIRTS ? i : SHIRTS.indexOf('longsleeve'); };
-const LOOK_LEN = 37;
+const LOOK_LEN = 38;
 // A packed look back into the option form `profile` uses (cleaned), and into a look to build a rig from
 function unpackProfile(a) {
   a = Array.isArray(a) ? a : [];
@@ -11866,6 +12146,7 @@ function unpackProfile(a) {
     pants: of(PANTS, 23), shoeType: of(SHOE_TYPES, 24), tatArm: of(TATS, 25), tatLeg: of(TATS, 26),
     chain: a.length > 27 ? of(CHAINS, 27) : 'none', ears: a.length > 28 ? of(EARS, 28) : 'none', idle: a.length > 29 ? of(IDLE_MOVES, 29) : 'mix',   // (v11)
     ...(a.length > 36 ? { head: of(HEADWEAR, 30), shirt: of(SHIRTS, 31), hoodUp: !!a[32], hatCol: n(33), earCol: n(34), chainCol: n(35), trimCol: n(36) } : {}),   // (v11.1)
+    shirtCol: a.length > 37 ? n(37) : -1,   // (v11.1.1)
   });
 }
 function unpackLook(a, team) { return lookFromProfile(unpackProfile(a), team.color); }
@@ -12143,7 +12424,7 @@ function netSnapshot() {
     return [r2(p.pos.x), r2(p.pos.y), r2(p.pos.z), r2(p.vel.x), r2(p.vel.z), r2(p.vy), r3(p.face + p.yawFx + (p.cutYaw || 0)), p.grounded ? 1 : 0,
       a ? Math.max(0, NET_ACTS.indexOf(a.kind)) : 0, a ? r2(a.t) : 0, a && a.done ? 1 : 0, a && a.id != null ? a.id : -1, a && a.fireT != null ? r2(a.fireT) : -1,
       a ? Math.max(0, NET_STYLES.indexOf(a.style || '')) : 0, a && a.hand ? a.hand : 0, a && a.back ? 1 : 0,
-      fl, r2(p.charge), p.spin ? r2(p.spin.t) : -1, p.trick ? Math.max(0, NET_TRICKS.indexOf(p.trick.kind)) : 0, p.trick ? r2(p.trick.t) : 0, r2(p.jumpCharge), p.tp || 0, p.ctl ? p.ctl.slot : -1];
+      fl, r2(p.charge), p.spin ? r2(p.spin.t) : p.tornado ? r2(p.tornado.t) : -1, p.trick ? Math.max(0, NET_TRICKS.indexOf(p.trick.kind)) : 0, p.trick ? r2(p.trick.t) : 0, r2(p.jumpCharge), p.tp || 0, p.ctl ? p.ctl.slot : -1];
   });
   const T = teams.map((t) => {
     const c = t.contact, sp = t.setPlan, call = t.call, bs = t.blockSpot;
@@ -12160,7 +12441,8 @@ function netSnapshot() {
       G.lucky ? Math.max(0, LUCKY_KINDS.indexOf(G.lucky.kind)) : 0, G.lucky && G.lucky.go ? 1 : 0, G.lucky && G.lucky.chase ? [r2(G.lucky.chase.x), r2(G.lucky.chase.z)] : 0,
       REC.offerNet || 0, NET.f % 15 === 0 ? walkSync() : 0, eventsPack(), coachPack(), G.countdown ? 2 : G.paused ? 1 : 0,
       Math.max(0, BALLS.findIndex((b) => b.id === G.ballLook)), practicePack(),
-      G.cut ? [GB_IDS.indexOf(G.cut.id), G.cut.lvl, G.cut.team.id, pidx(G.cut.by), G.cut.n, r3(G.cut.t)] : 0],   // (v10.2: a Gamebreaker play: an older phone just sees a rally)
+      G.cut ? [GB_IDS.indexOf(G.cut.id), G.cut.lvl, G.cut.team.id, pidx(G.cut.by), G.cut.n, r3(G.cut.t)] : 0,   // (v10.2: a Gamebreaker play: an older phone just sees a rally)
+      G.joust ? [pidx(G.joust.p[0]), pidx(G.joust.p[1]), G.joust.taps[0], G.joust.taps[1], r2(G.joust.t)] : 0],   // (v11.2)
     B: [r3(ball.p.x), r3(ball.p.y), r3(ball.p.z), r3(ball.v.x), r3(ball.v.y), r3(ball.v.z), pidx(ball.held), r2(ball.wobble), Math.max(0, NET_KINDS.indexOf(ball.lastKind || '')), ball.curve ? r2(ball.curve.az || 0) : 0, ball.curve ? r2(ball.curve.dy || 0) : 0],
     P, T, E: NET.ev,
   };
@@ -12180,6 +12462,7 @@ function netReadInputs() {
     c.watching = I.rp === 1;   // watching their replay: the next point waits for them
     const cn = Array.isArray(I.c) ? I.c.slice(0, 8).map((v) => v | 0) : [], last = c.lastC || cn, d = (i) => (cn[i] | 0) > (last[i] | 0);
     c.edge = { jumpDown: d(0), hitDown: d(1), digDown: d(2), setDown: d(3), switchDown: d(4), gbTap: d(5), gbPocket: d(6), toss: d(7) };
+    c.hitTaps = G.joust && c.p && G.joust.p.includes(c.p) ? (c.hitTaps || 0) + Math.max(0, Math.min(12, (cn[1] | 0) - (last[1] | 0))) : 0;   // (v11.2: mashing in a joust)
     c.lastC = cn; c.tossCharge = num(I.tc, 0, 1); c.tossHigh = I.th === 1;
     // a call from their call bar: [how many so far, which]
     const cl = Array.isArray(I.cl) ? I.cl : null;
@@ -12234,6 +12517,7 @@ function remoteStep(p) {
   if (c.report) { netTakeReport(p, c.report); c.report = null; }
   if (c.callAsk && PRAC.on && G.phase === 'drill') { makeCall(p, c.callAsk); c.callAsk = null; }   // v10: a practice call, while Chai T has the ball
   if (G.phase === 'live' || G.phase === 'serve') {
+    if (jousting(p)) return;   // (v11.2: their taps count in joustStep)
     if (E.setDown && canCall(p)) makeCall(p);
     if (c.callAsk) { makeCall(p, c.callAsk); c.callAsk = null; }
     if (E.toss && G.phase === 'serve' && G.server === p && G.servePhase === 'hold') toss(p, c.tossCharge, null, c.tossHigh);
@@ -12264,6 +12548,8 @@ function netTakeReport(p, B) {
   const fl = B[BX.fl] | 0;
   p.charging = !!(fl & 1); p.windup = !!(fl & 2); p.approached = !!(fl & 4);
   if (p.act && p.act.kind === 'swing') p.act.hybrid = !!(fl & 8);
+  p.tornado = fl & 16 ? p.tornado || { t: 0 } : null;   // (v11.2)
+  if (p.act && p.act.kind === 'block') p.act.swing = !!(fl & 32);
   p.charge = num(B[BX.ch], 0, 1);
   const sp = Number(B[BX.spin]); p.spin = sp >= 0 ? { t: clamp(sp, 0, 3) } : null;
   p.jumpCharge = num(B[BX.jc], 0, 1); p.takeoffV = num(B[BX.tov], 0, 12); p.trick180 = !!B[BX.t180];
@@ -12308,7 +12594,7 @@ function netReport() {
     cl: [NET.callN || 0, NET.callT || 0], ds: Math.max(-1, NET_SETS.indexOf(settings.defaultSet)), bl: legend.ball, gb: legend.gbEquip,
     B: p ? [r2(p.pos.x), r2(p.pos.y), r2(p.pos.z), r2(p.vel.x), r2(p.vel.z), r2(p.vy), r3(p.face), p.grounded ? 1 : 0,
       a ? Math.max(0, NET_ACTS.indexOf(a.kind)) : 0, a ? r2(a.t) : 0, a && a.done ? 1 : 0, a ? a.id : -1, a ? r2(a.dur) : 0, a && a.hand ? a.hand : 0, a && a.back ? 1 : 0,
-      (p.charging ? 1 : 0) | (p.windup ? 2 : 0) | (p.approached ? 4 : 0) | (a && a.hybrid ? 8 : 0), r2(p.charge), p.spin ? r2(p.spin.t) : -1, r2(p.jumpCharge), r2(p.takeoffV), p.trick180 ? 1 : 0,
+      (p.charging ? 1 : 0) | (p.windup ? 2 : 0) | (p.approached ? 4 : 0) | (a && a.hybrid ? 8 : 0) | (p.tornado ? 16 : 0) | (a && a.swing ? 32 : 0), r2(p.charge), p.spin ? r2(p.spin.t) : -1, r2(p.jumpCharge), r2(p.takeoffV), p.trick180 ? 1 : 0,
       r2(p.recover), p.tpSeen || 0, p.setStyle === 'back' ? 1 : 0] : null,
   };
 }
@@ -12339,9 +12625,12 @@ function netApplySnap(S, at) {
   const g = Array.isArray(S.G) ? S.G : [], prev = G.phase, prevSerial = G.touchSerial;
   G.phase = NET_PHASES[g[0] | 0] || 'serve'; G.servePhase = g[1] ? 'tossed' : 'hold';
   if (Array.isArray(g[23]) && G.phase === 'live') G.phase = 'gbcut';   // v10.2: the host is running a Gamebreaker play
+  const jg = g[24], wasJ = G.joust;   // (v11.2: a joust)
+  G.joust = Array.isArray(jg) && pAt(jg[0]) && pAt(jg[1]) ? { p: [pAt(jg[0]), pAt(jg[1])], taps: [jg[2] | 0, jg[3] | 0], t: num(jg[4], 0, 3), acc: [0, 0] } : null;
   G.server = pAt(g[2]); G.serving = teams[g[3] === 1 ? 1 : 0];
   G.poss = { team: g[4] === 0 || g[4] === 1 ? teams[g[4]] : null, count: g[5] | 0, last: pAt(g[6]) };
   G.lastToucher = pAt(g[7]); G.touchSerial = g[8] | 0;
+  if (wasJ && !G.joust && localCtl && wasJ.p.includes(localCtl.p) && !G.demo) { if (G.lastToucher === localCtl.p) { flash('JOUST WON!', false, true, true); bigTrick(); } else flash('JOUST LOST', true, false, true); }   // (v11.2: how yours went)
   G.rallyWinner = g[9] === 0 || g[9] === 1 ? teams[g[9]] : null; G.celebrate = pAt(g[10]); G.deadT = num(g[11], 0, 30);
   G.matchWinner = g[12] === 0 || g[12] === 1 ? teams[g[12]] : null;
   // lucky moments: everyone stares together, and a dog in the park chases the ball here too
@@ -12910,7 +13199,7 @@ function palPump(dt) {
 // Who's playing (looks and names), for a watcher to build the same match
 const RIG_KEYS = ['color', 'skin', 'hair', 'hairColor', 'number', 'face', 'eyes', 'head', 'accent', 'sleeves', 'knees', 'bands', 'shoe', 'shorts', 'height', 'build', 'celebrate',
   'burns', 'eyeShape', 'eyeColor', 'eyeColor2', 'shirt', 'shirtNum', 'pants', 'shoeType', 'tatArm', 'tatLeg',
-  'chain', 'ears', 'idle', 'hoodUp', 'hatColor', 'earColor', 'chainColor', 'trimColor'];   // (v11.1)
+  'chain', 'ears', 'idle', 'hoodUp', 'hatColor', 'earColor', 'chainColor', 'trimColor', 'shirtColor'];   // (v11.1, v11.1.1)
 const packRig = (L) => RIG_KEYS.map((k) => (L[k] === undefined ? null : L[k]));
 function unpackRig(a) {
   a = Array.isArray(a) ? a : [];
@@ -12924,6 +13213,7 @@ function unpackRig(a) {
     tatArm: of(TATS, 25, 'none'), tatLeg: of(TATS, 26, 'none'),
     chain: of(CHAINS, 27, 'none'), ears: of(EARS, 28, 'none'), idle: of(IDLE_MOVES, 29, 'mix'), hoodUp: a[30] === true,   // (v11.1)
     hatColor: a[31] == null ? null : col(31, 0), earColor: col(32, ITEM_COLORS[0]), chainColor: col(33, METAL_COLORS[0]), trimColor: a[34] == null ? null : col(34, 0),
+    shirtColor: a[35] == null ? null : col(35, 0),   // (v11.1.1)
   };
 }
 function palConfig() {
@@ -15207,6 +15497,7 @@ window.__grass = {
   get pixelRatio() { return pixelRatio; }, HUMAN, REACH,
   rigKit: { makeRig, applyRig, disposeRig, randomLook, customLook, BASE_POSE, scene, showPanel },
   packLookTest: () => packLook(profile), unpackProfile, cleanLook, lookFromProfile, LOOK_LEN, shirtOf, ITEM_COLORS, METAL_COLORS,   // (v11.1)
+  planBlock, stickOf, toWorld, FORM, blockJump, jumping: jousting, packTricks, unpackTricks, NET_TRICKS, NET_SETS, SETS, updateHud, checkBlock,   // (v11.2)
   setupServe, consts: { FOOT_LINE, NET_BOTTOM, SERVE_ZONE, COURT_X, NET_HALF, ANT_R, ANT_TOP, BALL_R },
   legend, setPark, PARKS, CREWS, recruitDef, startStory, nextCrew, saveLegend, adoptLegend, settleMatch, playScene, sceneNext, endScene,
   get Save() { return Save; }, showMenu, rollRookie, playParents, get stage() { return stage; }, openStory, renderLegendPanel, buyLevel, confirmBox, closeConfirm,
