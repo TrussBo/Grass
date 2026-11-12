@@ -86,6 +86,13 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 #hud .mode-tag { background: rgba(255, 247, 234, 0.72); }
 #hud .you-tag { background: rgba(255, 210, 63, 0.78); }
 .watching { font-weight: 800; font-size: 12px; letter-spacing: 0.1em; padding: 2px 8px; border-radius: 6px; color: var(--chalk); background: rgba(23, 17, 13, 0.55); }
+/* v11.3: which way you're connected (a direct line, or through the relay) and the round trip */
+.nettag { font-weight: 800; font-size: 11px; letter-spacing: 0.08em; padding: 2px 7px; border-radius: 6px; color: var(--chalk); background: rgba(23, 17, 13, 0.5); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.nettag::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; background: #57d98a; }
+.nettag.relay::before { background: #ffd23f; }
+.nettag.bad::before { background: #ff5a4f; }
+.card.settings.nettest { width: min(640px, 100%); }
+.ntout { margin: 0; padding: 10px 12px; border-radius: 8px; background: rgba(23, 17, 13, 0.55); color: var(--chalk); font: 600 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; text-align: left; min-height: 9em; max-height: 46vh; overflow-y: auto; user-select: text; -webkit-user-select: text; touch-action: pan-y; }
 .mode-tag, .you-tag {
   font-weight: 800; font-size: 13px; letter-spacing: 0.1em; padding: 2px 8px; white-space: nowrap;
   border: 2px solid var(--ink); border-radius: 6px; background: var(--chalk); color: var(--ink);
@@ -926,6 +933,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
         <div class="mode-tag" id="modeTag">3V3</div>
         <div class="you-tag" id="youTag">#7 YOU</div>
         <div class="watching" id="watching" hidden></div>
+        <div class="nettag" id="netTag" hidden></div>
       </div>
       <div class="hudrow">
         <div class="meter" id="meter"><span id="meterLabel">GAMEBREAKER</span><div class="meter-bar"><i id="meterFill"></i></div><span class="pocket" id="pocket" hidden>+1</span></div>
@@ -1201,7 +1209,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
         <div class="onopts" id="onPosRow"><span class="lbl">YOUR SPOT</span><div class="seg" id="onPos" role="group" aria-label="Your spot on the court"><button type="button" data-pos="left">LEFT</button><button type="button" data-pos="setter">SETTER</button><button type="button" data-pos="right">RIGHT</button></div><span id="onAiRow" hidden><button class="chip" id="onAiPick" type="button">AI TEAMMATE <small id="onAiName">MILO</small></button></span></div>
       </div>
       <p class="sub left" id="onMsg" aria-live="polite"></p>
-      <div class="row"><button class="big" id="onGo" type="button" hidden>START</button><button class="big alt" id="onInvite" type="button" hidden>INVITE</button><button class="big alt" id="onBack" type="button">BACK</button><button class="big alt" id="onLeave" type="button" hidden>LEAVE</button><button class="chip" id="onHelp" type="button">HOW IT WORKS</button></div>
+      <div class="row"><button class="big" id="onGo" type="button" hidden>START</button><button class="big alt" id="onInvite" type="button" hidden>INVITE</button><button class="big alt" id="onBack" type="button">BACK</button><button class="big alt" id="onLeave" type="button" hidden>LEAVE</button><button class="chip" id="onHelp" type="button">HOW IT WORKS</button><button class="chip" id="onTest" type="button">TEST CONNECTION</button></div>
     </div>
   </div>
 
@@ -1218,6 +1226,15 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
       </ol>
       <p class="sub left trouble" id="nhTrouble">Can't connect? Check the link and the code. Some Wi-Fi (school, work) blocks it: try mobile data, or everyone on the same Wi-Fi. Still stuck: reopen the game and rejoin.</p>
       <div class="row"><button class="big" id="nhDone" type="button">GOT IT</button></div>
+    </div>
+  </div>
+
+  <!-- v11.3: what this network allows (the relay, direct lines, TURN): a report to read or copy -->
+  <div class="overlay" id="netTestPanel" hidden>
+    <div class="card settings nettest">
+      <h2 class="h2">CONNECTION TEST</h2>
+      <pre class="ntout" id="ntOut" aria-live="polite"></pre>
+      <div class="row"><button class="big" id="ntCopy" type="button">COPY</button><button class="big alt" id="ntAgain" type="button">TEST AGAIN</button><button class="big alt" id="ntDone" type="button">BACK</button></div>
     </div>
   </div>
 
@@ -1414,7 +1431,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 (() => {
 'use strict';
 // The version: shown in SETTINGS and on the cover of the guide book. Raise it with every update, then rebuild the guide.
-const VERSION = '11.2';
+const VERSION = '11.3';
 const $ = (id) => document.getElementById(id);
 const errBox = $('err');
 function showError(msg) { errBox.textContent = msg; errBox.hidden = false; }
@@ -9457,7 +9474,7 @@ function rosterBlurb(d) {
   const ovr = STAT_KEYS.reduce((s, k) => s + d.stats[k], 0) / STAT_KEYS.length;
   return d.role.toUpperCase() + ' · OVR ' + ovr.toFixed(1).replace(/\.0$/, '') + ' · ' + STAT_INFO[best].label.slice(0, 3) + ' ' + d.stats[best];
 }
-const PANELS = ['menu', 'creator', 'legendPanel', 'storyPanel', 'rosterPanel', 'pickupPanel', 'scene', 'howPanel', 'settingsPanel', 'tricksPanel', 'onlinePanel', 'netHelpPanel', 'pause', 'over',
+const PANELS = ['menu', 'creator', 'legendPanel', 'storyPanel', 'rosterPanel', 'pickupPanel', 'scene', 'howPanel', 'settingsPanel', 'tricksPanel', 'onlinePanel', 'netHelpPanel', 'netTestPanel', 'pause', 'over',
   'friendsPanel', 'dogPanel', 'watchPanel', 'ballsPanel', 'tradePanel', 'practicePanel'];
 function showPanel(id) {
   for (const k of PANELS) $(k).hidden = k !== id;
@@ -9624,7 +9641,7 @@ window.addEventListener('keydown', (e) => {
   if (G.cut && !e.repeat && (e.code === 'Enter' || e.code === 'Space') && !$('gbSkip').hidden) { e.preventDefault(); cutSkip(); return; }   // v10.2
   if (G.replay && !e.repeat) { endReplay(); if (KEYMAP[e.code] || MOVEKEYS.has(e.code)) e.preventDefault(); return; }
   if (e.code === 'Escape' || e.code === 'KeyP') {
-    if (['settingsPanel', 'tricksPanel', 'legendPanel', 'howPanel', 'rosterPanel', 'netHelpPanel'].includes(G.panel) || (G.panel === 'creator' && !creatingLegend)) closePanel();
+    if (['settingsPanel', 'tricksPanel', 'legendPanel', 'howPanel', 'rosterPanel', 'netHelpPanel', 'netTestPanel'].includes(G.panel) || (G.panel === 'creator' && !creatingLegend)) closePanel();
     else togglePause();
     return;
   }
@@ -10178,6 +10195,41 @@ let hudCache = {};
 function setText(id, v) { if (hudCache[id] !== v) { hudCache[id] = v; $(id).textContent = v; } }
 function setClass(el, cls, on) { const k = el.id + cls; if (hudCache[k] !== on) { hudCache[k] = on; el.classList.toggle(cls, on); } }
 function setHidden(el, h) { const k = el.id + ':h'; if (hudCache[k] !== h) { hudCache[k] = h; el.hidden = h; } }
+// v11.3: which way you're connected and how long the round trip is, in an online match (twice a second)
+let netTagAt = 0;
+function netPathInfo() {
+  const n = NET.room && NET.room.net ? NET.room.net() : null;
+  if (!n || n.kind !== 'relay') return { text: '', cls: '' };   // (Claude's room, or the old way: nothing to say)
+  if (G.host) {
+    const mine = ctls.filter((c) => !c.local && n.peers[c.peer]);
+    if (!mine.length) return { text: '', cls: '' };
+    const onRelay = mine.filter((c) => n.peers[c.peer].path !== 'direct' && n.peers[c.peer].path !== 'turn').length;
+    const worst = Math.max(0, ...mine.map((c) => (c.rtt ? Math.round(c.rtt * 1000) : 0)));
+    return { text: 'HOST · ' + (onRelay ? onRelay + ' ON RELAY' : 'DIRECT') + (worst ? ' · ' + worst + ' MS' : ''), cls: onRelay && !n.up ? 'bad' : onRelay ? 'relay' : '' };
+  }
+  const hp = n.host ? n.peers[n.host] : null;
+  if (!hp) return { text: 'NO HOST', cls: 'bad' };
+  const label = hp.path === 'direct' ? 'DIRECT' : hp.path === 'turn' ? 'TURN' : hp.path === 'relay' ? 'RELAY' : 'OFFLINE';
+  return { text: label + (NET.ping ? ' · ' + NET.ping + ' MS' : ''), cls: hp.path === 'none' ? 'bad' : hp.path === 'relay' ? 'relay' : '' };
+}
+function netTagHud() {
+  const on = G.online && !G.demo && !G.spectate && !!NET.room && (NET.state === 'play' || NET.state === 'over');
+  if (!on) { setHidden($('netTag'), true); return; }
+  const t = performance.now();
+  if (t - netTagAt < 500) return;
+  netTagAt = t;
+  const info = netPathInfo();
+  setHidden($('netTag'), !info.text);
+  if (info.text) { setText('netTag', info.text); setClass($('netTag'), 'relay', info.cls === 'relay'); setClass($('netTag'), 'bad', info.cls === 'bad'); }
+}
+// ...and in the lobby, beside each name (the host sees everyone's; a guest sees the host's)
+function netPathLabel(p) {
+  if ((p.isMe && p.sameTab) || !NET.room || !NET.room.net) return '';
+  const n = NET.room.net();
+  if (!n || n.kind !== 'relay' || !(NET.role === 'host' || p.peer === n.host)) return '';
+  const x = n.peers[p.peer];
+  return !x ? '' : x.path === 'direct' ? 'DIRECT' : x.path === 'turn' ? 'DIRECT (TURN)' : x.path === 'relay' ? 'RELAY' : '';
+}
 function updateHud() {
   setHidden($('btnReplay'), !myReplayOffer() || !!G.panel);
   joustHud();   // (v11.2)
@@ -10186,6 +10238,7 @@ function updateHud() {
   setHidden($('meter'), false);
   setHidden(swBtn, !!PRAC.on);   // (v10: practice: you're one player, nothing to switch to)
   const nw = PAL.live ? PAL.watchers.length : 0;   // friends watching you
+  netTagHud();
   setHidden($('watching'), !nw);
   if (nw) setText('watching', nw + ' WATCHING');
   const myT = localCtl ? localCtl.team : teams[0];
@@ -12081,13 +12134,563 @@ const peerRooms = {
   },
 };
 
-// Where the phones meet: Claude's room on the Claude page (null if this viewer can't use it), PeerJS anywhere else.
-// Tests inject stand-ins for either.
+// ---- v11.3: THE RELAY ----
+// Outside Claude the phones now meet at a small relay of your own (a Cloudflare Worker: the README that comes with it
+// says how to put one up). Every phone keeps one ordinary secure web connection to it, so a room can be reached from
+// anywhere a website can: school and work Wi-Fi, cell data. The relay keeps the room (who's in it and everyone's
+// presence) and hands messages between the phones.
+// The live part of a match (the host's snapshots, a guest's buttons and body) can go two ways. Each guest also makes a
+// direct line to the host (WebRTC, set up through the relay, with the relay's TURN logins if it has a TURN key). While
+// that line is working the live part rides on it; the moment it isn't (it couldn't be made, or nothing has come over
+// it for half a second) the same messages go through the relay, a little thinned out. Every live message carries a
+// number, and a phone drops any that isn't newer than the last one it took, so the two ways never fight.
+// With no relay address, or a relay that can't be reached, the phones meet through PeerJS as before.
+const RELAY_URL = '';   // your relay's address ('https://grass-relay.YOU.workers.dev'), or leave it empty and put the address in a relay.txt file next to this page
+const RELAY = { urlP: null, url: '', downUntil: 0, ice: null, iceAt: 0, iceP: null, turn: false, rooms: new Set() };
+const RELAY_STUN = [{ urls: ['stun:stun.cloudflare.com:3478', 'stun:stun.l.google.com:19302'] }];
+const RELAY_RATE = { S: 20, I: 15, D: 6 };         // live messages a second through the relay (a direct line carries every one)
+const RELAY_HEALTHY = 450, RELAY_BACKLOG = 4000;   // ms of silence before a direct line counts as not working; bytes still waiting to go before a live send is skipped
+const NETSIM = window.__grassNet || (window.__grassNet = {});   // tests: { rtcOff: no direct lines, rtcMute: direct lines go deaf and dumb }
+const RID_CHARS = 'abcdefghjkmnpqrstuvwxyz23456789';
+const rid = (n) => { const a = new Uint8Array(n); crypto.getRandomValues(a); return Array.from(a, (b) => RID_CHARS[b % RID_CHARS.length]).join(''); };
+function fetchT(url, ms, opts) {   // fetch that gives up
+  const ctl = typeof AbortController === 'function' ? new AbortController() : null, t = setTimeout(() => { if (ctl) ctl.abort(); }, ms);
+  return fetch(url, Object.assign({ cache: 'no-store' }, opts || {}, ctl ? { signal: ctl.signal } : {})).finally(() => clearTimeout(t));
+}
+const RELAY_OK = /^(https:\/\/[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:\d{1,5})?|http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?)$/i;
+const relayClean = (s) => { s = String(s || '').trim().replace(/\/+$/, ''); return s.length < 200 && RELAY_OK.test(s) ? s : ''; };
+// Where the relay is: built in above, or the first line of relay.txt beside this page. '' = no relay (the old way).
+function relayUrl() {
+  if (RELAY.urlP) return RELAY.urlP;
+  const p = (async () => {
+    let u = '', q = '';
+    try { q = new URLSearchParams(location.search).get('relay') || ''; } catch (_) { /* no address bar */ }
+    if (q === 'off') return '';   // (?relay=off: the old way, to compare)
+    if (window.__grassTestPeer && !window.__grassRelay) return '';   // (a test of the old way)
+    if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?$/i.test(q)) u = relayClean(q);   // (?relay= only takes a relay on this machine: testing)
+    if (!u) u = relayClean(window.__grassRelay) || relayClean(RELAY_URL);
+    if (!u && !IN_CLAUDE && /^https?:$/.test(location.protocol)) {
+      try {
+        const r = await fetchT(new URL('relay.txt', location.href).href, 6000, { cache: 'no-cache' });
+        if (r.ok) u = relayClean((await r.text()).split(/\s+/).find(Boolean));
+      } catch (_) { RELAY.urlP = null; }   // (offline just now: look again next time)
+    }
+    RELAY.url = u;
+    return u;
+  })();
+  RELAY.urlP = p;
+  return p;
+}
+// What a direct line needs to find its way: STUN, and TURN logins if the relay has a TURN key (only for phones in a room)
+function relayIce(st) {
+  if (RELAY.ice && performance.now() - RELAY.iceAt < 45 * 60000) return Promise.resolve(RELAY.ice);
+  if (RELAY.iceP) return RELAY.iceP;
+  RELAY.iceP = (async () => {
+    let list = null;
+    try {
+      const r = await fetchT(st.base + '/ice?room=' + st.room + '&id=' + st.me + '&key=' + st.key, 5000);
+      const j = r.ok ? await r.json() : null;
+      if (j && Array.isArray(j.iceServers) && j.iceServers.length) { list = j.iceServers; RELAY.turn = !!j.turn; }
+    } catch (_) { /* STUN alone will do */ }
+    RELAY.iceP = null;
+    if (list) { RELAY.ice = list; RELAY.iceAt = performance.now(); }
+    return list || RELAY.ice || RELAY_STUN;
+  })();
+  return RELAY.iceP;
+}
+// Who's online, in one question: what each friend's room says about its host (null: nobody's there). Returns null if
+// the relay can't say (none set up, or out of reach): the caller looks in room by room instead.
+async function relayPeek(codes) {
+  const base = await relayUrl();
+  if (!base || performance.now() < RELAY.downUntil) return null;
+  const out = new Map();
+  try {
+    for (let i = 0; i < codes.length; i += 30) {
+      const part = codes.slice(i, i + 30);
+      const r = await fetchT(base + '/peek?rooms=' + part.map((c) => 'grass-pal-' + String(c).toLowerCase()).join(','), 6000);
+      const j = r.ok ? await r.json() : null;
+      if (!j || !j.rooms || typeof j.rooms !== 'object') return null;
+      for (const c of part) out.set(c, j.rooms['grass-pal-' + String(c).toLowerCase()] || null);
+    }
+  } catch (_) { return null; }
+  return out;
+}
+const relayRooms = {
+  async join(name, role) {
+    const base = await relayUrl();
+    const WSC = window.__grassTestWS || window.WebSocket;
+    if (!base || !WSC) throw { code: 'network', message: 'no relay' };
+    const RTC = window.__grassTestRTC || window.RTCPeerConnection || null;
+    const room = String(name).replace(/[^a-z0-9-]/gi, '').toLowerCase(), pal = room.indexOf('grass-pal-') === 0, KA = pal ? 30 : 10;
+    const st = { kind: 'relay', name, room, base, pal, hub: role === 'host', me: rid(16), key: rid(20), host: null, mine: {}, peers: new Map(), listed: new Set(), list: [],
+      handlers: new Set(), errs: new Set(), closed: false, failed: false, ws: null, up: false, opening: false, wsIn: 0, kAt: 0, kWait: 0, kRtt: 0, retry: 0, reT: 0, downAt: 0,
+      n: 0, inN: new Map(), links: new Map(), tok: { S: 1, I: 1, D: 1 }, tokAt: { S: 0, I: 0, D: 0 }, sentKey: { S: '', I: '', D: '' }, chkAt: 0, hostHeard: 0, liveSeen: 0, relayIn: 0, relayOut: 0,
+      linkNext: 0, linkTries: 0, tickT: 0, tickAt: 0, echoAt: 0, echoRtt: 0, echoWait: [], out: { direct: 0, relay: 0 }, in: { direct: 0, relay: 0 }, drops: 0 };
+    const url = base.replace(/^http/i, 'ws') + '/room/' + room + '?id=' + st.me + '&key=' + st.key + '&role=' + (st.hub ? 'h' : 'g') + '&ka=' + KA + '&pv=1';
+    const now = () => performance.now();
+    const freeze = (id, pres) => Object.freeze({ peer: id, by: null, isMe: id === st.me, sameTab: id === st.me, kind: 'viewer', guest: false, presence: Object.freeze(pres || {}), updatedAt: Date.now() });
+    const emit = (joined, left, updated) => {
+      st.list = Object.freeze([...st.peers.entries()].map(([id, p]) => freeze(id, p)));
+      for (const fn of st.handlers) { try { fn({ peers: st.list, joined: joined || [], left: left || [], updated: updated || [] }); } catch (e) { console.error(e); } }
+    };
+    const merge = (b, patch) => { const o = Object.assign({}, b, patch); for (const k in o) if (o[k] === null) delete o[k]; delete o._n; return o; };
+    const stored = (p) => { const o = {}; for (const k in p) if (k !== 'S' && k !== 'I' && k !== 'D') o[k] = p[k]; return o; };   // (the live parts are passed on, never kept)
+    const wsRaw = (s) => { try { if (st.up && st.ws && st.ws.readyState === 1) { st.ws.send(s); return true; } } catch (_) { /* closing */ } return false; };
+    const fatal = () => { if (st.failed || st.closed) return; st.failed = true; for (const fn of st.errs) { try { fn({ code: 'unavailable', message: 'the relay' }); } catch (_) { /* fine */ } } };
+
+    // ---- the direct lines (one to the host for a guest; one to each guest for the host) ----
+    const chOpen = (L) => !!(L && !L.dead && L.ch && L.ch.readyState === 'open' && !NETSIM.rtcMute);
+    const linkAlive = (L, t) => chOpen(L) && t - L.inAt < 3000;
+    const chSend = (L, s) => { try { if ((Number(L.ch.bufferedAmount) || 0) <= RT_BACKLOG) { L.ch.send(s); st.out.direct++; } L.out = now(); } catch (_) { /* closing */ } };
+    const linkNew = (id, sid) => { const L = { id, sid, pc: null, ch: null, dead: false, at: now(), inAt: 0, out: 0, liveIn: 0, liveOut: 0, openAt: 0, statAt: 0, cands: [], remote: false, kind: '', proto: '', rtt: 0 }; st.links.set(id, L); return L; };
+    const linkClose = (L) => {
+      if (!L || L.dead) return;
+      L.dead = true;
+      if (st.links.get(L.id) === L) st.links.delete(L.id);
+      try { if (L.ch) L.ch.close(); } catch (_) { /* gone */ }
+      try { if (L.pc) L.pc.close(); } catch (_) { /* gone */ }
+    };
+    // a line that didn't open, went quiet or broke: the guest asks again in a while (the relay carries the game meanwhile)
+    const linkFail = (L) => {
+      if (!L || L.dead) return;
+      const was = !!L.openAt;
+      linkClose(L);
+      st.drops++;
+      if (was && st.peers.has(L.id) && !st.closed) setTimeout(() => { if (!st.closed && st.peers.has(L.id)) emit([], [], [L.id]); }, 0);
+      if (!st.hub) { st.linkTries = was ? 1 : st.linkTries + 1; st.linkNext = now() + Math.min(30000, 1500 * Math.pow(2, Math.min(5, st.linkTries - 1))); }
+    };
+    const signal = (to, r) => wsRaw(JSON.stringify({ t: 'x', to, d: { rtc: r } }));
+    const linkChannel = (L, ch) => {
+      L.ch = ch;
+      const opened = () => { if (L.dead || L.openAt) return; L.openAt = L.inAt = L.out = now(); if (!st.hub) st.linkTries = 0; try { ch.send('h'); } catch (_) { /* closing */ } if (st.peers.has(L.id)) emit([], [], [L.id]); };
+      ch.onopen = opened;
+      ch.onmessage = (e) => {
+        if (L.dead || L.ch !== ch || NETSIM.rtcMute) return;
+        L.inAt = now();
+        const s = typeof e.data === 'string' ? e.data : '';
+        if (s.length < 2) return;   // ("h": only a sign of life)
+        let m = null;
+        try { m = JSON.parse(s); } catch (_) { return; }
+        if (m && typeof m === 'object') { L.liveIn = L.inAt; st.in.direct++; live(L.id, m); }
+      };
+      ch.onclose = () => { if (L.ch === ch) linkFail(L); };
+      if (ch.readyState === 'open') opened();
+    };
+    const pcWire = (L, pc) => {
+      pc.onicecandidate = (e) => { if (e.candidate && !L.dead) signal(L.id, { k: 'ice', sid: L.sid, c: typeof e.candidate.toJSON === 'function' ? e.candidate.toJSON() : e.candidate }); };
+      pc.onconnectionstatechange = () => { if (pc.connectionState === 'failed' || pc.connectionState === 'closed') linkFail(L); };
+      pc.oniceconnectionstatechange = () => { if (pc.iceConnectionState === 'failed') linkFail(L); };
+    };
+    const linkStart = () => {   // a guest asks the host for a direct line
+      const id = st.host;
+      if (st.closed || st.hub || !RTC || NETSIM.rtcOff || !id || !st.up) return;
+      linkClose(st.links.get(id));
+      const L = linkNew(id, rid(8));
+      relayIce(st).then((ice) => {
+        if (L.dead || st.closed) return;
+        try {
+          const pc = L.pc = new RTC({ iceServers: ice });
+          pcWire(L, pc);
+          linkChannel(L, pc.createDataChannel(RT_LABEL, { ordered: false, maxRetransmits: 0 }));
+          pc.createOffer().then((o) => pc.setLocalDescription(o)).then(() => { if (!L.dead) signal(id, { k: 'offer', sid: L.sid, sdp: pc.localDescription.sdp }); }).catch(() => linkFail(L));
+        } catch (_) { linkFail(L); }
+      });
+    };
+    const signalIn = (from, r) => {
+      if (!r || typeof r !== 'object' || typeof r.sid !== 'string' || r.sid.length > 16) return;
+      if (r.k === 'offer') {
+        if (!st.hub || typeof r.sdp !== 'string' || !st.peers.has(from)) return;
+        if (!RTC || NETSIM.rtcOff) { signal(from, { k: 'no', sid: r.sid }); return; }   // (can't here: the relay carries their game)
+        linkClose(st.links.get(from));
+        const L = linkNew(from, r.sid);
+        relayIce(st).then(async (ice) => {
+          if (L.dead || st.closed) return;
+          try {
+            const pc = L.pc = new RTC({ iceServers: ice });
+            pcWire(L, pc);
+            pc.ondatachannel = (e) => { if (e.channel && e.channel.label === RT_LABEL && !L.dead) linkChannel(L, e.channel); };
+            await pc.setRemoteDescription({ type: 'offer', sdp: r.sdp });
+            L.remote = true;
+            for (const c of L.cands.splice(0)) pc.addIceCandidate(c).catch(() => { /* a stale one */ });
+            await pc.setLocalDescription(await pc.createAnswer());
+            if (!L.dead) signal(from, { k: 'answer', sid: L.sid, sdp: pc.localDescription.sdp });
+          } catch (_) { linkFail(L); }
+        });
+        return;
+      }
+      const L = st.links.get(from);
+      if (!L || L.dead || L.sid !== r.sid) return;
+      if (r.k === 'answer' && !st.hub && typeof r.sdp === 'string' && L.pc) {
+        L.pc.setRemoteDescription({ type: 'answer', sdp: r.sdp })
+          .then(() => { L.remote = true; for (const c of L.cands.splice(0)) L.pc.addIceCandidate(c).catch(() => { /* a stale one */ }); })
+          .catch(() => linkFail(L));
+      } else if (r.k === 'ice' && r.c && typeof r.c === 'object') {
+        if (L.pc && L.remote) L.pc.addIceCandidate(r.c).catch(() => { /* a stale one */ });
+        else if (L.cands.length < 40) L.cands.push(r.c);
+      } else if (r.k === 'no' && !st.hub) { linkClose(L); st.linkNext = now() + 120000; }   // the host can't make direct lines: ask again in a couple of minutes
+    };
+    // which way a line really goes (straight, or through a TURN relay) and how long a round trip takes
+    const linkStats = (L) => {
+      const pc = L.pc;
+      if (!pc || typeof pc.getStats !== 'function') return;
+      pc.getStats().then((rep) => {
+        let pair = null;
+        rep.forEach((r) => { if (r.type === 'transport' && r.selectedCandidatePairId) pair = rep.get(r.selectedCandidatePairId) || pair; });
+        if (!pair) rep.forEach((r) => { if (r.type === 'candidate-pair' && (r.selected || (r.nominated && r.state === 'succeeded'))) pair = r; });
+        if (!pair) return;
+        const lc = rep.get(pair.localCandidateId), rc = rep.get(pair.remoteCandidateId);
+        L.kind = (lc && lc.candidateType === 'relay') || (rc && rc.candidateType === 'relay') ? 'turn' : 'direct';
+        L.proto = lc ? String(lc.relayProtocol || lc.protocol || '') : '';
+        if (typeof pair.currentRoundTripTime === 'number') L.rtt = Math.round(pair.currentRoundTripTime * 1000);
+      }).catch(() => { /* fine */ });
+    };
+
+    // ---- the live part: in ----
+    const live = (from, d) => {
+      const n = Number(d.n), prev = st.peers.get(from);
+      if (!prev || !(n > (st.inN.get(from) || 0))) return;   // (older than the last one, or the same one by the other way)
+      const k = d.S !== undefined ? 'S' : d.I !== undefined ? 'I' : d.D !== undefined ? 'D' : '';
+      if (!k) return;
+      st.inN.set(from, n);
+      if (from === st.host) { st.hostHeard = now(); if (k === 'S') st.liveSeen = st.hostHeard; }
+      const p = Object.assign({}, prev);
+      p[k] = d[k];
+      st.peers.set(from, p);
+      emit([], [], [from]);
+    };
+    // ---- the live part: out ----
+    const urgentKey = (k, v) => {   // what must not wait its turn: a touch, a change of phase, a call-out; a button
+      try {
+        if (k === 'S') { const g = v.G || [], E = v.E || []; return g[0] + ':' + g[8] + ':' + (E.length ? E[E.length - 1][0] : 0); }
+        if (k === 'I') return v.h + ':' + (v.c ? v.c.join('.') : '') + ':' + (v.cl ? v.cl[0] : '');
+      } catch (_) { /* an odd shape: no hurry */ }
+      return '';
+    };
+    const viaRelay = (k, v, to, body) => {
+      if (!st.up) return;
+      const t = now(), key = urgentKey(k, v);
+      st.tok[k] = Math.min(1.5, st.tok[k] + (t - st.tokAt[k]) * RELAY_RATE[k] / 1000); st.tokAt[k] = t;
+      if (st.tok[k] < (key !== st.sentKey[k] ? 0.25 : 1)) return;   // (not this one's turn; news jumps the queue)
+      if ((Number(st.ws.bufferedAmount) || 0) > RELAY_BACKLOG) return;   // the connection's backed up: skip it, a newer one goes when it clears
+      st.tok[k] = Math.max(-1, st.tok[k] - 1); st.sentKey[k] = key;
+      if (wsRaw('{"t":"x","to":' + JSON.stringify(to) + ',"d":' + body() + '}')) { st.out.relay++; st.relayOut = t; }
+    };
+    const sendLive = (k, v) => {
+      const n = ++st.n, t = now();
+      let s = '';
+      const body = () => s || (s = '{"n":' + n + ',"' + k + '":' + JSON.stringify(v) + '}');   // (made once, however many it goes to)
+      if (k === 'D') { viaRelay(k, v, '*', body); return; }   // (a watcher's dog: for everyone in the room)
+      if (st.hub) {
+        const need = [];
+        let others = 0;
+        for (const id of st.peers.keys()) {
+          if (id === st.me) continue;
+          others++;
+          const L = st.links.get(id);
+          if (chOpen(L)) { chSend(L, body()); L.liveOut = t; if (t - L.inAt < RELAY_HEALTHY) continue; }
+          need.push(id);
+        }
+        if (need.length) viaRelay(k, v, need.length === others ? 'g' : need, body);
+      } else {
+        const L = st.host ? st.links.get(st.host) : null;
+        if (chOpen(L)) { chSend(L, body()); L.liveOut = t; if (t - L.inAt < RELAY_HEALTHY) return; }
+        viaRelay(k, v, 'h', body);
+      }
+    };
+
+    // ---- the connection to the relay ----
+    const gone = (id) => {
+      linkClose(st.links.get(id));
+      if (id === st.host) st.host = null;
+      if (st.peers.delete(id)) emit([], [id], []);
+    };
+    const adopt = (ws, m) => {   // welcomed (the first time, or back after a drop): the room as the relay has it
+      const old = st.ws, t = now();
+      st.ws = ws; st.up = true; st.retry = 0; st.downAt = 0; st.wsIn = t; st.kWait = 0; st.kAt = t;
+      if (old && old !== ws) { try { old.close(); } catch (_) { /* gone */ } }
+      st.host = typeof m.host === 'string' ? m.host : null;
+      if (st.host && st.host !== st.me) st.hostHeard = t;
+      const before = st.peers, next = new Map(), joined = [], left = [], updated = [];
+      next.set(st.me, st.mine);
+      st.listed = new Set();
+      for (const x of Array.isArray(m.list) ? m.list : []) {
+        if (!Array.isArray(x) || typeof x[0] !== 'string' || x[0] === st.me) continue;
+        const p = x[1] && typeof x[1] === 'object' ? x[1] : {};
+        if (typeof p._n === 'number') st.inN.set(x[0], Math.max(st.inN.get(x[0]) || 0, p._n));
+        next.set(x[0], merge({}, p)); st.listed.add(x[0]);
+        (before.has(x[0]) ? updated : joined).push(x[0]);
+      }
+      for (const [id, p] of before) {   // (someone the relay has lost but we still hear directly stays)
+        if (id === st.me || next.has(id)) continue;
+        if (linkAlive(st.links.get(id), t)) next.set(id, p); else { left.push(id); linkClose(st.links.get(id)); }
+      }
+      st.peers = next;
+      const keep = stored(st.mine);   // say who we are again: a relay that dropped us while we were away has forgotten
+      if (Object.keys(keep).length) wsRaw(JSON.stringify({ t: 'p', d: keep, full: 1 }));
+      wsRaw('k');
+      emit(joined, left, updated);
+    };
+    const take = (m) => {
+      const t = now();
+      st.wsIn = t;
+      if (m.t === 'x' && typeof m.from === 'string' && m.d && typeof m.d === 'object') {
+        if (m.d.rtc) signalIn(m.from, m.d.rtc);
+        else { st.in.relay++; st.relayIn = t; live(m.from, m.d); }
+      } else if (m.t === 'u' && typeof m.id === 'string' && m.id !== st.me) {
+        const prev = st.peers.get(m.id), p = m.p && typeof m.p === 'object' ? m.p : {};
+        if (m.r === 'h') st.host = m.id;
+        if (m.id === st.host) st.hostHeard = t;
+        if (typeof p._n === 'number') st.inN.set(m.id, Math.max(st.inN.get(m.id) || 0, p._n));
+        st.listed.add(m.id);
+        st.peers.set(m.id, m.m && prev ? merge(prev, p) : merge({}, p));
+        emit(prev ? [] : [m.id], [], prev ? [m.id] : []);
+      } else if (m.t === 'l' && typeof m.id === 'string' && m.id !== st.me) {
+        st.listed.delete(m.id);
+        if (!linkAlive(st.links.get(m.id), t)) gone(m.id);
+      } else if (m.t === 'hb') { if (m.from === st.host) st.hostHeard = t; }
+      else if (m.t === 'e' && typeof m.d === 'number') { st.echoRtt = Math.max(1, Math.round(t - m.d)); for (const fn of st.echoWait.splice(0)) fn(st.echoRtt); }
+    };
+    const reconnectIn = (ms) => { clearTimeout(st.reT); st.reT = setTimeout(reconnect, ms); };
+    const lost = () => {   // the connection closed under us: straight back
+      st.ws = null; st.up = false; st.kWait = 0;
+      if (st.closed) return;
+      if (!st.downAt) st.downAt = now();
+      reconnectIn(st.retry ? Math.min(4000, 300 * Math.pow(2, Math.min(5, st.retry - 1))) + Math.random() * 200 : 100);
+    };
+    const open = () => new Promise((resolve, reject) => {
+      let ws = null, settled = false;
+      const settle = (err) => {
+        if (settled) return;
+        settled = true; clearTimeout(timer);
+        if (err) { try { ws.close(); } catch (_) { /* never opened */ } reject(err); } else resolve();
+      };
+      const timer = setTimeout(() => settle({ code: 'network', message: 'no answer from the relay' }), 8000);
+      try { ws = new WSC(url); } catch (_) { settle({ code: 'network', message: 'no connection to the relay' }); return; }
+      ws.onmessage = (e) => {
+        if (st.closed || typeof e.data !== 'string') return;
+        if (e.data === 'K') { if (st.ws === ws) { st.wsIn = now(); if (st.kWait) { st.kRtt = Math.round(st.wsIn - st.kWait); st.kWait = 0; } } return; }
+        let m = null;
+        try { m = JSON.parse(e.data); } catch (_) { return; }
+        if (!m || typeof m !== 'object') return;
+        if (m.t === 'err') {
+          if (m.code === 'big') return;   // (a presence too big to keep)
+          ws.__err = String(m.code);
+          settle({ code: m.code === 'taken' ? 'taken' : m.code === 'full' ? 'full' : 'network', message: 'the relay said: ' + m.code });
+          return;
+        }
+        if (m.t === 'all') { if (!settled) { adopt(ws, m); settle(null); } return; }
+        if (st.ws === ws) take(m);
+      };
+      ws.onclose = (e) => {
+        const why = ws.__err || (e && e.code === 4001 ? String(e.reason || '') : '');   // (the relay says why in a message, and again as it closes)
+        if (!settled) { settle({ code: why === 'taken' ? 'taken' : why === 'full' ? 'full' : 'network', message: 'the relay closed the connection' + (why ? ' (' + why + ')' : '') }); return; }
+        if (st.ws === ws) lost();
+      };
+      ws.onerror = () => { /* onclose follows */ };
+    });
+    const reconnect = () => {
+      st.reT = 0;
+      if (st.closed || st.up || st.opening) return;
+      st.opening = true; st.retry++;
+      open().then(() => { st.opening = false; }, (e) => {
+        st.opening = false;
+        if (st.closed) return;
+        if (e && (e.code === 'taken' || e.code === 'full')) { fatal(); return; }   // (someone else has this code now)
+        if (!st.downAt) st.downAt = now();
+        reconnectIn(Math.min(4000, 300 * Math.pow(2, Math.min(5, st.retry - 1))) + Math.random() * 200);
+      });
+    };
+    // back from the lock screen or a dead spot: check the connection now
+    const wake = () => {
+      if (st.closed) return;
+      if (!st.up) { st.retry = 0; reconnectIn(0); }
+      else if (!st.kWait) { st.kWait = st.kAt = now(); wsRaw('k'); }
+    };
+    const onVis = () => { if (!document.hidden) wake(); };
+    const tick = () => {
+      if (st.closed) return;
+      const t = now(), late = !!st.tickAt && t - st.tickAt > 3000;   // (this page was asleep: nobody's judged on that)
+      st.tickAt = t;
+      if (st.up) {
+        // a keep-alive every KA seconds (the relay drops a phone that misses them); sooner if the game was coming through here and has stopped
+        if (late) { st.kWait = st.kAt = t; wsRaw('k'); }
+        else if (st.kWait && t - st.kWait > (t - st.relayIn < 8000 ? 2500 : 4500)) {   // no answer (the game was on this connection: 2.5 s is long enough): it's dead, whatever it says. A fresh one.
+          const ws = st.ws;
+          st.ws = null; st.up = false; st.kWait = 0; st.retry = 0;
+          try { ws.close(); } catch (_) { /* gone */ }
+          if (!st.downAt) st.downAt = t;
+          reconnectIn(0);
+        } else if (!st.kWait && (t - st.kAt > KA * 1000 || (t - st.relayIn < 4000 && t - st.wsIn > 1500 && t - st.kAt > 1500))) { st.kWait = st.kAt = t; wsRaw('k'); }
+        // "is everyone still there?": the relay drops phones that have gone quiet when someone asks. The host asks
+        // regularly (everyone else hears a heartbeat); a guest asks if the host has been silent for a while.
+        if (st.up && !late && st.peers.size > 1) {
+          const due = st.hub ? t - st.chkAt > (pal ? 30000 : 10000) : !!st.host && t - st.hostHeard > 25000 && t - st.chkAt > 10000;
+          if (due) { st.chkAt = t; wsRaw('{"t":"chk"}'); }
+        }
+        if (st.up && t - st.echoAt > 5000 && (t - st.relayOut < 5000 || t - st.relayIn < 5000)) { st.echoAt = t; wsRaw('{"t":"e","d":' + Math.round(t) + '}'); }   // (how long the trip through the relay takes, while the game's on it)
+      } else {
+        if (!st.reT && !st.opening) reconnectIn(500);
+        if (st.downAt && t - st.downAt > 6000 && st.listed.size) st.listed.clear();   // (out of touch: only the phones we still hear directly count as here)
+        if (st.downAt && t - st.downAt > 45000 && ![...st.links.values()].some((L) => linkAlive(L, t))) fatal();
+      }
+      for (const L of [...st.links.values()]) {
+        if (late) { L.inAt = t; L.at = t; }
+        if (L.ch && L.ch.readyState === 'open' && !NETSIM.rtcMute) {
+          const busy = t - L.liveIn < 3000 || t - L.liveOut < 3000;
+          if (t - L.out > (busy ? 140 : 2000)) chSend(L, 'h');   // (a sign of life when there's nothing else to say)
+          if (t - L.inAt > 8000) linkFail(L);
+          else if (t - L.statAt > 3000) { L.statAt = t; linkStats(L); }
+        } else if (t - Math.max(L.at, L.openAt) > (L.openAt ? 8000 : 12000)) linkFail(L);
+      }
+      // a guest keeps a direct line to the host (in a friend's room: only while a match is coming through)
+      if (!st.hub && RTC && !NETSIM.rtcOff && st.up && st.host && st.peers.has(st.host) && !st.links.has(st.host) && t >= st.linkNext && (!pal || t - st.liveSeen < 10000)) linkStart();
+      // anyone the relay no longer lists and we no longer hear directly is gone
+      for (const id of [...st.peers.keys()]) if (id !== st.me && !st.listed.has(id) && !linkAlive(st.links.get(id), t)) gone(id);
+      st.tickT = setTimeout(tick, st.links.size ? 100 : 500);
+    };
+
+    st.peers.set(st.me, st.mine);
+    await open();   // (throws { code } if the room can't be joined: 'taken', 'full' or 'network')
+    RELAY.rooms.add(st);
+    st.tickT = setTimeout(tick, 200);
+    window.addEventListener('online', wake); document.addEventListener('visibilitychange', onVis);
+    if (window.__grassRelay) (window.__grassRelaySt = window.__grassRelaySt || []).push(st);   // tests look inside
+    return {
+      name, kind: 'relay',
+      presence(patch) {
+        if (st.closed) return Promise.resolve();
+        patch = patch && typeof patch === 'object' ? patch : {};
+        const ks = Object.keys(patch), k = ks.length === 1 ? ks[0] : '';
+        if ((k === 'S' || k === 'I' || k === 'D') && patch[k] !== null) {   // the live part: passed on, never kept
+          st.mine = Object.assign({}, st.mine, patch); st.peers.set(st.me, st.mine);
+          sendLive(k, patch[k]);
+        } else {
+          const out = Object.assign({}, patch), next = merge(st.mine, patch);
+          if ('S' in out || 'I' in out || 'D' in out) out._n = st.n;   // (any live message up to this number is from before this change)
+          if (JSON.stringify(stored(next)).length > 13000) return Promise.reject({ code: 'invalid_argument', message: 'presence over 13 KB' });
+          st.mine = next; st.peers.set(st.me, st.mine);
+          wsRaw(JSON.stringify({ t: 'p', d: out }));   // (while the connection's down nothing is lost: all of it is said again when it's back)
+        }
+        // your own change shows up for this page a moment later, the way it does in Claude's rooms (never in the middle of
+        // presence(): a listener that answers a change with another change would go round and round)
+        if (!st.selfT) st.selfT = setTimeout(() => { st.selfT = 0; if (!st.closed) emit([], [], [st.me]); }, 0);
+        return Promise.resolve();
+      },
+      peers: () => st.list,
+      onPeers(fn, onErr) { st.handlers.add(fn); if (onErr) st.errs.add(onErr); setTimeout(() => { if (st.handlers.has(fn)) fn({ peers: st.list, joined: st.list.map((p) => p.peer), left: [], updated: [] }); }, 0); return () => { st.handlers.delete(fn); if (onErr) st.errs.delete(onErr); }; },
+      emit: () => Promise.resolve(), on: () => () => {},
+      hasHost: () => !!st.host && st.peers.has(st.host),
+      // how things are going: which way each phone is reached and how long the trip takes
+      net() {
+        const t = now(), peers = {};
+        for (const id of st.peers.keys()) {
+          if (id === st.me) continue;
+          const L = st.links.get(id);
+          peers[id] = linkAlive(L, t) ? { path: L.kind || 'direct', rtt: L.rtt, proto: L.proto } : { path: st.up ? 'relay' : 'none', rtt: st.echoRtt, proto: '' };
+        }
+        return { kind: 'relay', up: st.up, me: st.me, host: st.host, peers, turn: RELAY.turn, out: st.out, in: st.in, kRtt: st.kRtt, drops: st.drops };
+      },
+      echo: () => new Promise((resolve) => { const t = setTimeout(() => resolve(0), 4000); st.echoWait.push((ms) => { clearTimeout(t); resolve(ms); }); if (!wsRaw('{"t":"e","d":' + Math.round(now()) + '}')) { clearTimeout(t); resolve(0); } }),
+      ice: () => relayIce(st),
+      leave() {
+        if (st.closed) return Promise.resolve();
+        st.closed = true; clearTimeout(st.reT); clearTimeout(st.tickT); clearTimeout(st.selfT);
+        window.removeEventListener('online', wake); document.removeEventListener('visibilitychange', onVis);
+        RELAY.rooms.delete(st);
+        for (const L of [...st.links.values()]) linkClose(L);
+        const ws = st.ws;
+        st.ws = null; st.up = false;
+        if (ws) {
+          try { if (ws.readyState === 1) ws.send('{"t":"bye"}'); } catch (_) { /* gone */ }
+          try { ws.close(); } catch (_) { /* gone */ }
+        }
+        return Promise.resolve();
+      },
+    };
+  },
+};
+// A guest who finds no host at the relay also looks the old way: the host may be on an older Grass, or on a network
+// that can't reach the relay. If the game turns up there, this room moves there (the game can't tell).
+function relayOrOld(room, name) {
+  let cur = room, old = null, curUn = null, oldUn = null, mine = {}, closed = false, looked = false, timer = 0;
+  const handlers = new Set(), errs = new Set();
+  const hostIn = (r) => r.peers().some((p) => !(p.isMe && p.sameTab) && p.presence && p.presence.r === 'h');
+  const fan = (ch) => { for (const fn of handlers) { try { fn(ch); } catch (e) { console.error(e); } } };
+  const stopLooking = () => {
+    clearTimeout(timer); timer = 0; looked = true;
+    if (oldUn) { try { oldUn(); } catch (_) { /* gone */ } oldUn = null; }
+    if (old) { const o = old; old = null; o.leave().catch(() => { /* gone */ }); }
+  };
+  const wire = () => {
+    if (curUn) { try { curUn(); } catch (_) { /* gone */ } }
+    curUn = cur.onPeers((ch) => { if (cur === room && (old || !looked) && room.hasHost()) stopLooking(); fan(ch); }, (e) => { for (const fn of errs) { try { fn(e); } catch (_) { /* fine */ } } });
+  };
+  const look = async () => {
+    timer = 0;
+    if (closed || looked || room.hasHost()) return;
+    looked = true;
+    let r = null;
+    try { r = await peerRooms.join(name, 'guest'); } catch (_) { return; }
+    if (closed || cur !== room || room.hasHost()) { r.leave().catch(() => { /* gone */ }); return; }
+    old = r;
+    r.presence(mine).catch(() => { /* it goes when the line opens */ });
+    oldUn = r.onPeers(() => {
+      if (closed || cur !== room || old !== r || !hostIn(r)) return;
+      // the game is over there: move
+      const gone = room.peers().filter((p) => !(p.isMe && p.sameTab)).map((p) => p.peer);
+      try { oldUn(); } catch (_) { /* gone */ }
+      oldUn = null; old = null; cur = r;
+      room.leave().catch(() => { /* gone */ });
+      wire();   // (its first call lists everyone there as arriving)
+      if (gone.length) fan({ peers: cur.peers(), joined: [], left: gone, updated: [] });
+    });
+  };
+  wire();
+  timer = setTimeout(look, 2500);
+  return {
+    name,
+    get kind() { return cur === room ? 'relay' : 'peer'; },
+    presence(patch) {
+      if (patch && typeof patch === 'object' && !isLivePatch(patch)) { mine = Object.assign({}, mine, patch); for (const k in mine) if (mine[k] === null) delete mine[k]; delete mine.S; delete mine.I; if (old) old.presence(patch).catch(() => { /* fine */ }); }
+      return cur.presence(patch);
+    },
+    peers: () => cur.peers(),
+    onPeers(fn, onErr) { handlers.add(fn); if (onErr) errs.add(onErr); setTimeout(() => { if (handlers.has(fn)) { const l = cur.peers(); fn({ peers: l, joined: l.map((p) => p.peer), left: [], updated: [] }); } }, 0); return () => { handlers.delete(fn); if (onErr) errs.delete(onErr); }; },
+    emit: () => Promise.resolve(), on: () => () => {},
+    hasHost: () => (cur === room ? room.hasHost() : hostIn(cur)),
+    net: () => (cur.net ? cur.net() : { kind: 'peer' }),
+    echo: () => (cur.echo ? cur.echo() : Promise.resolve(0)),
+    leave() {
+      if (closed) return Promise.resolve();
+      closed = true; stopLooking();
+      if (curUn) { try { curUn(); } catch (_) { /* gone */ } curUn = null; }
+      return cur.leave();
+    },
+  };
+}
+// Where phones meet outside Claude: the relay if there is one and it answers, PeerJS if not.
+const smartRooms = {
+  async join(name, role) {
+    const base = await relayUrl();
+    if (!base || performance.now() < RELAY.downUntil) return peerRooms.join(name, role);
+    let room = null;
+    try { room = await relayRooms.join(name, role); }
+    catch (e) {
+      if (e && (e.code === 'taken' || e.code === 'full')) throw e;
+      RELAY.downUntil = performance.now() + 60000;   // out of reach: the old way for the next minute
+      return peerRooms.join(name, role);
+    }
+    return role === 'host' || /^grass-pal-/i.test(String(name)) ? room : relayOrOld(room, name);
+  },
+};
+
+// Where the phones meet: Claude's room on the Claude page (null if this viewer can't use it); anywhere else your relay
+// (v11.3), or PeerJS when there's no relay. Tests inject stand-ins for either.
 const roomReady = (async () => {
   try {
     if (window.__grassTestRoom) return window.__grassTestRoom;
     if (IN_CLAUDE) return await window.claude.use('room');
-    return peerRooms;
+    return smartRooms;
   } catch (_) { /* not available here */ }
   return null;
 })();
@@ -12182,7 +12785,7 @@ async function netOpen(code, role) {
       NET.msg = e && e.code === 'not_permitted' ? 'Online games aren\'t available to you on this page.'
         : e && e.code === 'no_lib' ? 'Couldn\'t load the online service. Check your internet connection and try again.'
         : e && e.code === 'browser' ? 'This browser can\'t play online. Open the game link in Safari or Chrome.'
-        : !IN_CLAUDE ? 'Couldn\'t reach the online service. Check your connection; on school or work Wi-Fi, try mobile data.'
+        : !IN_CLAUDE ? 'Couldn\'t reach the online service. Check your connection, then tap TEST CONNECTION to see what this network allows.'
         : 'Couldn\'t reach the game. Check your connection and try again.';
       renderOnline(); return;
     }
@@ -12332,7 +12935,7 @@ function startOnline(cfg) {
   if (!crew) teams[0].ai = teams[1].ai;
   camFocusFor = null; shakeT = 0; hitStop = 0; popT = 0;
   resetScores(); resetRec(); eventsReset(); G.replay = null; G.replayPending = false;
-  Object.assign(NET, { ev: [], evSeq: 0, f: 0, snap: null, snapNew: false, lastF: -1, inF: -1, evSeen: -1, ball: null, ballPrev: null, bOff: null, q: 0, cnt: [0, 0, 0, 0, 0, 0, 0, 0] }); clockReset();
+  Object.assign(NET, { ev: [], evSeq: 0, f: 0, snap: null, snapNew: false, lastF: -1, inF: -1, evSeen: -1, ball: null, ballPrev: null, bOff: null, q: 0, cnt: [0, 0, 0, 0, 0, 0, 0, 0], ping: 0 }); clockReset();
   setupServe();   // guests too, so everyone stands in place until the first snapshot lands
   const me = localCtl && localCtl.p;
   $('modeTag').textContent = crew ? 'VS ' + crew.name : n + 'V' + n + ' · ONLINE';
@@ -12352,9 +12955,9 @@ function netBackToLobby() {
   else netPresence({ I: null });
 }
 // Host: a guest who's gone for a few seconds hands their player back to the AI
-function netGuestGone(c) {
-  flash(c.name + ' LEFT', true);
-  if (c.p) NET.gone.set(c.peer, { c, p: c.p, t: performance.now() });   // the AI plays for them until they're back
+function netGuestGone(c, quiet) {   // (v11.3: quiet = still in the room, but not a word from their phone)
+  flash(c.name + (quiet ? ' IS AWAY' : ' LEFT'), true);
+  if (c.p) NET.gone.set(c.peer, { c, p: c.p, t: performance.now(), quiet: !!quiet, q: c.lastQ | 0 });   // the AI plays for them until they're back
   assign(c, null);
   ctls = ctls.filter((x) => x !== c);
 }
@@ -12368,8 +12971,12 @@ function netGuestBack(here) {
   for (const [peer, g] of NET.gone) {
     if (performance.now() - g.t > 60000) { NET.gone.delete(peer); continue; }
     if (!here.has(peer) || g.p.ctl) continue;
+    if (g.quiet) {   // (back when their phone reports again)
+      const pr = NET.peers.find((x) => x.peer === peer), I = pr && pr.presence && pr.presence.I;
+      if (!I || typeof I !== 'object' || I.ep !== NET.ep || (I.q | 0) <= g.q) continue;
+    }
     NET.gone.delete(peer);
-    const c = g.c; c.goneT = 0; c.waiting = true; c.lastQ = null;
+    const c = g.c; c.goneT = 0; c.waiting = true; c.lastQ = null; c.quietT = 0; c.quietQ = undefined;
     assign(c, g.p); ctls.push(c);
     flash(c.name + ' IS BACK', true);
   }
@@ -12401,7 +13008,12 @@ function netPump(dt) {
     for (const c of ctls.slice()) {
       if (c.local) continue;
       if (here.has(c.peer)) c.goneT = 0;
-      else if ((c.goneT = (c.goneT || 0) + wallDt) > 3) netGuestGone(c);
+      else if ((c.goneT = (c.goneT || 0) + wallDt) > 3) { netGuestGone(c); continue; }
+      // v11.3: in the room, but nothing from their phone for 6 s of a match (it's asleep or out of signal, and the room
+      // hasn't noticed yet): the AI plays for them until it's heard again
+      if (NET.state !== 'play' || c.waiting) c.quietT = 0;
+      else if (c.lastQ !== c.quietQ) { c.quietQ = c.lastQ; c.quietT = 0; }
+      else if ((c.quietT = (c.quietT || 0) + wallDt) > 6) netGuestGone(c, true);
     }
   }
   NET.sendT += dt;
@@ -12442,10 +13054,18 @@ function netSnapshot() {
       REC.offerNet || 0, NET.f % 15 === 0 ? walkSync() : 0, eventsPack(), coachPack(), G.countdown ? 2 : G.paused ? 1 : 0,
       Math.max(0, BALLS.findIndex((b) => b.id === G.ballLook)), practicePack(),
       G.cut ? [GB_IDS.indexOf(G.cut.id), G.cut.lvl, G.cut.team.id, pidx(G.cut.by), G.cut.n, r3(G.cut.t)] : 0,   // (v10.2: a Gamebreaker play: an older phone just sees a rally)
-      G.joust ? [pidx(G.joust.p[0]), pidx(G.joust.p[1]), G.joust.taps[0], G.joust.taps[1], r2(G.joust.t)] : 0],   // (v11.2)
+      G.joust ? [pidx(G.joust.p[0]), pidx(G.joust.p[1]), G.joust.taps[0], G.joust.taps[1], r2(G.joust.t)] : 0,   // (v11.2)
+      NET.f % 15 === 0 ? netPings() : 0],   // (v11.3: each guest's round trip, twice a second, for their own screen)
     B: [r3(ball.p.x), r3(ball.p.y), r3(ball.p.z), r3(ball.v.x), r3(ball.v.y), r3(ball.v.z), pidx(ball.held), r2(ball.wobble), Math.max(0, NET_KINDS.indexOf(ball.lastKind || '')), ball.curve ? r2(ball.curve.az || 0) : 0, ball.curve ? r2(ball.curve.dy || 0) : 0],
     P, T, E: NET.ev,
   };
+}
+// v11.3: how long each guest's round trip is (ms, by seat)
+function netPings() {
+  const a = [];
+  for (const c of ctls) if (!c.local && c.slot >= 0 && c.slot < 12) a[c.slot] = c.rtt ? Math.round(c.rtt * 1000) : 0;
+  for (let i = 0; i < a.length; i++) if (!a[i]) a[i] = 0;
+  return a;
 }
 // Host: read each guest's latest report: stick, buttons held, presses since last time, and where their player is
 function netReadInputs() {
@@ -12625,6 +13245,7 @@ function netApplySnap(S, at) {
   const g = Array.isArray(S.G) ? S.G : [], prev = G.phase, prevSerial = G.touchSerial;
   G.phase = NET_PHASES[g[0] | 0] || 'serve'; G.servePhase = g[1] ? 'tossed' : 'hold';
   if (Array.isArray(g[23]) && G.phase === 'live') G.phase = 'gbcut';   // v10.2: the host is running a Gamebreaker play
+  if (Array.isArray(g[25]) && localCtl && !G.spectate) { const v = g[25][localCtl.slot] | 0; if (v > 0) NET.ping = v; }   // (v11.3: your round trip, as the host measures it)
   const jg = g[24], wasJ = G.joust;   // (v11.2: a joust)
   G.joust = Array.isArray(jg) && pAt(jg[0]) && pAt(jg[1]) ? { p: [pAt(jg[0]), pAt(jg[1])], taps: [jg[2] | 0, jg[3] | 0], t: num(jg[4], 0, 3), acc: [0, 0] } : null;
   G.server = pAt(g[2]); G.serving = teams[g[3] === 1 ? 1 : 0];
@@ -12783,13 +13404,21 @@ function netPlay(e) {
 // is eased in over a few frames: the gap goes into an offset that fades. (Before, they chased a moving target, which left
 // them trailing behind it and lurching at every snapshot.)
 const EASE_P = 0.08, EASE_B = 0.06;   // seconds for a player's, or the ball's, correction to fade to a third
+// v11.3: when the host goes quiet for a moment (a bad patch of signal), nobody stops dead in mid-stride and the ball
+// doesn't hang in the air: a player runs on for 0.2 s and coasts to a stop over the next 0.3; the ball keeps flying
+// for up to 0.75 s (it's a ball: it goes where it was going) and stops where it lands.
 function netFly(n, now) {   // where a snapshot had a player, flown on to now
-  const age = G.paused ? 0 : Math.min(0.25, Math.max(0, (now - n.t) / 1000));
-  return [n.x + n.vx * age, n.y > 0 || n.vy > 0 ? Math.max(0, n.y + n.vy * age - 0.5 * G_PLAYER * age * age) : 0, n.z + n.vz * age];
+  const age = G.paused ? 0 : Math.min(0.5, Math.max(0, (now - n.t) / 1000));
+  const run = age <= 0.2 ? age : 0.2 + (age - 0.2) - (age - 0.2) * (age - 0.2) / 0.6;   // (0.35 s of running at most)
+  return [n.x + n.vx * run, n.y > 0 || n.vy > 0 ? Math.max(0, n.y + n.vy * age - 0.5 * G_PLAYER * age * age) : 0, n.z + n.vz * run];
 }
 function netBallAt(b, now) {   // where a snapshot had the ball, flown on to now: [x, y, z, vy]
-  const age = G.paused ? 0 : Math.min(0.3, Math.max(0, (now - b.t) / 1000));
+  let age = G.paused ? 0 : Math.min(0.75, Math.max(0, (now - b.t) / 1000));
   const cv = ball.curve ? ball.curve.az || 0 : 0, gy = ballG();
+  if (age > 0.3 && b.y > BALL_R) {   // a long wait: not past where it comes down
+    const disc = b.vy * b.vy + 2 * gy * (b.y - BALL_R);
+    age = Math.min(age, Math.max(0.3, (b.vy + Math.sqrt(Math.max(0, disc))) / gy));
+  }
   return [b.x + b.vx * age, Math.max(BALL_R, b.y + b.vy * age - 0.5 * gy * age * age), b.z + b.vz * age + 0.5 * cv * age * age, b.vy - gy * age];
 }
 function netSmooth(dt) {
@@ -12868,6 +13497,7 @@ function renderOnline() {
   $('onBack').textContent = party ? 'MENU' : inRoom ? 'LEAVE' : 'BACK';
   // v10.1: a party: the leader picks the game (PICKUP, BE A LEGEND, PRACTICE); anyone can INVITE; LEAVE leaves it
   $('onKindRow').hidden = !(party && inRoom); $('onInvite').hidden = !(party && inRoom); $('onLeave').hidden = !(party && inRoom); $('onHelp').hidden = party;
+  $('onTest').hidden = party || IN_CLAUDE || !!window.__grassTestRoom;   // (v11.3: Claude's own rooms need no test)
   document.querySelector('#onMode button[data-v="p"]').hidden = party;
   if (party && inRoom) {
     document.querySelectorAll('#onKind button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === (NET.kind || 'pickup'))));
@@ -12890,7 +13520,7 @@ function renderOnline() {
         if (p) {
           li.textContent = cleanName(p.presence.n);
           const y = document.createElement('small');
-          y.textContent = [p.isMe && p.sameTab ? 'YOU' : p.presence.r === 'h' ? 'HOST' : '', prac ? '' : ROLE_NAME[cap][POS_ROLE[cap][posOf(p.presence.pos)]]].filter(Boolean).join(' · ');
+          y.textContent = [p.isMe && p.sameTab ? 'YOU' : p.presence.r === 'h' ? 'HOST' : '', prac ? '' : ROLE_NAME[cap][POS_ROLE[cap][posOf(p.presence.pos)]], netPathLabel(p)].filter(Boolean).join(' · ');
           li.append(y);
         } else {
           li.className = 'ai';
@@ -12965,14 +13595,137 @@ $('stJoin').addEventListener('click', () => { audioInit(); if (inParty()) { pane
 $('onHelp').addEventListener('click', () => {
   $('nhWhere').textContent = IN_CLAUDE
     ? 'Everyone opens this Claude page on their own phone, signed in to Claude (the owner shares it from Share).'
-    : 'Everyone opens this game link on their own phone. A free service, PeerJS, helps the phones find each other; then they connect directly.';
+    : 'Everyone opens this game link on their own phone. The phones find each other online, then connect directly when the network lets them.';
   $('nhSave').textContent = IN_CLAUDE ? 'The owner\'s saves to their Claude account; everyone else\'s, on their device.' : 'It saves on this device, in this browser.';
   $('nhTrouble').textContent = IN_CLAUDE
     ? 'Can\'t connect? Check everyone is signed in, on this same page, with the same code. Still stuck: reopen the page and rejoin.'
-    : 'Can\'t connect? Check the link and the code. Some Wi-Fi (school, work) and a few mobile networks block it: try another network, or everyone on the same Wi-Fi. Still stuck: reopen the game and rejoin.';
+    : 'Can\'t connect? Check the link and the code, and that everyone has refreshed to the same version. Then tap TEST CONNECTION on the online screen: it says what this network allows. Still stuck: reopen the game and rejoin.';
   openPanel('netHelpPanel');
 });
 $('nhDone').addEventListener('click', closePanel);
+// ---- v11.3: TEST CONNECTION: can this network reach the relay, make direct lines, use TURN? A report to read or copy. ----
+const NT = { running: false, text: '' };
+// what kinds of address this network lets a direct line use
+function ntGather(ice) {
+  return new Promise((resolve) => {
+    const RTC = window.__grassTestRTC || window.RTCPeerConnection, out = { host: 0, srflx: 0, relay: 0, v6: false, protos: new Set() };
+    if (!RTC) { resolve(null); return; }
+    let pc = null, done = false;
+    const finish = () => { if (done) return; done = true; clearTimeout(t); try { pc.close(); } catch (_) { /* gone */ } resolve(out); };
+    const t = setTimeout(finish, 6000);
+    try {
+      pc = new RTC({ iceServers: ice });
+      pc.createDataChannel('t');
+      pc.onicecandidate = (e) => {
+        const c = e.candidate;
+        if (!c) { finish(); return; }
+        const s = String(c.candidate || ''), m = / typ (host|srflx|prflx|relay)/.exec(s), u = String(e.url || c.url || '');
+        if (!m) return;
+        if (m[1] === 'relay') { out.relay++; out.protos.add(String(c.relayProtocol || (/^turns:/.test(u) ? 'tls' : /transport=tcp/.test(u) ? 'tcp' : 'udp'))); }
+        else if (m[1] === 'srflx') { out.srflx++; if (String(s.split(' ')[4] || '').includes(':')) out.v6 = true; }
+        else if (m[1] === 'host') out.host++;
+      };
+      pc.createOffer().then((o) => pc.setLocalDescription(o)).catch(finish);
+    } catch (_) { finish(); }
+  });
+}
+// two ends on this phone, both made to go through TURN: does a message make the round trip? (ms, or 0)
+function ntLoop(ice, policy) {
+  return new Promise((resolve) => {
+    const RTC = window.__grassTestRTC || window.RTCPeerConnection;
+    if (!RTC) { resolve(0); return; }
+    let a = null, b = null, done = false, t0 = 0;
+    const times = [];
+    const finish = (v) => { if (done) return; done = true; clearTimeout(t); try { a.close(); } catch (_) { /* gone */ } try { b.close(); } catch (_) { /* gone */ } resolve(v); };
+    const t = setTimeout(() => finish(0), 10000);
+    try {
+      a = new RTC({ iceServers: ice, iceTransportPolicy: policy || 'relay' }); b = new RTC({ iceServers: ice, iceTransportPolicy: policy || 'relay' });
+      a.onicecandidate = (e) => { if (e.candidate) b.addIceCandidate(e.candidate).catch(() => { /* stale */ }); };
+      b.onicecandidate = (e) => { if (e.candidate) a.addIceCandidate(e.candidate).catch(() => { /* stale */ }); };
+      const ch = a.createDataChannel('t');
+      b.ondatachannel = (e) => { e.channel.onmessage = (m) => { try { e.channel.send(m.data); } catch (_) { /* closing */ } }; };
+      ch.onopen = () => { t0 = performance.now(); ch.send('1'); };
+      ch.onmessage = () => { times.push(performance.now() - t0); if (times.length >= 3) finish(Math.max(1, Math.round(Math.min(...times)))); else { t0 = performance.now(); ch.send('1'); } };
+      a.createOffer().then((o) => a.setLocalDescription(o)).then(() => b.setRemoteDescription(a.localDescription)).then(() => b.createAnswer())
+        .then((an) => b.setLocalDescription(an)).then(() => a.setRemoteDescription(b.localDescription)).catch(() => finish(0));
+    } catch (_) { finish(0); }
+  });
+}
+async function netTest() {
+  if (NT.running) return;
+  NT.running = true;
+  const lines = [], say = (s) => { lines.push(s); NT.text = lines.join('\n'); $('ntOut').textContent = NT.text; };
+  const ms = (t) => Math.max(1, Math.round(performance.now() - t)) + ' ms';
+  let room = null;
+  try {
+    say('GRASS ' + VERSION + ' CONNECTION TEST · ' + new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC');
+    const ua = navigator.userAgent || '', dev = (/iPhone|iPad|Android|Macintosh|Windows|CrOS|Linux/.exec(ua) || ['?'])[0], br = /(CriOS|FxiOS|EdgiOS|Edg|Firefox|Chrome|Version)\/([\d.]+)/.exec(ua) || [];
+    say(dev + ' · ' + (br[1] ? br[1].replace('Version', 'Safari').replace('CriOS', 'Chrome').replace('FxiOS', 'Firefox').replace(/Edg(iOS)?/, 'Edge') + ' ' + String(br[2]).split('.')[0] : 'browser ?'));
+    const cn = navigator.connection || null;
+    say('Network: ' + (navigator.onLine === false ? 'OFFLINE' : 'online') + (cn && cn.type && cn.type !== 'unknown' ? ' (' + cn.type + ')' : ''));
+    if (IN_CLAUDE) { say(''); say('This is the Claude page: online games use Claude\'s own rooms here, so there is nothing to test.'); return; }
+    const base = await relayUrl();
+    let roomOk = false, turnOk = false, stunOk = false, turnOn = false;
+    say('');
+    if (!base) say('Relay: none set up (no relay address in the game and no relay.txt next to it).');
+    else {
+      say('Relay: ' + base.replace(/^https?:\/\//, ''));
+      let t = performance.now(), h = null;
+      try { const r = await fetchT(base + '/health', 7000); h = r.ok ? await r.json() : null; } catch (_) { /* no answer */ }
+      say(h && h.ok ? '  answers: yes, in ' + ms(t) + ' (v' + h.v + ', TURN ' + (h.turn ? 'on' : 'off') + ')' : '  answers: NO');
+      turnOn = !!(h && h.turn);
+      t = performance.now();
+      try {
+        room = await relayRooms.join('grass-test-' + rid(8), 'host');
+        say('  a room: joined in ' + ms(t));
+        await room.echo();   // (the first one warms the room up)
+        const e = [await room.echo(), await room.echo(), await room.echo()].filter((v) => v > 0);
+        say(e.length ? '  there and back through the room: ' + e.join(', ') + ' ms' : '  there and back through the room: NO ANSWER');
+        roomOk = e.length > 0;
+      } catch (e) { say('  a room: FAILED (' + String((e && e.message) || e).slice(0, 60) + ')'); }
+    }
+    say('');
+    say('Direct lines (phone to phone):');
+    if (!(window.__grassTestRTC || window.RTCPeerConnection)) say('  this browser can\'t make them');
+    else {
+      const ice = room ? await room.ice() : RELAY_STUN, c = await ntGather(ice);
+      stunOk = !!(c && c.srflx);
+      say('  public address (STUN): ' + (stunOk ? 'found' + (c.v6 ? ' (IPv6 too)' : '') : 'NOT found'));
+      if (!turnOn) say('  TURN: not set up on the relay');
+      else if (!c || !c.relay) say('  TURN: NOT reachable from this network');
+      else {
+        say('  TURN: reachable (' + [...c.protos].join(', ') + ')');
+        const lp = await ntLoop(ice, 'relay');
+        turnOk = lp > 0;
+        say(turnOk ? '  through TURN and back: ' + lp + ' ms' : '  through TURN and back: NO ANSWER');
+      }
+    }
+    if (!roomOk) {
+      const t = performance.now();
+      let ok = false;
+      try { await fetchT('https://0.peerjs.com/peerjs/id', 6000, { mode: 'no-cors' }); ok = true; } catch (_) { /* blocked, or offline */ }
+      say('');
+      say('The old way (PeerJS): its server ' + (ok ? 'answers (' + ms(t) + ')' : 'does NOT answer'));
+    }
+    say('');
+    say(!base ? 'RESULT: no relay. Games use the old way (PeerJS), which some school and phone networks block.'
+      : !roomOk ? 'RESULT: this network can\'t reach the relay. Games fall back to the old way (PeerJS).'
+      : turnOk ? 'RESULT: good. The relay and TURN both work here: games should connect and stay connected.'
+      : stunOk ? 'RESULT: good. The relay works here and direct lines can usually be made. When one can\'t, the game runs through the relay.'
+      : 'RESULT: OK. The relay works here, but this network blocks direct lines, so games run through the relay (a little more delay).' + (turnOn ? '' : ' A TURN key on the relay would give direct lines here.'));
+  } catch (e) { say('The test stopped: ' + String((e && e.message) || e).slice(0, 80)); }
+  finally { NT.running = false; if (room) room.leave().catch(() => { /* gone */ }); }
+}
+$('onTest').addEventListener('click', () => { $('ntOut').textContent = 'Testing…'; openPanel('netTestPanel'); netTest(); });
+$('ntAgain').addEventListener('click', () => { if (!NT.running) { $('ntOut').textContent = 'Testing…'; netTest(); } });
+$('ntDone').addEventListener('click', closePanel);
+$('ntCopy').addEventListener('click', async () => {
+  let ok = false;
+  try { await navigator.clipboard.writeText(NT.text); ok = true; } catch (_) { /* not allowed here */ }
+  if (!ok) { try { const r = document.createRange(); r.selectNodeContents($('ntOut')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); ok = document.execCommand('copy'); } catch (_) { /* select it by hand */ } }
+  $('ntCopy').textContent = ok ? 'COPIED' : 'SELECT & COPY';
+  setTimeout(() => { $('ntCopy').textContent = 'COPY'; }, 1600);
+});
 $('onAiPick').addEventListener('click', () => {   // cycle the AI teammate through your roster
   const R = legend.roster, i = R.indexOf(netAiPlan(2)[0]);
   NET.aiPick = R[(i + 1) % R.length];
@@ -13140,7 +13893,7 @@ async function palOpen() {   // (v10.1: open whether or not friends can watch: r
     if (!ns) { PAL.retryT = performance.now() + 120000; return; }
     const room = await ns.join('grass-pal-' + legend.fc.toLowerCase(), 'host');
     if (WATCH.room) { room.leave().catch(() => { /* gone */ }); return; }
-    PAL.room = room; PAL.st = ''; PAL.w = -1; PAL.n = ''; PAL.key = ''; PAL.statT = 9; PAL.sentM = ''; PAL.live = false;
+    PAL.room = room; PAL.st = ''; PAL.w = -1; PAL.n = ''; PAL.key = ''; PAL.statT = 9; PAL.sentM = ''; PAL.live = false; PAL.homeT = performance.now();
     PAL.unsub = room.onPeers((ch) => palPeers(ch.peers), () => palClose());
   } catch (_) { PAL.retryT = performance.now() + 60000; }   // (open on another tab, or offline: try again in a minute)
   finally { PAL.opening = false; }
@@ -13168,6 +13921,12 @@ function palPump(dt) {
     return;
   }
   if (WATCH.room) { palClose(); return; }
+  // v11.3: a room that had to open the old way (the relay didn't answer just then) moves to the relay when it can:
+  // friends look for you there
+  if (PAL.room.kind !== 'relay' && RELAY.url && !PAL.watchers.length && TR.st === 'off' && performance.now() - (PAL.homeT || 0) > 120000) {
+    PAL.homeT = performance.now();
+    if (performance.now() >= RELAY.downUntil) { palClose(); return; }
+  }
   PAL.statT += dt;
   const pk = inParty() && NET.state !== 'connecting' ? NET.code : '';
   if (pk !== PAL.pk) { PAL.pk = pk; PAL.statT = 9; }   // (a party starting or ending goes up straight away: friends can JOIN)
@@ -13763,6 +14522,11 @@ async function palPeek(code, say) {
   FR.peeking.add(code);
   try { return await palPeekRoom(code, say); } finally { FR.peeking.delete(code); }
 }
+function palInfo(pr) {   // what a friend's room says about them
+  const pt = Array.isArray(pr.pt) && /^[A-Z0-9]{4}$/.test(String(pr.pt[0])) ? [String(pr.pt[0]), Math.max(1, pr.pt[1] | 0), tagName(pr.pt[2], '')] : null;
+  return { n: tagName(pr.n, 'FRIEND'), w: Math.max(0, Math.round(Number(pr.w) || 0)), st: String(pr.st || 'menu'), lk: Array.isArray(pr.lk) ? pr.lk.slice(0, LOOK_LEN) : null,
+    ac: Array.isArray(pr.ac) ? pr.ac.filter(isFriendCode).slice(0, 20) : [], pt, nw: !!pr.nw };
+}
 async function palPeekRoom(code, say) {
   const ns = await roomReady;
   if (!ns) return null;
@@ -13781,9 +14545,7 @@ async function palPeekRoom(code, say) {
       const h = ch.peers.find(isPalHost);
       if (!h || got) return;
       got = true;
-      const pr = h.presence, pt = Array.isArray(pr.pt) && /^[A-Z0-9]{4}$/.test(String(pr.pt[0])) ? [String(pr.pt[0]), Math.max(1, pr.pt[1] | 0), tagName(pr.pt[2], '')] : null;
-      const info = { n: tagName(pr.n, 'FRIEND'), w: Math.max(0, Math.round(Number(pr.w) || 0)), st: String(pr.st || 'menu'), lk: Array.isArray(pr.lk) ? pr.lk.slice(0, LOOK_LEN) : null,
-        ac: Array.isArray(pr.ac) ? pr.ac.filter(isFriendCode).slice(0, 20) : [], pt, nw: !!pr.nw };
+      const info = palInfo(h.presence);
       if (say) setTimeout(() => finish(info), 1300); else finish(info);
     });
     room.presence(Object.assign({ v: NET_V, r: 'p' }, say || {})).catch(() => { /* just looking */ });
@@ -13792,16 +14554,26 @@ async function palPeekRoom(code, say) {
 async function friendsPoll(only) {
   if (FR.polling && !only) return;
   if (!only) FR.polling = true;
-  const codes = (only || legend.friends.map((f) => f.c).concat(legend.sent.map((f) => f.c))).slice(0, 60);
+  let codes = (only || legend.friends.map((f) => f.c).concat(legend.sent.map((f) => f.c))).slice(0, 60);
+  const seen = (c, r) => {
+    FR.peeked.set(c, r || { n: '', w: (legend.friends.find((f) => f.c === c) || {}).w || 0, st: 'off', pt: null, ac: [] });
+    const f = legend.friends.find((x) => x.c === c);
+    if (f && r) { f.n = r.n; f.w = r.w; f.at = Date.now(); if (r.lk) f.lk = r.lk; }
+  };
+  // v11.3: with a relay, one question says who's online (your own requests still go door to door: they leave a note)
+  const plain = codes.filter((c) => !legend.sent.some((f) => f.c === c));
+  const got = plain.length && !IN_CLAUDE && !window.__grassTestRoom ? await relayPeek(plain) : null;
+  if (got) {
+    for (const c of plain) { const pr = got.get(c); seen(c, pr && pr.v === NET_V && pr.pal === 1 && pr.r === 'h' ? palInfo(pr) : null); }
+    codes = codes.filter((c) => !plain.includes(c));
+    renderFriends();
+  }
   let i = 0;
   const next = async () => {
     while (i < codes.length) {
       const c = codes[i++];
       if (legend.sent.some((f) => f.c === c)) { await friendRequestSend(c); continue; }   // (a request: ask again, and see if they've said yes)
-      const r = await palPeek(c);
-      FR.peeked.set(c, r || { n: '', w: (legend.friends.find((f) => f.c === c) || {}).w || 0, st: 'off', pt: null, ac: [] });
-      const f = legend.friends.find((x) => x.c === c);
-      if (f && r) { f.n = r.n; f.w = r.w; f.at = Date.now(); if (r.lk) f.lk = r.lk; }
+      seen(c, await palPeek(c));
       renderFriends();
     }
   };
@@ -14362,9 +15134,9 @@ function tradeLeave() {
 function tradeEnd(msg) {
   if (TR.unsub) { try { TR.unsub(); } catch (_) { /* gone */ } TR.unsub = null; }
   if (TR.room) { TR.room.leave().catch(() => { /* gone */ }); TR.room = null; }
-  if (TR.role === 'o') palPresence({ TR: null });
-  const was = TR.st;
+  const was = TR.st, mine = TR.role === 'o';
   Object.assign(TR, { st: 'off', role: null, fc: '', mine: '', theirs: '', ok: false, theirOk: false, leaving: 0, msg: msg || '' });
+  if (mine) palPresence({ TR: null });   // (v11.3: after the trade's closed here: a room that reports back at once would ask it to end again, and again)
   if (was !== 'off') { renderTrade(); if (G.panel === 'ballsPanel') renderBalls(); }
 }
 // ---- The TRADE panel: who to trade with (and who's asking), then the trade itself
@@ -15514,7 +16286,7 @@ window.__grass = {
   BALLS, BALL_BY, BALL_TIERS, BOX_PRICE, BALL_FX, ballArt, setBallLook, get ballLook() { return ballLook; }, ballMesh, ballGlow, ballHalo, drawBallPic, rollBox, openBox, useBall, sellSpare, sellAllSpares,
   P: PRAC, DRILLS, ZONES, sendPass, sendSet, humanAim, timeToHeightTest: timeToHeight, ballAtTest: ballAt, practiceLandTest: (good) => { PRAC.st = 'rep'; pracDone(good, 'OK', ''); }, startPractice, practiceStop, practicePack, PRMENU, pracNext, pracHand, PUSH_T, SET_NAME,
   BAGS, BAG_BY, LOOT_BY, BOX_LOOT, BAGS3D, matchBags, clearBags, useBag, drawBagPic, bagArt, lootN, isBag, bagPack, showcaseBag, bagChanged, get showcase() { return showcase; },
-  saveSettings, netBackToLobby,
+  saveSettings, netBackToLobby, RELAY, NETSIM, relayRooms, smartRooms, peerRooms, relayUrl, relayPeek, netTest, ntLoop, ntGather, NT, netPathInfo, netPings, netTagHud, netOpen, netLeave, RELAY_STUN, netBallAt, netFly,   // (v11.3)
   DIFF, DIFF_ORDER, DIFF_LABEL, diffAt, setCrewTeams, sendSkyball, gbLevel, aiPick, smarts, get TWEEN() { return TWEEN; },   // (v10.2)
   GB_PLAYS, GB_IDS, GB_BY, startCut, cutSkip, cutBuild, gbPlayOf, startMatch, crewById, updateCamera, netCutUnpack, netApplySnap, netSnapshot, drawGbPic, useGb,
   BL, BOXSHOW, renderBalls, mythicShatter, mythic, shards, serveBallOf, coachGradeTest: coachGrade, TR, tradeStart, tradeOpen, tradePick, tradeAcceptPress, tradeLeave, tradeEnd, renderTrade, syncBallPlate,
