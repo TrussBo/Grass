@@ -1432,7 +1432,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 (() => {
 'use strict';
 // The version: shown in SETTINGS and on the cover of the guide book. Raise it with every update, then rebuild the guide.
-const VERSION = '12.0';
+const VERSION = '12.0.1';
 const $ = (id) => document.getElementById(id);
 const errBox = $('err');
 function showError(msg) { errBox.textContent = msg; errBox.hidden = false; }
@@ -3864,7 +3864,7 @@ function walkerHit() {
     const w = g.people[i], r = w.rig.root;
     if (w.rag || w.bonk) continue;
     const dx = ball.p.x - r.position.x, dz = ball.p.z - r.position.z, d = Math.hypot(dx, dz), sp = Math.hypot(ball.v.x, ball.v.z);
-    if (d > 0.3 + BALL_R || ball.p.y > 1.85 * (r.scale.y || 1) || sp < 1.5) continue;
+    if (d > 0.3 + BALL_R || ball.p.y > 1.85 * 0.93 * ((r.scale.y || 1) / RIG_SCALE) || sp < 1.5) continue;   // (v12.0.1: the top of their head, as in 11.3; see p06)
     const big = Math.random() < clamp(0.25 + (sp - 5) * 0.07, 0.25, 0.8);
     if (big) {   // wiped out: off they go with the ball
       const vx = ball.v.x * 0.6, vz = ball.v.z * 0.6, vy = 3.4 + Math.min(2.2, sp * 0.14), spin = (Math.random() < 0.5 ? -1 : 1) * rand(5, 8);
