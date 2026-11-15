@@ -13,7 +13,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Bungee&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700;1,800&family=Bungee&display=swap">
 <style>
 /* Layout: full-bleed cel-shaded court; a street scoreboard strip across the top; thumb controls pinned to the
    bottom corners; menus are sticker-style poster cards over the dimmed court. One fixed look (sunset park).
@@ -919,6 +919,622 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 @keyframes fade { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes gbCardFade { 0% { opacity: 0; transform: none; } 10%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; transform: none; } }
 @keyframes gbWhiteSoft { 0% { opacity: 0.45; } 100% { opacity: 0; } }
+/* =====================================================================
+   v12.2 MATCHDAY (part 3 of the graphics overhaul: menus and HUD, Truss's pick: "the style of buttons of B", PLAY in
+   red, not yellow). Laid over the 11.x/12.x sheet above: navy glass panels with a coloured edge, condensed italic
+   lettering, slanted buttons and tags, white for what's picked, red for PLAY, gold only for small labels.
+   ===================================================================== */
+:root {
+  --md-navy: rgba(9, 20, 40, 0.93); --md-navy2: #09142a; --md-navy3: #12254a; --md-glass: rgba(9, 20, 40, 0.6);
+  --md-line: rgba(255, 255, 255, 0.13); --md-soft: rgba(255, 255, 255, 0.07); --md-edge: rgba(255, 255, 255, 0.28);
+  --md-slate: #a9bad6; --md-gold: #ffc83d; --md-go: #ff3d2e; --md-teal: #2ad1c3; --md-blue: #3b8df0;
+  --font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", Arial, sans-serif;
+  --scrim: rgba(5, 11, 24, 0.5); --panel: rgba(9, 20, 40, 0.93); --glass: rgba(255, 255, 255, 0.06); --rule: rgba(255, 255, 255, 0.13);
+  --chalk: #f4f7fc;
+}
+html, body { background: var(--md-navy2); }
+/* what used to be the display face is the condensed face now, heavy and leaning */
+.title, .h2, .mode b, .big, .result, .final, .lcname, .pts b, .boxname, .bname, .boname, .crewhead b, .speaker, .sidehead, .codebox b,
+.fcode b, .board .rk, .earn li b, .vernum, .tapgo, #flash, #banner, #replayTag, #gbCard b, #gbSkip, #hostWait, #hostPause, #btnReplay,
+#joust b, .call, #coachSay b, #coachBoard .cards b, .stepper output, .stepper input, .joinrow input, .drill b, .pocket, #bGB span, .sidehead {
+  font-weight: 800; font-style: italic; letter-spacing: 0.01em;
+}
+button:focus-visible, input:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+/* ---------- panels ---------- */
+.overlay { background: linear-gradient(90deg, rgba(5, 11, 24, 0.35), rgba(5, 11, 24, 0.62)); }
+.overlay.side { background: linear-gradient(90deg, transparent 28%, rgba(5, 11, 24, 0.62) 58%); }
+.card {
+  background: var(--md-navy); border: 0; border-left: 5px solid var(--md-gold); border-radius: 3px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
+}
+.h2 {
+  display: inline-flex; align-items: center; gap: 10px; color: #fff; transform: none; text-shadow: none;
+  font-size: clamp(22px, 5.4vmin, 32px); line-height: 1; letter-spacing: 0.02em;
+}
+.h2::before { content: ''; flex: none; width: 6px; height: 0.82em; background: var(--md-gold); transform: skewX(-14deg); }
+.title { color: #fff; -webkit-text-stroke: 0; text-shadow: 0 3px 10px rgba(0, 0, 0, 0.45); transform: none; letter-spacing: 0.02em; }
+.sub { color: #dbe4f3; font-weight: 600; letter-spacing: 0.04em; }
+.sub.small { color: var(--md-slate); opacity: 1; }
+.pts { color: var(--md-slate); font-style: italic; }
+.pts b { color: var(--md-gold); text-shadow: none; font-size: 24px; }
+
+/* buttons: slanted; red for the thing you came to do, glass for the rest */
+.big {
+  transform: skewX(-12deg); border: 0; border-radius: 2px; background: var(--md-go); color: #fff; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  font-style: normal; font-size: clamp(16px, 4.2vmin, 22px); letter-spacing: 0.05em; padding: 9px 22px; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+}
+.big.alt { background: rgba(255, 255, 255, 0.09); box-shadow: inset 0 0 0 1.5px var(--md-edge); text-shadow: none; }
+.big.hot { background: var(--md-teal); color: var(--md-navy2); text-shadow: none; }
+.big:active, .chip:active, .mode:active { transform: skewX(-12deg) translateY(2px); box-shadow: none; }
+.big:disabled { opacity: 0.45; }
+.chip {
+  transform: skewX(-12deg); border: 0; border-radius: 2px; background: rgba(255, 255, 255, 0.08); color: #fff;
+  box-shadow: inset 0 0 0 1.5px var(--md-edge); font-style: normal; letter-spacing: 0.06em;
+}
+.chip small { color: var(--md-slate); opacity: 1; }
+.chip.go { background: var(--md-go); box-shadow: none; }
+.chip.danger { background: transparent; box-shadow: inset 0 0 0 1.5px var(--md-go); color: #ff8f85; }
+.board .chip, .dkinds .chip { box-shadow: inset 0 0 0 1.5px var(--md-edge); }
+.board .chip.go, .dkinds .chip.go { background: var(--md-go); box-shadow: none; }
+.board .chip.x { background: transparent; color: var(--md-slate); }
+.seg { border: 0; border-radius: 2px; background: var(--md-soft); box-shadow: inset 0 0 0 1.5px var(--md-edge); transform: skewX(-12deg); }
+.seg button { color: var(--md-slate); font-style: normal; }
+.seg button + button { border-left: 1px solid var(--md-line); }
+.seg button[aria-pressed="true"] { background: #fff; color: var(--md-navy2); }
+.tabs.courts button:nth-child(n+4), #pkPark button:nth-child(n+4) { border-top: 1px solid var(--md-line); }
+.setrow { border-top-color: var(--md-line); }
+.setrow > span { color: #eef3fb; font-weight: 600; }
+.lbl, .field label { color: var(--md-gold); font-style: italic; }
+.lbl small { color: var(--md-slate); opacity: 1; }
+.field input, #frAdd, .joinrow input, #dgName {
+  background: rgba(255, 255, 255, 0.08); color: #fff; border: 0; border-bottom: 2px solid var(--md-edge); border-radius: 0;
+}
+.field input:focus, #frAdd:focus, .joinrow input:focus { border-bottom-color: #fff; outline: none; }
+#frAdd::placeholder, .joinrow input::placeholder { color: var(--md-slate); }
+.stepper { border: 0; border-radius: 2px; box-shadow: inset 0 0 0 1.5px var(--md-edge); }
+.stepper button { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.stepper output, .stepper input { background: #fff; color: var(--md-navy2); }
+.stepper input:focus { background: #fff; box-shadow: inset 0 0 0 2px var(--md-go); }
+.sw { border: 2px solid rgba(255, 255, 255, 0.78); box-shadow: none; }
+.sw[aria-pressed="true"] { outline: 2px solid #fff; outline-offset: 2px; }
+.sw.team, .sw.auto { text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
+.chipset button {
+  transform: skewX(-12deg); border: 0; border-radius: 2px; background: var(--md-soft); color: #fff; box-shadow: inset 0 0 0 1.5px var(--md-line);
+  font-style: normal;
+}
+.chipset button[aria-pressed="true"] { background: #fff; color: var(--md-navy2); box-shadow: none; }
+.chipset button.lock::after, .sw.lock::after { color: var(--md-gold); }
+.slide b { color: #fff; font-style: italic; }
+.slide input[type=range] { border: 0; height: 6px; border-radius: 0; background: linear-gradient(90deg, #fff 0 var(--fill, 0%), rgba(255, 255, 255, 0.16) var(--fill, 0%) 100%); }
+.slide input[type=range]::-webkit-slider-thumb { width: 20px; height: 26px; border-radius: 2px; background: #fff; border: 0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); transform: skewX(-12deg); }
+.slide input[type=range]::-moz-range-thumb { width: 18px; height: 24px; border-radius: 2px; background: #fff; border: 0; }
+.vernum { color: var(--md-gold); }
+.keys dt { color: var(--md-gold); font-style: italic; }
+.keys dd { color: #dbe4f3; }
+.keys kbd { border-color: var(--md-edge); color: #fff; }
+.tapgo { color: #fff; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); }
+/* lists: navy rows with a coloured edge */
+.board li { background: var(--md-soft); border: 0; border-left: 4px solid rgba(255, 255, 255, 0.18); border-radius: 2px; }
+.board li.me { background: rgba(255, 255, 255, 0.13); border-left-color: #fff; }
+.board li.req, .board li.inv { border-left-color: var(--md-go); background: rgba(255, 61, 46, 0.14); }
+.board .rk { color: var(--md-gold); }
+.board .who small.live { color: var(--md-teal); }
+.board .w { color: var(--md-gold); font-style: italic; }
+.ladder button, .rosterlist button { background: var(--md-soft); border: 0; border-left: 4px solid rgba(255, 255, 255, 0.18); border-radius: 2px; color: #fff; }
+.ladder button[aria-pressed="true"], .rosterlist button[aria-pressed="true"] { background: rgba(255, 255, 255, 0.14); border-left-color: #fff; }
+.ladder .dot2 { border: 2px solid #fff; }
+.ladder .cn small { color: var(--md-gold); }
+.ladder .st { border: 0; border-radius: 2px; transform: skewX(-12deg); background: rgba(255, 255, 255, 0.14); color: #fff; font-style: normal; }
+.ladder .st.next { background: var(--md-go); color: #fff; }
+.ladder .st.won { background: var(--md-teal); color: var(--md-navy2); }
+.crewbox { border: 0; border-left: 4px solid var(--md-gold); border-radius: 2px; background: var(--md-soft); }
+.crewhead span { color: var(--md-slate); opacity: 1; }
+.picks .chip.me { background: #fff; color: var(--md-navy2); box-shadow: none; }
+.picks .chip small { color: inherit; opacity: 0.75; }
+.stat { border: 0; border-left: 4px solid rgba(255, 255, 255, 0.18); border-radius: 2px; background: var(--md-soft); }
+.stat.sel { border-left-color: var(--md-gold); background: rgba(255, 255, 255, 0.12); }
+.sname small { color: var(--md-gold); }
+.pips i { border: 0; background: rgba(255, 255, 255, 0.16); border-radius: 1px; transform: skewX(-14deg); }
+.pips i.on { background: #fff; }
+.pips i.m { border: 1px dashed rgba(255, 200, 61, 0.5); background: transparent; }
+.pips i.m.on { background: linear-gradient(90deg, var(--md-gold), #ff7a1a); border: 0; }
+.buy { transform: skewX(-12deg); border: 0; border-radius: 2px; background: #fff; color: var(--md-navy2); box-shadow: none; font-style: normal; }
+.buy:disabled { background: transparent; color: var(--md-slate); box-shadow: inset 0 0 0 1px var(--md-line); }
+.buy.owned { background: transparent; color: var(--md-teal); box-shadow: none; }
+.statinfo b { color: var(--md-gold); }
+.tricklist li { border-top-color: var(--md-line); }
+.tricklist b { color: var(--md-gold); font-style: italic; }
+.tricklist span, .tricklist small { color: #dbe4f3; }
+.tricklist em { background: #fff; color: var(--md-navy2); }
+.drill { background: var(--md-soft); border: 0; border-left: 4px solid rgba(255, 255, 255, 0.2); border-radius: 2px; color: #fff; box-shadow: none; }
+.drill:first-child { background: rgba(255, 61, 46, 0.18); border-left-color: var(--md-go); }
+.drill span { color: #dbe4f3; }
+.drill:active { transform: translateY(2px); box-shadow: none; }
+.drill.multi:active { transform: none; box-shadow: none; }
+.side { border: 0; border-left: 4px solid; border-radius: 2px; background: var(--md-soft); }
+.side li small { color: var(--md-gold); }
+.codebox { color: var(--md-slate); }
+.codebox b, .fcode b { color: var(--md-gold); text-shadow: none; }
+.fcode span { color: var(--md-slate); }
+.ntout { background: rgba(0, 0, 0, 0.35); border-radius: 2px; }
+.nethelp .steps { color: #dbe4f3; }
+.nethelp .steps b { color: var(--md-gold); }
+.ndot, .bpdot { background: var(--md-go); border: 2px solid var(--md-navy2); }
+.recent .chip { box-shadow: inset 0 0 0 1.5px var(--md-edge); }
+/* loot */
+.btile { border: 0; border-radius: 3px; background: var(--md-soft); box-shadow: inset 0 0 0 1.5px var(--md-line), inset 0 -4px 0 var(--tc); color: #fff; }
+.btile.on { background: rgba(255, 255, 255, 0.15); box-shadow: inset 0 0 0 2px #fff, inset 0 -4px 0 var(--tc); }
+.btile.sel { outline: 2px solid var(--md-gold); outline-offset: 1px; }
+.btile b, .btile em { color: var(--md-gold); text-shadow: none; }
+.boxname, .bname { color: #fff; }
+.boxsub, .babout { color: #dbe4f3; opacity: 1; }
+.bcount { color: var(--md-gold); }
+.btier, .botier { border: 0; border-radius: 2px; transform: skewX(-12deg); color: var(--md-navy2); }
+.crate svg { filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45)); }
+.odds { color: #dbe4f3; }
+.odds i { border: 1.5px solid rgba(255, 255, 255, 0.7); }
+.tdside .lbl { color: var(--md-gold); }
+.tdoffer { border: 2px dashed var(--md-edge); border-radius: 3px; }
+.tdoffer.ok { border-style: solid; border-color: var(--md-teal); background: rgba(42, 209, 195, 0.12); }
+.tdoffer small { color: var(--md-teal); }
+#boxOpen { background: rgba(5, 11, 24, 0.88); }
+.boname { -webkit-text-stroke: 0; text-shadow: 0 4px 14px rgba(0, 0, 0, 0.6); color: #fff; }
+.bonote { color: var(--md-gold); text-shadow: none; }
+/* results */
+.result { color: #fff; -webkit-text-stroke: 0; text-shadow: 4px 4px 0 var(--md-go); transform: skewX(-6deg); }
+.final { color: #fff; }
+.earn li { border-top-color: var(--md-line); }
+.earn li b { color: var(--md-gold); }
+.earn li.total { border-top: 2px solid #fff; }
+.unlocks span { border: 0; border-radius: 2px; transform: skewX(-12deg); background: var(--md-teal); color: var(--md-navy2); font-style: normal; }
+/* story scenes: a lower third */
+.overlay.scene { background: linear-gradient(180deg, transparent 50%, rgba(5, 11, 24, 0.6)); }
+.dialog { background: var(--md-navy); color: #fff; border: 0; border-left: 5px solid var(--md-gold); border-radius: 2px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); }
+.speaker { border: 0; border-radius: 2px; background: var(--md-gold); color: var(--md-navy2); box-shadow: none; transform: skewX(-12deg); }
+.dialog .line { font-weight: 600; }
+.dlgfoot .tapgo.small { color: var(--md-slate); }
+/* "are you sure?" */
+.overlay.confirm { background: rgba(5, 11, 24, 0.66); }
+.card.confirmcard { border-left-color: var(--md-go); }
+.mastered { border-color: var(--md-gold) !important; }
+/* the 11.x menu pieces the tabs replaced */
+.iconrow, .menulogo { display: none !important; }
+
+/* ---------- v12.2: the tabs (PLAY, COURTS, LEGEND, LOCKER, FRIENDS, SETTINGS) ---------- */
+#tabbar {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 30; display: none; align-items: stretch;
+  height: calc(44px + var(--sb)); padding: 0 max(8px, var(--sl)) var(--sb) max(8px, var(--sr));
+  background: rgba(6, 13, 27, 0.96); box-shadow: 0 -1px 0 var(--md-line), 0 -8px 24px rgba(0, 0, 0, 0.3);
+}
+#app.mdt #tabbar { display: flex; }
+#tabbar button {
+  position: relative; flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 0 4px;
+  border: 0; background: none; color: var(--md-slate); cursor: pointer;
+  font: italic 800 clamp(12px, 3.6vmin, 16px) var(--font-ui); letter-spacing: 0.1em; white-space: nowrap;
+}
+#tabbar button svg { width: 19px; height: 19px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
+#tabbar button.on { color: #fff; }
+#tabbar button.on::after { content: ''; position: absolute; left: 20%; right: 20%; bottom: 0; height: 4px; background: var(--md-gold); transform: skewX(-14deg); }
+#tabbar .ndot { top: 5px; right: auto; left: calc(50% + 6px); }
+@media (max-width: 700px) { #tabbar button span { font-size: 12px; letter-spacing: 0.06em; } #tabbar button svg { width: 17px; height: 17px; } }
+@media (max-width: 560px) { #tabbar button span { display: none; } }
+/* the panels under the tabs leave room for them, and lose their DONE (the tabs take you everywhere) */
+#app.mdt .overlay { padding-bottom: calc(52px + var(--sb)); }
+#app.mdt .tabdone { display: none !important; }
+#app.mdt .overlay.mdhome { padding-bottom: calc(44px + var(--sb)); }
+@media (max-height: 400px) {   /* a short phone: a little less air over the tabs, and BE A LEGEND a little slimmer (Sky-Kai's long reward fits) */
+  #app.mdt .overlay { padding-bottom: calc(48px + var(--sb)); }
+  #app.mdt .card.story { padding-block: 8px; gap: 5px; }
+}
+
+/* sub-tabs: LOCKER (LOOK, LOOT, TRICKS, STATS) and SETTINGS (GAME, CONTROLS, BUTTONS) */
+.subtabs { position: absolute; z-index: 31; top: calc(10px + var(--st)); right: max(16px, var(--sr)); display: none; gap: 4px; }
+#app.lk #lockerTabs, #app.stg #settingTabs { display: flex; }
+#app.lk .overlay, #app.stg .overlay { padding-top: calc(52px + var(--st)); }
+.subtabs button {
+  transform: skewX(-12deg); border: 0; border-radius: 2px; padding: 6px 14px; cursor: pointer;
+  background: var(--md-navy); color: var(--md-slate); box-shadow: inset 0 0 0 1px var(--md-line);
+  font: 800 14px var(--font-ui); letter-spacing: 0.1em;
+}
+.subtabs button.on { background: #fff; color: var(--md-navy2); box-shadow: none; }
+
+/* ---------- PLAY: matchday ---------- */
+.overlay.mdhome {
+  display: block; padding: 0; background: linear-gradient(90deg, rgba(5, 11, 24, 0) 38%, rgba(5, 11, 24, 0.5) 70%);
+}
+.mdhead { position: absolute; left: max(20px, var(--sl)); top: calc(12px + var(--st)); display: grid; gap: 4px; pointer-events: none; }
+.mdhead .row1 { display: flex; align-items: center; gap: 10px; }
+.mdlogo { font: italic 800 clamp(26px, 7.6vmin, 40px)/1 var(--font-ui); letter-spacing: 0.02em; color: #fff; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); }
+.mdlive { display: inline-flex; align-items: center; gap: 7px; padding: 4px 12px 4px 10px; transform: skewX(-12deg); background: var(--md-navy); font: 800 13px var(--font-ui); letter-spacing: 0.16em; color: #fff; }
+.mdlive i { width: 8px; height: 8px; border-radius: 50%; background: var(--md-go); box-shadow: 0 0 8px var(--md-go); }
+.mdwhere { font: italic 700 12.5px var(--font-ui); letter-spacing: 0.18em; color: #fff; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85); }
+.mdcards {
+  position: absolute; right: max(18px, var(--sr)); top: calc(12px + var(--st)); bottom: calc(56px + var(--sb));
+  width: clamp(300px, 49%, 470px); display: grid; grid-auto-rows: minmax(0, 1fr); gap: clamp(6px, 1.6vmin, 10px); align-content: center;
+}
+.mdcard {
+  display: flex; align-items: stretch; min-height: 52px; max-height: 92px; overflow: hidden; transform: skewX(-12deg);
+  background: var(--md-navy); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); border-left: 6px solid var(--mc, var(--md-gold));
+}
+.mdcard > button { border: 0; background: none; color: #fff; cursor: pointer; font-family: var(--font-ui); }
+.mdcard .mdtx { flex: 1; min-width: 0; display: grid; align-content: center; justify-items: start; gap: 1px; padding: 4px 6px 5px 16px; text-align: left; }
+.mdcard .mdtx > * { transform: skewX(12deg); transform-origin: 0 50%; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mdcard .k { font: 800 11.5px var(--font-ui); letter-spacing: 0.2em; color: var(--mc, var(--md-gold)); }
+.mdcard .k u { text-decoration: none; color: #fff; opacity: 0.75; }
+.mdcard b { font: italic 800 clamp(18px, 5.6vmin, 28px)/1.02 var(--font-ui); letter-spacing: 0.01em; }
+.mdcard small { font: italic 600 clamp(11px, 3vmin, 13px) var(--font-ui); letter-spacing: 0.14em; color: var(--md-slate); }
+.mdcard .mdgo {
+  flex: none; width: clamp(84px, 22%, 112px); display: flex; align-items: center; justify-content: center; gap: 6px;
+  background: var(--md-go); font: 800 clamp(17px, 5vmin, 24px) var(--font-ui); letter-spacing: 0.06em; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+}
+.mdcard .mdgo svg { width: 0.72em; height: 0.72em; fill: currentColor; }
+.mdcard .mdgo.wh { background: #fff; color: var(--md-navy2); text-shadow: none; }
+.mdcard .mdgo:disabled { background: rgba(255, 255, 255, 0.1); color: var(--md-slate); cursor: default; }
+.mdcard .mdtx:active { background: rgba(255, 255, 255, 0.06); }
+.mdcard .mdgo:active { filter: brightness(0.9); }
+.mdcard.up { --mc: var(--md-gold); }
+.mdcard.qk { --mc: #ff5a4c; }
+.mdcard.ol { --mc: var(--md-teal); }
+.mdcard.pr { --mc: var(--md-blue); }
+.mdcard.ol.party .mdtx b { color: var(--md-teal); }
+/* your name, lower-third style, and LOOT beside it */
+.mdstrap { position: absolute; left: max(18px, var(--sl)); bottom: calc(56px + var(--sb)); display: flex; align-items: stretch; gap: 8px; max-width: 48%; }
+.mdname { display: flex; align-items: stretch; border: 0; padding: 0; background: none; color: #fff; cursor: pointer; transform: skewX(-12deg); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); min-width: 0; }
+.mdname .num { display: flex; align-items: center; padding: 0 12px; background: var(--home); font: italic 800 clamp(20px, 6vmin, 28px) var(--font-ui); }
+.mdname .nm { display: grid; align-content: center; padding: 4px 14px 5px 12px; background: var(--md-navy); text-align: left; min-width: 0; }
+.mdname .nm > * { transform: skewX(12deg); transform-origin: 0 50%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mdname b { font: italic 800 clamp(18px, 5.4vmin, 25px)/1 var(--font-ui); }
+.mdname small { font: italic 700 11.5px var(--font-ui); letter-spacing: 0.16em; color: var(--md-gold); margin-top: 2px; }
+.mdname:disabled { cursor: default; }
+.mdname.mastered { box-shadow: 0 0 0 2px var(--md-gold), 0 0 16px rgba(255, 122, 26, 0.55); }
+.mdname #lcName span { color: var(--md-slate); }
+.mdloot {
+  position: relative; display: flex; align-items: center; gap: 8px; padding: 4px 14px 4px 8px; border: 0; cursor: pointer; color: #fff;
+  background: var(--md-navy); transform: skewX(-12deg); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); min-width: 0;
+}
+.mdloot > * { transform: skewX(12deg); }
+.mdloot canvas { width: 34px; height: 34px; flex: none; }
+.mdloot .lt { display: grid; text-align: left; }
+.mdloot .lt b { font: italic 800 18px/1 var(--font-ui); }
+.mdloot .lt small { font: italic 700 11px var(--font-ui); letter-spacing: 0.14em; color: var(--md-slate); white-space: nowrap; }
+.mdloot.can { box-shadow: inset 0 0 0 2px var(--md-gold), 0 6px 18px rgba(0, 0, 0, 0.35); }
+.mdloot .bpdot { top: -6px; right: -6px; }
+@media (max-height: 330px) { .mdcard small { display: none; } }
+
+/* ---------- COURTS: the map ---------- */
+.overlay.mdmap { display: block; padding: 0; background: radial-gradient(120% 140% at 30% 40%, rgba(10, 24, 50, 0.97), rgba(5, 11, 24, 0.99)); }
+.mdmap .art { position: absolute; left: 0; top: 0; right: 0; bottom: calc(44px + var(--sb)); }
+.mdmap .art svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.mdmap .mh { position: absolute; left: max(20px, var(--sl)); top: calc(12px + var(--st)); pointer-events: none; }
+.mdmap .mh b { display: block; font: italic 800 clamp(24px, 7vmin, 34px)/1 var(--font-ui); color: #fff; }
+.mdmap .mh small { display: block; margin-top: 3px; font: italic 700 12px var(--font-ui); letter-spacing: 0.2em; color: var(--md-slate); }
+.mapmk { position: absolute; transform: translate(-50%, -50%); width: 16px; height: 16px; border-radius: 50%; border: 3px solid #fff; background: var(--c); color: var(--c); padding: 0; cursor: pointer; }
+.mapmk::after { content: ''; position: absolute; inset: -9px; border-radius: 50%; border: 2px solid currentColor; opacity: 0.55; }
+.mapmk.sel::after { inset: -15px; border-width: 3px; opacity: 0.95; }
+.mapmk.lock { background: #33435f; color: #60708c; border-color: #8090ab; }
+.maptag {
+  position: absolute; transform: translate(-50%, calc(-100% - 16px)); display: grid; justify-items: start; border: 0; padding: 0; background: none; cursor: pointer; color: #fff;
+}
+.maptag .here { margin-bottom: 3px; padding: 2px 8px 1px; transform: skewX(-12deg); background: var(--md-go); font: 800 10.5px var(--font-ui); letter-spacing: 0.16em; }
+.maptag .tg { display: grid; justify-items: start; padding: 3px 12px 4px 9px; transform: skewX(-12deg); background: var(--md-navy); border-left: 5px solid var(--c); white-space: nowrap; }
+.maptag .tg > * { transform: skewX(12deg); }
+.maptag b { font: italic 800 clamp(13px, 4vmin, 17px)/1.05 var(--font-ui); }
+.maptag small { font: italic 700 10.5px var(--font-ui); letter-spacing: 0.16em; color: var(--md-slate); }
+.maptag.sel .tg { background: #fff; color: var(--md-navy2); }
+.maptag.sel small { color: #4a5874; }
+.maptag.lock .tg { opacity: 0.6; }
+.maptag.lock b::after { content: ' · LOCKED'; font-size: 0.7em; letter-spacing: 0.1em; color: var(--md-slate); }
+.mapline { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.mappanel {
+  position: absolute; right: max(18px, var(--sr)); top: calc(92px + var(--st)); width: clamp(230px, 32%, 300px);   /* (below THE ISLES' pin) */
+  background: var(--md-navy); border-left: 6px solid var(--c, var(--md-blue)); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+.mappanel .ph { padding: 9px 14px 8px; border-bottom: 1px solid var(--md-line); }
+.mappanel .ph span { display: block; font: italic 800 11.5px var(--font-ui); letter-spacing: 0.2em; color: var(--md-teal); }
+.mappanel .ph b { display: block; font: italic 800 clamp(24px, 7vmin, 32px)/1 var(--font-ui); color: #fff; }
+.mappanel .ph small { display: block; margin-top: 2px; font: italic 700 12px var(--font-ui); letter-spacing: 0.12em; color: var(--md-slate); }
+.mappanel .pr { display: flex; align-items: stretch; min-height: 48px; border-bottom: 1px solid var(--md-line); }
+.mappanel .pr:last-child { border-bottom: 0; }
+.mappanel .pr .t { flex: 1; min-width: 0; padding: 6px 4px 6px 14px; display: grid; align-content: center; }
+.mappanel .pr .t span { font: italic 800 11px var(--font-ui); letter-spacing: 0.16em; color: var(--md-slate); }
+.mappanel .pr .t b { font: italic 800 17px/1.1 var(--font-ui); color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mappanel .pr button { flex: none; width: 86px; border: 0; cursor: pointer; background: var(--md-go); color: #fff; font: 800 17px var(--font-ui); letter-spacing: 0.06em; }
+.mappanel .pr button.wh { background: #fff; color: var(--md-navy2); }
+.mappanel .pr button:disabled { background: rgba(255, 255, 255, 0.07); color: var(--md-slate); cursor: default; }
+@media (max-width: 640px) { .mappanel { width: 46%; } }
+@media (max-height: 360px) { .mappanel { top: calc(78px + var(--st)); } .mappanel .ph { padding: 6px 12px 5px; } .mappanel .ph b { font-size: 22px; } .mappanel .pr { min-height: 40px; } .mappanel .pr .t { padding-top: 3px; padding-bottom: 3px; } }
+
+/* ---------- SETTINGS > BUTTONS (v12.2: the button layout, keys and controller) ---------- */
+.card.buttons { width: min(760px, 100%); max-height: 100%; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
+.lyrow { display: flex; flex-wrap: wrap; gap: 8px; }
+.lypick { transform: skewX(-12deg); border: 0; border-radius: 2px; padding: 8px 14px; cursor: pointer; background: var(--md-soft); box-shadow: inset 0 0 0 1.5px var(--md-line); color: #fff; font: 800 15px var(--font-ui); letter-spacing: 0.08em; }
+.lypick small { display: block; font: 600 11px var(--font-ui); letter-spacing: 0.08em; color: var(--md-slate); }
+.lypick[aria-pressed="true"] { background: #fff; color: var(--md-navy2); box-shadow: none; }
+.lypick[aria-pressed="true"] small { color: #4a5874; }
+.maplist { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; }
+.maplist button { display: flex; justify-content: space-between; align-items: center; gap: 8px; border: 0; border-left: 4px solid rgba(255, 255, 255, 0.2); border-radius: 2px; padding: 6px 10px; cursor: pointer; background: var(--md-soft); color: #fff; font: 700 14px var(--font-ui); letter-spacing: 0.06em; text-align: left; }
+.maplist button kbd { font: 800 13px var(--font-ui); padding: 1px 8px; border-radius: 2px; background: rgba(255, 255, 255, 0.12); color: #fff; white-space: nowrap; }
+.maplist button.wait { border-left-color: var(--md-go); }
+.maplist button.wait kbd { background: var(--md-go); animation: blink 0.6s ease-in-out infinite alternate; }
+.padstate { font: italic 700 13px var(--font-ui); letter-spacing: 0.1em; color: var(--md-slate); }
+.padstate.on { color: var(--md-teal); }
+
+/* =====================================================================
+   v12.2 MATCHDAY HUD (Truss: the style of B's buttons; "Move the switch button to the top next to the pause button").
+   The meter in a navy box in the top-left corner (with your team's touches), pause as a small square in the top-right
+   corner with SWITCH beside it, the call bar under them. The four buttons are see-through rings in their colour with
+   an icon; the stick a white ring. Where each sits comes from the button layout (SETTINGS > BUTTONS): applyLayout()
+   puts every movable piece by its middle (left/top), its size (--s) and how see-through it is (--o).
+   ===================================================================== */
+#hud { padding-top: calc(8px + var(--st)); gap: 8px; }
+#hud .pill.exit, #hud .you-tag { display: none !important; }   /* EXIT is the pause menu's QUIT now; your name is over your player */
+.hud-left { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+.hud-left > .hudrow:nth-child(2) { order: -1; }   /* the meter's box first, in the corner */
+.hudrow { gap: 5px; }
+.meter {
+  gap: 8px; padding: 6px 12px 6px 10px; background: rgba(9, 20, 40, 0.72); transform: skewX(-12deg); border-radius: 2px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22); color: var(--md-gold); text-shadow: none; font: 800 12px var(--font-ui); letter-spacing: 0.16em;
+}
+.meter > * { transform: skewX(12deg); }
+.meter-bar { width: clamp(84px, 16vmin, 124px); height: 7px; border: 0; border-radius: 0; background: rgba(255, 255, 255, 0.18); }
+.meter-bar i { background: linear-gradient(90deg, #ff9f1c, var(--md-gold)); box-shadow: 0 0 8px rgba(255, 200, 61, 0.7); }
+.meter.full { color: #fff; }
+.meter.full .meter-bar i, .meter.fire .meter-bar i { background: linear-gradient(90deg, var(--md-gold), #ff4d1a); }
+.meter .pocket { font: italic 800 12px/1.35 var(--font-ui); color: #fff; background: var(--md-go); border: 0; border-radius: 2px; padding: 0 6px; }
+.tpips { display: flex; align-items: center; gap: 3px; margin-left: 2px; }
+.tpips small { font: 800 11px var(--font-ui); letter-spacing: 0.14em; color: #fff; margin-right: 3px; }
+.tpips i { width: 12px; height: 7px; background: rgba(255, 255, 255, 0.24); }
+.tpips i.on { background: #fff; }
+.tpips.their small { color: var(--md-slate); }
+.tpips.their i.on { background: var(--md-slate); }
+#hud .mode-tag, .watching, .nettag {
+  font: 800 11.5px/1.3 var(--font-ui); letter-spacing: 0.12em; padding: 2px 9px 1px; border: 0; border-radius: 2px;
+  background: rgba(9, 20, 40, 0.6); color: #dfe7f4; transform: skewX(-12deg);
+}
+.status { font: italic 700 12px var(--font-ui); letter-spacing: 0.14em; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85); padding-left: 4px; }
+.status.hot { color: var(--md-gold); }
+.status.tc { display: none; }   /* (the touch count is in the meter's box) */
+/* pause: a small square in the top-right corner (its word stays for screen readers) */
+#hud #btnMenu {
+  position: relative; width: 42px; height: 38px; padding: 0; border: 0; border-radius: 2px; background: rgba(9, 20, 40, 0.72);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22); font-size: 0; color: transparent; transform: skewX(-8deg);
+}
+#hud #btnMenu::before, #hud #btnMenu::after { content: ''; position: absolute; top: 11px; bottom: 11px; width: 4px; border-radius: 1px; background: #fff; }
+#hud #btnMenu::before { left: 15px; }
+#hud #btnMenu::after { right: 15px; }
+#hud #btnMenu:active { background: rgba(255, 255, 255, 0.25); transform: skewX(-8deg) translateY(1px); }
+
+/* ---------- the touch controls (placed by applyLayout) ---------- */
+#pad { left: 0; top: 0; right: auto; bottom: auto; width: 0; height: 0; pointer-events: none; }   /* (the buttons are placed in the app's own pixels) */
+#pad .btn {
+  --c: #ffffff; --cr: 255, 255, 255;
+  left: 0; top: 0; right: auto; bottom: auto; pointer-events: auto; transform: translate(-50%, -50%);
+  width: calc(var(--btn) * var(--s, 1)); height: calc(var(--btn) * var(--s, 1));
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  border: 3px solid var(--c); background: rgba(9, 20, 40, 0.42); color: #fff; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+  font: 800 calc(var(--btn) * 0.19 * var(--s, 1))/1 var(--font-ui); letter-spacing: 0.1em; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
+  opacity: var(--o, 1); white-space: nowrap; animation: none; filter: none;
+}
+#pad .btn::before {
+  content: ''; flex: none; width: 36%; height: 36%; background: var(--c);
+  -webkit-mask: var(--ic) center / contain no-repeat; mask: var(--ic) center / contain no-repeat;
+}
+#pad .btn[data-a="hit"] { --c: #ff4b3e; --cr: 255, 75, 62; --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'%3E%3Cpath d='M13.2 2.5L4.5 14h6.6l-1.2 7.5L18.6 10h-6.6z'/%3E%3C/svg%3E"); }
+#pad .btn[data-a="hit"].block { --c: #a585ff; --cr: 165, 133, 255; --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7.5 12.5V6a1.5 1.5 0 0 1 3 0v5M10.5 10.5V4.5a1.5 1.5 0 0 1 3 0v6M13.5 10.5V5.5a1.5 1.5 0 0 1 3 0v8c0 4.2-2.6 7-6.3 7-2.9 0-4.6-1.6-5.7-4.2L3.3 13a1.5 1.5 0 0 1 2.6-1.4l1.6 2.4'/%3E%3C/svg%3E"); }
+#pad .btn[data-a="dig"] { --c: #3b9bff; --cr: 59, 155, 255; --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 17.5L12 13l8.5 4.5'/%3E%3Ccircle cx='12' cy='6.5' r='2.8'/%3E%3Cpath d='M12 13v-2.5'/%3E%3C/svg%3E"); }
+#pad .btn[data-a="dig"].toss { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='16' r='4.2'/%3E%3Cpath d='M12 9.2V3M8.8 6.2L12 3l3.2 3.2'/%3E%3C/svg%3E"); }
+#pad .btn[data-a="set"] { --c: #ffc83d; --cr: 255, 200, 61; --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 19c1.5-6.5 13.5-6.5 15 0'/%3E%3Ccircle cx='12' cy='6.2' r='2.8'/%3E%3Cpath d='M8.5 13.5l-1-3M15.5 13.5l1-3'/%3E%3C/svg%3E"); }
+#pad .btn[data-a="jump"] { --c: #3fd07a; --cr: 63, 208, 122; --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20V5.5M6 11l6-6 6 6'/%3E%3C/svg%3E"); }
+#pad .btn[data-a="set"].two { white-space: pre-line; font-size: calc(var(--btn) * 0.165 * var(--s, 1)); line-height: 1.02; }
+#pad .btn[data-a="set"].two::before, #controls.dog .btn::before { display: none; }
+#pad .btn.down {
+  transform: translate(-50%, calc(-50% + 3px)); background: rgba(var(--cr), 0.88); color: var(--md-navy2); text-shadow: none; box-shadow: none;
+  opacity: max(var(--o, 1), 0.92);
+}
+#pad .btn.down::before { background: var(--md-navy2); }
+#pad .btn.hint { background: rgba(var(--cr), 0.3); opacity: max(var(--o, 1), 0.9); }
+#pad .btn.hint::after {
+  content: ''; position: absolute; inset: -8px; border-radius: 50%; border: 3px solid var(--c); pointer-events: none;
+  animation: mdhint 0.52s ease-out infinite;
+}
+@keyframes mdhint { from { opacity: 0.95; transform: scale(0.9); } to { opacity: 0; transform: scale(1.2); } }
+/* the stick: a white ring where your thumb lands (it rests where the layout puts it) */
+#joy {
+  left: 0; top: 0; bottom: auto; width: calc(var(--joy) * var(--s, 1)); height: calc(var(--joy) * var(--s, 1));
+  border: 2.5px solid rgba(255, 255, 255, 0.78); background: radial-gradient(circle, rgba(9, 20, 40, 0.1), rgba(9, 20, 40, 0.36));
+  opacity: calc(0.62 * var(--o, 1));
+}
+#joy.live { opacity: max(var(--o, 1), 0.85); border-color: #fff; }
+#knob {
+  width: calc(var(--joy) * var(--s, 1) * 0.42); height: calc(var(--joy) * var(--s, 1) * 0.42);
+  margin: calc(var(--joy) * var(--s, 1) * -0.21) 0 0 calc(var(--joy) * var(--s, 1) * -0.21);
+  background: rgba(255, 255, 255, 0.85); border: 0; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+/* SWITCH: a slanted navy plate (up top beside pause, unless your layout moves it) */
+#bSwitch {
+  left: 0; top: 0; right: auto; bottom: auto; transform: translate(-50%, -50%) skewX(-12deg);
+  width: calc(108px * var(--s, 1)); height: calc(38px * var(--s, 1)); padding: 0; display: flex; align-items: center; justify-content: center; gap: 6px;
+  border: 0; border-radius: 2px; background: rgba(9, 20, 40, 0.72); color: #fff; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+  font: 800 calc(14px * var(--s, 1)) var(--font-ui); letter-spacing: 0.12em; opacity: var(--o, 1);
+}
+#bSwitch::before {
+  content: ''; flex: none; width: 1.3em; height: 1.3em; background: currentColor; transform: skewX(12deg);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8.5h14l-3.2-3.2M20 15.5H6l3.2 3.2'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8.5h14l-3.2-3.2M20 15.5H6l3.2 3.2'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+#bSwitch.down { transform: translate(-50%, calc(-50% + 2px)) skewX(-12deg); background: #fff; color: var(--md-navy2); box-shadow: none; opacity: max(var(--o, 1), 0.92); }
+/* GAMEBREAKER: a gold plate, bottom middle */
+#bGB {
+  left: 0; top: 0; bottom: auto; translate: none; transform: translate(-50%, -50%) skewX(-12deg);
+  padding: calc(7px * var(--s, 1)) calc(18px * var(--s, 1)) calc(8px * var(--s, 1)); gap: 0; border: 0; border-radius: 2px;
+  background: linear-gradient(100deg, #ffd23f, #ff7a1a); color: var(--md-navy2); box-shadow: 0 6px 18px rgba(255, 122, 26, 0.38);
+  opacity: var(--o, 1); animation: mdgbpulse 0.8s ease-in-out infinite alternate;
+}
+#bGB > span, #bGB > small { transform: skewX(12deg); }
+#bGB span { font: italic 800 calc(clamp(15px, 4vmin, 21px) * var(--s, 1))/1.05 var(--font-ui); letter-spacing: 0.04em; }
+#bGB small { font: 800 calc(10.5px * var(--s, 1)) var(--font-ui); letter-spacing: 0.12em; }
+#bGB i { height: 4px; background: var(--md-navy2); }
+@keyframes mdgbpulse { from { transform: translate(-50%, -50%) skewX(-12deg) scale(1); } to { transform: translate(-50%, -50%) skewX(-12deg) scale(1.06); } }
+/* the call bar: navy keys, yours white with a gold line; it grows inward from its outer end (--ax) */
+#callBar { left: 0; top: 0; right: auto; bottom: auto; gap: calc(4px * var(--s, 1)); transform: translate(calc(-100% * var(--ax, 1)), -50%); opacity: var(--o, 1); }
+#callBar button {
+  width: calc(62px * var(--s, 1)); height: calc(36px * var(--s, 1)); padding: 0; border: 0; border-bottom: 3px solid rgba(255, 255, 255, 0.2); border-radius: 2px;
+  background: rgba(9, 20, 40, 0.72); color: #fff; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22); transform: skewX(-12deg);
+  font: 800 calc(14px * var(--s, 1)) var(--font-ui); letter-spacing: 0.08em; outline: 0;
+}
+#callBar button.def { border-bottom-color: rgba(255, 255, 255, 0.8); }
+#callBar button.on { background: #fff; color: var(--md-navy2); border-bottom-color: var(--md-gold); }
+#callBar button:active { transform: skewX(-12deg) translateY(2px); box-shadow: none; }
+#callBar button { position: relative; }
+#callBar.ask button::after { content: ''; position: absolute; inset: -3px; border: 3px solid var(--md-gold); border-radius: 3px; pointer-events: none; animation: mdcallask 0.45s ease-in-out infinite alternate; }
+@keyframes mdcallask { from { opacity: 0.15; } to { opacity: 1; } }
+/* what to press now, and the dog's tricks: just above the buttons, on their outer side */
+#prompt {
+  left: 0; top: 0; right: auto; bottom: auto; transform: translate(calc(-100% * var(--ax, 1)), -100%) skewX(-12deg); white-space: nowrap;
+  font: 800 14px var(--font-ui); letter-spacing: 0.12em; color: var(--md-navy2); background: var(--md-gold); border: 0; border-radius: 2px;
+  padding: 4px 12px 3px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+#prompt.now { background: #fff; animation: mdnudge 0.26s ease-in-out infinite alternate; }
+@keyframes mdnudge { from { transform: translate(calc(-100% * var(--ax, 1)), -100%) skewX(-12deg) scale(1); } to { transform: translate(calc(-100% * var(--ax, 1)), -100%) skewX(-12deg) scale(1.08); } }
+#dogBar { left: 0; top: 0; right: auto; bottom: auto; transform: translate(calc(-100% * var(--ax, 1)), -100%); }
+#dogBar button {
+  font: 800 13px var(--font-ui); letter-spacing: 0.08em; padding: 6px 12px; border: 0; border-radius: 2px; transform: skewX(-12deg);
+  background: rgba(9, 20, 40, 0.78); color: #fff; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+}
+#dogBar button:active { transform: skewX(-12deg) translateY(2px); box-shadow: none; }
+/* a controller in use: its buttons and stick take over from the ones on the screen (a touch brings them back) */
+#app.padon #pad, #app.padon #joy, #app.padon #bSwitch { visibility: hidden; }
+
+/* ---------- Chai T's board, what he says, the calls over the players ---------- */
+#coachBoard .cards { gap: 3px; padding: 0; border-radius: 0; background: none; perspective: 160px; }
+#coachBoard .cards b {
+  min-width: 30px; height: 28px; padding: 0 4px; display: flex; align-items: center; justify-content: center; border-radius: 1px;
+  font: italic 800 clamp(16px, 4.6vmin, 21px)/1 var(--font-ui); color: #fff; text-shadow: none;
+  background: rgba(9, 20, 40, 0.88); border-top: 4px solid var(--home); box-shadow: none;
+}
+#coachBoard, #coachSay, .call { will-change: transform; }   /* (they move every frame: their own layers, and no soft shadows to repaint) */
+#coachBoard .cards b.home { background: rgba(9, 20, 40, 0.88); border-top-color: var(--home); }
+#coachBoard .cards b.away { background: rgba(9, 20, 40, 0.88); border-top-color: var(--away); }
+#coachBoard .cards b.srv::after { top: -8px; right: -4px; width: 7px; height: 7px; background: var(--md-gold); border: 0; box-shadow: none; }
+#coachSay { border: 0; border-left: 4px solid var(--md-gold); border-radius: 2px; background: rgba(9, 20, 40, 0.92); color: #fff; box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3); padding: 4px 10px 5px; }
+#coachSay::before { left: -11px; border-right-color: var(--md-gold); }
+#coachSay.left { border-left: 0; border-right: 4px solid var(--md-gold); }
+#coachSay.left::before { left: auto; right: -11px; border-left-color: var(--md-gold); }
+#coachSay small { color: var(--md-slate); }
+#coachSay.home b { color: #ff7a70; -webkit-text-stroke: 0; }
+#coachSay.away b { color: #7cb6ff; -webkit-text-stroke: 0; }
+#coachSay.g0 b { color: #ff6a5e; }
+#coachSay.g1 b { color: #c6d0e0; }
+#coachSay.g2 b { color: #52e08a; }
+#coachSay.g3 b { color: #6fb0ff; }
+#coachSay.g4 { background: var(--md-gold); }
+#coachSay.g4 b, #coachSay.g4 small { color: var(--md-navy2); }
+#coachSay.note b { color: #fff; }
+#coachSay.count.go b { color: #ff5a4c; }
+.call { background: rgba(9, 20, 40, 0.92); color: #fff; border: 0; border-bottom: 3px solid var(--md-gold); border-radius: 2px; box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3); padding: 3px 9px 2px; }
+.call::after { bottom: -9px; border-top-color: var(--md-gold); }
+.call.me, .call.yours { background: var(--md-gold); color: var(--md-navy2); border-bottom-color: #fff; }
+.call.me::after, .call.yours::after { border-top-color: #fff; }
+.call.say { background: #fff; color: var(--md-navy2); border-bottom-color: var(--md-go); }
+.call.say::after { border-top-color: var(--md-go); }
+
+/* ---------- call-outs, replays, plays ---------- */
+#flash { color: #fff; -webkit-text-stroke: 0; text-shadow: 0 4px 0 rgba(9, 20, 40, 0.88), 0 0 22px rgba(0, 0, 0, 0.35); }
+#flash.fire { color: #ffb02e; }
+#banner { border: 0; border-left: 8px solid var(--home); border-radius: 2px; background: rgba(9, 20, 40, 0.94); color: #fff; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); }
+#banner.away { background: rgba(9, 20, 40, 0.94); border-left-color: var(--away); }
+#banner.note { background: rgba(9, 20, 40, 0.94); color: var(--md-gold); border-left-color: var(--md-gold); }
+#banner small { color: var(--md-slate); }
+#replayTag { background: var(--md-go); border: 0; border-radius: 2px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3); transform: translateX(-50%) skewX(-12deg); }
+#btnReplay {
+  border: 0; border-radius: 2px; background: #fff; color: var(--md-navy2); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  transform: translateX(-50%) skewX(-12deg); animation: mdreplayIn 0.25s ease-out;
+}
+#btnReplay::before { border-left-color: var(--md-go); }
+#btnReplay small { color: #4a5874; }
+#btnReplay:active { transform: translateX(-50%) skewX(-12deg) translateY(2px); box-shadow: none; }
+@keyframes mdreplayIn { from { opacity: 0; transform: translateX(-50%) skewX(-12deg) scale(0.8); } }
+#hostWait, #hostPause { border: 0; border-left: 6px solid var(--md-gold); border-radius: 2px; background: rgba(9, 20, 40, 0.94); color: #fff; }
+#hostWait small { color: var(--md-gold); }
+#hostPause small { color: var(--md-slate); }
+#gbCard { background: rgba(9, 20, 40, 0.95); border: 0; border-right: 8px solid var(--gbc); border-radius: 0; }
+#gbCard b { text-shadow: none; }
+#gbSkip { border: 0; border-radius: 2px; background: #fff; color: var(--md-navy2); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3); transform: skewX(-12deg); }
+#gbSkip:active { transform: skewX(-12deg) translateY(2px); box-shadow: none; }
+#joust { background: rgba(9, 20, 40, 0.94); border: 0; border-left: 5px solid var(--md-gold); border-radius: 2px; }
+#joust b { color: var(--md-gold); }
+#joust .jbars i { border: 0; border-radius: 1px; }
+#tossMeter { height: 12px; border: 0; border-radius: 0; background: rgba(9, 20, 40, 0.72); transform: translateX(-50%) skewX(-12deg); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3); }
+#tossMeter i { background: linear-gradient(90deg, #ff9f1c, var(--md-gold)); }
+#tossMeter.high i { background: linear-gradient(90deg, var(--md-gold), #ff4d1a); }
+
+/* ---------- EDIT LAYOUT: the controls over the game, ready to drag ---------- */
+#layProbe { position: absolute; inset: 0; visibility: hidden; pointer-events: none; }   /* (only there while remap.js measures) */
+#layProbe i { position: absolute; }
+#layProbe .pa { left: var(--inL); right: var(--inR); top: var(--st); bottom: var(--inB); }
+#layProbe .pb { left: 0; top: 0; width: var(--btn); height: var(--joy); }
+#layProbe .pc { left: var(--sl); right: var(--sr); top: 0; height: 1px; }
+#app.editing #controls[hidden] { display: block !important; }
+#app.editing #hud[hidden] { display: grid !important; }
+#app.editing .hud-left, #app.editing #prompt, #app.editing #dogBar, #app.editing #btnReplay, #app.editing #tossMeter, #app.editing #coachSay, #app.editing #calls { visibility: hidden !important; }
+#app.editing #bGB[hidden] { display: grid !important; }
+#app.editing #callBar[hidden] { display: flex !important; }
+#app.editing #callSky[hidden] { display: block !important; }
+#app.editing #callShoot, #app.editing #callPipe { display: none !important; }
+#app.editing #bSwitch[hidden] { display: flex !important; }
+#app.editing #pad, #app.editing #joy, #app.editing #bSwitch { visibility: visible !important; }
+#app.editing #tabbar, #app.editing .subtabs, #app.editing .overlay { visibility: hidden !important; }
+#app.editing #joy { opacity: var(--o, 1); }
+#app.editing #stickZone { background: rgba(255, 255, 255, 0.05); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.16); }
+#app.editing #pad .btn, #app.editing #joy, #app.editing #bSwitch, #app.editing #bGB, #app.editing #callBar { outline: 2px dashed rgba(255, 255, 255, 0.5); outline-offset: 5px; animation: none; }
+#app.editing #pad .btn.hint::after { display: none; }
+#app.editing .edsel { outline: 3px solid #fff !important; outline-offset: 5px; }
+#app.editing #hud #btnMenu { box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.35); }
+#layEdit { position: absolute; inset: 0; z-index: 40; touch-action: none; }
+#layEdit .edbar {
+  position: absolute; left: max(12px, var(--sl)); top: calc(8px + var(--st)); display: grid; grid-template-columns: 1fr 1fr; gap: 5px 6px; pointer-events: none;
+}
+#layEdit .edt { grid-column: 1 / -1; }
+#layEdit .edt { display: grid; align-content: center; padding: 4px 12px 4px 10px; background: rgba(9, 20, 40, 0.9); border-left: 4px solid var(--md-gold); }
+#layEdit .edt b { font: italic 800 17px/1 var(--font-ui); color: #fff; letter-spacing: 0.04em; }
+#layEdit .edt small { font: 700 10px/1.3 var(--font-ui); letter-spacing: 0.12em; color: var(--md-slate); white-space: nowrap; }
+#layEdit .edbar button, #layEdit .edpop button {
+  pointer-events: auto; border: 0; border-radius: 2px; transform: skewX(-12deg); cursor: pointer; padding: 0 12px; min-height: 36px;
+  background: rgba(9, 20, 40, 0.9); color: #fff; box-shadow: inset 0 0 0 1.5px var(--md-edge); font: 800 14px var(--font-ui); letter-spacing: 0.08em;
+}
+#layEdit .edbar button.go { background: var(--md-go); box-shadow: none; }
+#layEdit .edbar button.on { background: #fff; color: var(--md-navy2); box-shadow: none; }
+#layEdit button:active { transform: skewX(-12deg) translateY(2px); }
+#layEdit .edpop {
+  position: absolute; left: 0; top: 0; display: grid; gap: 6px; padding: 9px 12px 10px; width: 262px;
+  background: rgba(9, 20, 40, 0.94); border-left: 5px solid var(--md-gold); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+}
+#layEdit .edpop > b { font: italic 800 18px/1 var(--font-ui); color: #fff; letter-spacing: 0.03em; }
+#layEdit .edr { display: flex; align-items: center; gap: 6px; }
+#layEdit .edr span { flex: 1; font: 800 11.5px var(--font-ui); letter-spacing: 0.14em; color: var(--md-slate); }
+#layEdit .edr output { min-width: 46px; text-align: center; font: italic 800 17px var(--font-ui); color: #fff; }
+#layEdit .edr button { min-width: 40px; min-height: 34px; padding: 0 8px; font-size: 19px; line-height: 1; }
+#layEdit .edr.does { flex-wrap: wrap; gap: 4px; }
+#layEdit .edr.does span { flex-basis: 100%; }
+#layEdit .edr.does button { flex: 1; min-width: 0; font-size: 13px; }
+#layEdit .edr.does button.on { background: #fff; color: var(--md-navy2); box-shadow: none; }
+
+/* ---------- SETTINGS > BUTTONS ---------- */
+.card.buttons { display: grid; gap: 12px; text-align: left; }
+.card.buttons .h2 { justify-self: start; }
+.bsec { display: grid; gap: 8px; }
+.bhead { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 12px; padding-bottom: 5px; border-bottom: 1px solid var(--md-line); }
+.bhead b { font: italic 800 17px var(--font-ui); letter-spacing: 0.08em; color: var(--md-gold); }
+.bhead small { flex: 1; min-width: 160px; font: 700 11.5px var(--font-ui); letter-spacing: 0.1em; color: var(--md-slate); }
+.bhead .chip { padding: 4px 12px; font-size: 13px; }
+.lypick:disabled { opacity: 0.5; cursor: default; }
+.bsec .row.left { justify-content: flex-start; }
+.maplist button span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.maplist button.fixed { opacity: 0.6; cursor: default; }
+.maplist button.bad kbd { background: rgba(255, 61, 46, 0.35); }
+#btnsRow .chip { white-space: nowrap; }
+#app.mdt #btnsRow { display: none; }
+@media (max-height: 360px) { .card.buttons { gap: 8px; } .maplist button { padding: 4px 9px; } }
 </style>
 </head>
 <body>
@@ -936,11 +1552,11 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
         <div class="nettag" id="netTag" hidden></div>
       </div>
       <div class="hudrow">
-        <div class="meter" id="meter"><span id="meterLabel">GAMEBREAKER</span><div class="meter-bar"><i id="meterFill"></i></div><span class="pocket" id="pocket" hidden>+1</span></div>
+        <div class="meter" id="meter"><span id="meterLabel">GAMEBREAKER</span><div class="meter-bar"><i id="meterFill"></i></div><span class="pocket" id="pocket" hidden>+1</span><span class="tpips" id="tPips" hidden><small>TOUCH</small><i></i><i></i><i></i></span></div>
       </div>
       <div class="status" id="status">First to 21 · win by 2</div>
     </div>
-    <div class="hud-right"><button class="pill" id="btnMenu" type="button">MENU</button></div>
+    <div class="hud-right"><button class="pill" id="btnMenu" type="button" aria-label="Pause">MENU</button></div>
   </div>
   <!-- Chai T's flip board (the score) and what he says, by his lawn chair -->
   <div id="coachBoard" hidden aria-label="Score"><div class="cards"><b class="home" id="cbHome">0</b><b class="away" id="cbAway">0</b></div></div>
@@ -978,34 +1594,41 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
     <div id="callBar" hidden role="group" aria-label="Call for a set"><button type="button" id="callQuick" data-call="quick">QUICK</button><button type="button" id="callHigh" data-call="high">HIGH</button><button type="button" id="callBack" data-call="back">BACK</button><button type="button" id="callSky" data-call="sky">SKY</button><button type="button" id="callShoot" data-call="shoot" hidden>SHOOT</button><button type="button" id="callPipe" data-call="pipe" hidden>PIPE</button></div>
   </div>
 
-  <!-- Main menu: your player in 3D beside the court on the left, what to play on the right -->
-  <div class="overlay menu8" id="menu" hidden>
-    <h1 class="title menulogo">GRASS</h1>
-    <div class="platerow">
-      <button class="plate" id="btnLegendCard" type="button" aria-label="My legend">
-        <span class="lcname" id="lcName">#7 YOU</span>
-        <span class="lcmeta" id="lcMeta">LEVEL 0 · 0 PTS</span>
-      </button>
-      <button class="plate ballplate" id="btnBalls" type="button" aria-label="Loot: boxes, your balls and your bags">
-        <canvas id="bpBall" width="76" height="76" aria-hidden="true"></canvas>
-        <span class="lcname">LOOT</span>
-        <span class="lcmeta" id="bpMeta">BOX · 3,000</span>
-        <i class="bpdot" id="bpDot" hidden></i>
-      </button>
+  <!-- v12.2 PLAY (matchday): your next Be a Legend game, your quick game, online and practice as cards on the right;
+       your name and LOOT down on the left, under your player in 3D -->
+  <div class="overlay menu8 mdhome" id="menu" hidden>
+    <div class="mdhead"><div class="row1"><b class="mdlogo">GRASS</b><span class="mdlive"><i></i>MATCHDAY</span></div><small class="mdwhere" id="mdWhere">THE BLOCK · NEIGHBORHOOD PARK</small></div>
+    <div class="mdcards">
+      <div class="mdcard up"><button class="mdtx" id="btnStory" type="button"><span class="k" id="upKick">BE A LEGEND</span><b id="upHead">BE A LEGEND</b><small id="upSub"></small><small id="storySub" hidden>START YOUR STORY</small></button><button class="mdgo" id="upPlay" type="button">PLAY<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg></button></div>
+      <div class="mdcard qk"><button class="mdtx" id="btnPickup" type="button"><span class="k">QUICK GAME · <u>CHANGE IT</u></span><b id="qkHead">3V3 · NORMAL</b><small id="qkSub">THE BLOCK</small></button><button class="mdgo" id="qkPlay" type="button">PLAY<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg></button></div>
+      <div class="mdcard ol"><button class="mdtx" id="btnMenuOnline" type="button"><span class="k" id="olKick">ONLINE</span><b>ONLINE</b><small id="olSub"></small></button><button class="mdgo wh" id="olHost" type="button">HOST</button></div>
+      <div class="mdcard pr"><button class="mdtx" id="btnPractice" type="button"><span class="k">PRACTICE</span><b>CHAI T'S DRILLS</b><small id="prSub"></small></button></div>
     </div>
-    <div class="menuright">
-      <button class="mode play" id="btnStory" type="button"><b>BE A LEGEND</b><span id="storySub">START YOUR STORY</span></button>
-      <button class="mode play alt" id="btnPickup" type="button"><b>PICKUP GAME</b></button>
-      <button class="mode play hot" id="btnMenuOnline" type="button"><b>ONLINE</b></button>
-      <div class="iconrow">
-        <button class="ibtn" id="btnMyLegend" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20v-8M12 20V5M19 20v-5"/></svg><span>STATS</span></button>
-        <button class="ibtn" id="btnPlayer" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 4 6.5l2 3.5 2-1V21h8V9l2 1 2-3.5L15 3c-.6 1.6-1.6 2.5-3 2.5S9.6 4.6 9 3z"/></svg><span>LOOK</span></button>
-        <button class="ibtn" id="btnTricks" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"/></svg><span>TRICKS</span></button>
-        <button class="ibtn" id="btnFriends" type="button"><i class="ndot" id="frDot" hidden></i><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19.5c.6-3.4 2.8-5.3 5.5-5.3s4.9 1.9 5.5 5.3"/><circle cx="16.8" cy="9" r="2.5"/><path d="M15.6 14.3c2.6-.5 4.5 1.2 5 4.4"/></svg><span>FRIENDS</span></button>
-        <button class="ibtn" id="btnHow" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="7" width="19" height="11" rx="5.5"/><path d="M7.5 10.5v4M5.5 12.5h4M15.5 11.5h.01M18 13.5h.01"/></svg><span>CONTROLS</span></button>
-        <button class="ibtn" id="btnSettings" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg><span>SETTINGS</span></button>
-      </div>
+    <div class="mdstrap">
+      <button class="mdname" id="btnLegendCard" type="button" aria-label="My legend"><span class="num" id="lcNum">#7</span><span class="nm"><b id="lcName">YOU</b><small id="lcMeta">LEVEL 0 · 0 PTS</small></span></button>
+      <button class="mdloot" id="btnBalls" type="button" aria-label="Loot: boxes, your balls and your bags"><canvas id="bpBall" width="76" height="76" aria-hidden="true"></canvas><span class="lt"><b>LOOT</b><small id="bpMeta">BOX · 3,000</small></span><i class="bpdot" id="bpDot" hidden></i></button>
     </div>
+  </div>
+  <!-- v12.2: the tabs along the bottom of every menu screen, and the LOCKER's and SETTINGS' own tabs up top -->
+  <nav id="tabbar" aria-label="Menus">
+    <button type="button" id="tabPlay"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5l12 7-12 7z" fill="currentColor" stroke="none"/></svg><span>PLAY</span></button>
+    <button type="button" id="tabCourts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.2l6-2.2 6 2.2 6-2.2v13.8l-6 2.2-6-2.2-6 2.2zM9 4v13.8M15 6.2V20"/></svg><span>COURTS</span></button>
+    <button type="button" id="tabLegend"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H4.6c0 2.9 1.4 4.5 3.7 4.8M16 6h3.4c0 2.9-1.4 4.5-3.7 4.8M12 13v3.6M8.6 20h6.8M10 16.6h4"/></svg><span>LEGEND</span></button>
+    <button type="button" id="btnPlayer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 4 6.5l2 3.5 2-1V21h8V9l2 1 2-3.5L15 3c-.6 1.6-1.6 2.5-3 2.5S9.6 4.6 9 3z"/></svg><span>LOCKER</span></button>
+    <button type="button" id="btnFriends"><i class="ndot" id="frDot" hidden></i><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19.5c.6-3.4 2.8-5.3 5.5-5.3s4.9 1.9 5.5 5.3"/><circle cx="16.8" cy="9" r="2.5"/><path d="M15.6 14.3c2.6-.5 4.5 1.2 5 4.4"/></svg><span>FRIENDS</span></button>
+    <button type="button" id="btnSettings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg><span>SETTINGS</span></button>
+  </nav>
+  <div class="subtabs" id="lockerTabs" role="tablist" aria-label="Locker"><button type="button" id="lkLook">LOOK</button><button type="button" id="lkLoot">LOOT</button><button type="button" id="btnTricks">TRICKS</button><button type="button" id="btnMyLegend">STATS</button></div>
+  <div class="subtabs" id="settingTabs" role="tablist" aria-label="Settings"><button type="button" id="stGame">GAME</button><button type="button" id="btnHow">HOW TO PLAY</button><button type="button" id="stButtons">BUTTONS</button></div>
+  <!-- v12.2 COURTS: the six courts on a map -->
+  <div class="overlay mdmap" id="courtsPanel" hidden>
+    <div class="art" id="mapArt"></div>
+    <div class="mh"><b>COURTS</b><small>TAP ONE · EVERY MODE PLAYS THERE</small></div>
+    <div class="mappanel" id="mapPanel"></div>
+  </div>
+  <!-- v12.2 SETTINGS > BUTTONS: the button layout (and your keys, and a controller's buttons) -->
+  <div class="overlay" id="buttonsPanel" hidden>
+    <div class="card settings buttons" id="btnsCard"></div>
   </div>
   <div id="whiteout" aria-hidden="true"></div>
 
@@ -1018,7 +1641,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
       </div>
       <div class="statgrid" id="statGrid"></div>
       <p class="sub left statinfo" id="lpInfo">Tap a stat to see what it does. Win matches to earn points.</p>
-      <div class="row"><button class="big alt" id="lpLook" type="button">EDIT LOOK</button><button class="big" id="lpDone" type="button">DONE</button></div>
+      <div class="row"><button class="big alt" id="lpLook" type="button">EDIT LOOK</button><button class="tabdone big" id="lpDone" type="button">DONE</button></div>
     </div>
   </div>
 
@@ -1033,7 +1656,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
         <div class="stack">
           <div class="seg tabs" id="courtTabs" role="tablist" aria-label="Courts"></div>
           <ol class="ladder" id="ladder"></ol>
-          <div class="row strow"><button class="chip" id="stJoin" type="button">JOIN A FRIEND'S GAME</button><button class="big alt" id="stBack" type="button">BACK</button></div>
+          <div class="row strow"><button class="chip" id="stJoin" type="button">JOIN A FRIEND'S GAME</button><button class="tabdone big alt" id="stBack" type="button">BACK</button></div>
         </div>
         <div class="stack crewbox" id="crewBox">
           <div class="crewhead"><b id="cbName">CREW</b><span id="cbInfo"></span></div>
@@ -1101,23 +1724,24 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 
   <div class="overlay" id="howPanel" hidden>
     <div class="card settings how">
-      <h2 class="h2">CONTROLS</h2>
+      <h2 class="h2">HOW TO PLAY</h2>
       <dl class="keys">
-        <dt>MOVE</dt><dd>Put your left thumb down anywhere on the left side: the stick follows it <kbd>WASD</kbd></dd>
-        <dt>JUMP</dt><dd>Tap to hop, hold to go higher. Steer in the air <kbd>Space</kbd></dd>
-        <dt>HIT</dt><dd>Swings when you press; keep holding and it fires as the ball arrives. Stick aims, pull back to tip <kbd>L</kbd></dd>
-        <dt>BLOCK</dt><dd>On defense HIT turns into BLOCK. Tap it at the net as they swing <kbd>L</kbd></dd>
-        <dt>DIG</dt><dd>Pass. Hold it while you run. Double-tap to dive the way you're pushing <kbd>J</kbd></dd>
-        <dt>SET</dt><dd>Hold as it drops. Stick: side, up quick, down sky <kbd>K</kbd></dd>
-        <dt>CALL</dt><dd>Tap QUICK, HIGH, BACK or SKY (over SWITCH) for the set you want <kbd>1-4</kbd></dd>
+        <dt>MOVE</dt><dd>Put your thumb down anywhere on the stick's side of the screen: the stick follows it <kbd>WASD</kbd></dd>
+        <dt>JUMP</dt><dd>Tap to hop, hold to go higher. Steer in the air <kbd data-k="jump">Space</kbd></dd>
+        <dt>HIT</dt><dd>Swings when you press; keep holding and it fires as the ball arrives. Stick aims, pull back to tip <kbd data-k="hit">L</kbd></dd>
+        <dt>BLOCK</dt><dd>On defense HIT turns into BLOCK. Tap it at the net as they swing <kbd data-k="hit">L</kbd></dd>
+        <dt>DIG</dt><dd>Pass. Hold it while you run. Double-tap to dive the way you're pushing <kbd data-k="dig">J</kbd></dd>
+        <dt>SET</dt><dd>Hold as it drops. Stick: side, up quick, down sky <kbd data-k="set">K</kbd></dd>
+        <dt>CALL</dt><dd>Tap QUICK, HIGH, BACK or SKY on the call bar for the set you want <kbd data-k="calls">1-4</kbd></dd>
         <dt>SERVE</dt><dd>Back up, hold TOSS or HIGH TOSS, run in, jump before the line, HIT</dd>
-        <dt>SWITCH</dt><dd>Take over a teammate. Auto-switch (Settings) can do it for you <kbd>E</kbd></dd>
-        <dt>GAMEBREAKER</dt><dd>When the meter is full: tap to fire, hold to pocket <kbd>G</kbd></dd>
-        <dt>REPLAY</dt><dd>After your big play, tap REPLAY to watch it again <kbd>R</kbd></dd>
+        <dt>SWITCH</dt><dd>Take over a teammate. Auto-switch (Settings) can do it for you <kbd data-k="switch">E</kbd></dd>
+        <dt>GAMEBREAKER</dt><dd>When the meter is full: tap to fire, hold to pocket <kbd data-k="gb">G</kbd></dd>
+        <dt>REPLAY</dt><dd>After your big play, tap REPLAY to watch it again <kbd data-k="replay">R</kbd></dd>
         <dt>WATCHING</dt><dd>A friend's game, as your dog: the stick runs, hold SPRINT, tap SIT, FETCH or JUMP</dd>
-        <dt>EXIT</dt><dd>Top left: leave the match (and full screen) <kbd>Esc</kbd> pauses</dd>
+        <dt>PAUSE</dt><dd>Top right. QUIT is in there (it leaves the match and full screen) <kbd>Esc</kbd></dd>
+        <dt>BUTTONS</dt><dd>Move them, size them, swap what they do, or pick a layout: SETTINGS, BUTTONS. A controller works too</dd>
       </dl>
-      <div class="row"><button class="big" id="howDone" type="button">DONE</button></div>
+      <div class="row"><button class="tabdone big" id="howDone" type="button">DONE</button></div>
     </div>
   </div>
 
@@ -1182,7 +1806,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
         </div>
       </div>
       <p class="sub left cnote" id="creatorNote" hidden></p>
-      <div class="row"><button class="big" id="creatorDone" type="button">DONE</button></div>
+      <div class="row"><button class="tabdone big" id="creatorDone" type="button">DONE</button></div>
     </div>
   </div>
 
@@ -1249,7 +1873,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
       <p class="sub left" id="frMsg" aria-live="polite"></p>
       <ol class="board" id="frBoard" aria-label="Leaderboard: wins"></ol>
       <div class="recent" id="frRecentBox" hidden><span class="lbl">PLAYED ONLINE WITH</span><div class="chips" id="frRecent"></div></div>
-      <div class="row"><button class="big alt" id="frDog" type="button">WATCH DOG</button><button class="big hot" id="frParty" type="button" hidden>PARTY</button><button class="big" id="frDone" type="button">DONE</button></div>
+      <div class="row"><button class="big alt" id="frDog" type="button">WATCH DOG</button><button class="big hot" id="frParty" type="button" hidden>PARTY</button><button class="tabdone big" id="frDone" type="button">DONE</button></div>
     </div>
   </div>
 
@@ -1294,6 +1918,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
       <div class="setrow"><span>Auto-switch to the player on the ball</span><div class="seg" data-set="autoSwitch"><button type="button" data-v="true">ON</button><button type="button" data-v="false">OFF</button></div></div>
       <div class="setrow"><span>Countdown after a pause</span><div class="slide"><input type="range" id="cdSlide" min="0" max="3" step="1" value="0" aria-label="Countdown after a pause" data-labels="OFF,1 S,2 S,3 S"><b id="cdVal">OFF</b></div></div>
       <div class="setrow"><span>Your default set</span><div class="seg" data-set="defaultSet"><button type="button" data-v="auto">AUTO</button><button type="button" data-v="quick">QUICK</button><button type="button" data-v="high">HIGH</button><button type="button" data-v="back">BACK</button><button type="button" data-v="sky">SKY</button></div></div>
+      <div class="setrow" id="btnsRow"><span>Buttons, keys and controller</span><button class="chip" id="btnsGo" type="button">CHANGE ›</button></div>
       <div class="setrow"><span>Sound</span><div class="seg" data-set="sound"><button type="button" data-v="true">ON</button><button type="button" data-v="false">OFF</button></div></div>
       <div class="setrow"><span>Shadows</span><div class="seg" data-set="gfx"><button type="button" data-v="auto">AUTO</button><button type="button" data-v="high">ON</button><button type="button" data-v="low">OFF</button></div></div>
       <div class="setrow"><span>Screen shake</span><div class="seg" data-set="shake"><button type="button" data-v="true">ON</button><button type="button" data-v="false">OFF</button></div></div>
@@ -1303,7 +1928,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
       <div class="setrow" id="fsRow" hidden><span>Full screen</span><button class="chip" id="btnFS" type="button">GO FULL SCREEN</button></div>
       <div class="setrow"><span id="saveWhere">Your legend is saved on this device</span><button class="chip danger" id="btnReset" type="button">RESET LEGEND</button></div>
       <div class="setrow"><span>Version</span><b class="vernum" id="verNum"></b></div>
-      <div class="row"><button class="big" id="settingsDone" type="button">DONE</button></div>
+      <div class="row"><button class="tabdone big" id="settingsDone" type="button">DONE</button></div>
     </div>
   </div>
 
@@ -1313,7 +1938,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
       <p class="sub left">More style, a bit riskier. Land them to fill your Gamebreaker. Buy them with points, or win them from crews.</p>
       <ul class="tricklist" id="trickList"></ul>
       <p class="sub left">Always yours: dives (double-tap DIG), foot and head saves, tips, roll shots and set calls.</p>
-      <div class="row"><button class="big" id="tricksDone" type="button">DONE</button></div>
+      <div class="row"><button class="tabdone big" id="tricksDone" type="button">DONE</button></div>
     </div>
   </div>
 
@@ -1383,7 +2008,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
         </div>
       </div>
       <p class="sub left small blmsg" id="blMsg" aria-live="polite"></p>
-      <div class="row"><button class="big alt" id="blTrade" type="button">TRADE</button><button class="big alt" id="blSellAll" type="button">SELL SPARES</button><button class="big" id="blDone" type="button">DONE</button></div>
+      <div class="row"><button class="big alt" id="blTrade" type="button">TRADE</button><button class="big alt" id="blSellAll" type="button">SELL SPARES</button><button class="tabdone big" id="blDone" type="button">DONE</button></div>
     </div>
   </div>
 
@@ -1432,7 +2057,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 (() => {
 'use strict';
 // The version: shown in SETTINGS and on the cover of the guide book. Raise it with every update, then rebuild the guide.
-const VERSION = '12.1';
+const VERSION = '12.2';
 const $ = (id) => document.getElementById(id);
 const errBox = $('err');
 function showError(msg) { errBox.textContent = msg; errBox.hidden = false; }
@@ -7433,17 +8058,21 @@ function drawFlames(g, x0, x1, base, h, seed) {
   }
 }
 function nameTag(text, color, flame) {
-  const H = flame ? 96 : 64, top = H - 64;
+  const H = flame ? 96 : 64, top = H - 64, mine = color === '#ffd23f';
   const tex = canvasTex(256, H, (g) => {
-    const shape = () => { g.beginPath(); g.moveTo(12, top + 6); g.lineTo(244, top + 6); g.lineTo(250, top + 32); g.lineTo(244, top + 58); g.lineTo(12, top + 58); g.lineTo(6, top + 32); g.closePath(); };
+    // v12.2 (matchday): a slanted navy tag; a gold stripe and a red line under it for you, a slate stripe for everyone else
+    const shape = () => { g.beginPath(); g.moveTo(22, top + 8); g.lineTo(252, top + 8); g.lineTo(240, top + 56); g.lineTo(10, top + 56); g.closePath(); };
     if (flame) drawFlames(g, 26, 230, top + 14, 30, strHash(text));
-    g.fillStyle = '#17110d'; shape(); g.fill();
+    g.fillStyle = 'rgba(9, 20, 40, 0.92)'; shape(); g.fill();
+    g.fillStyle = mine ? '#ffc83d' : '#a9bad6';
+    g.beginPath(); g.moveTo(22, top + 8); g.lineTo(35, top + 8); g.lineTo(23, top + 56); g.lineTo(10, top + 56); g.closePath(); g.fill();
+    if (mine) { g.fillStyle = '#ff3d2e'; g.beginPath(); g.moveTo(11.5, top + 50); g.lineTo(241.5, top + 50); g.lineTo(240, top + 56); g.lineTo(10, top + 56); g.closePath(); g.fill(); }
     if (flame) {   // mastery: a gold border
       const gr = g.createLinearGradient(0, top, 0, top + 64); gr.addColorStop(0, '#fff2a8'); gr.addColorStop(0.5, '#ffd23f'); gr.addColorStop(1, '#ff8a1f');
       g.strokeStyle = gr; g.lineWidth = 5; shape(); g.stroke();
     }
-    g.font = '800 34px "Barlow Condensed", "Arial Narrow", Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.fillStyle = color || '#ffd23f'; g.fillText(text, 128, top + 34);
+    g.font = 'italic 800 34px "Barlow Condensed", "Arial Narrow", Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = mine ? '#ffffff' : '#e6ecf6'; g.fillText(text, 136, top + 31);
   });
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
   s.scale.set(1.3, 0.33 * H / 64, 1); s.renderOrder = 5;
@@ -12472,6 +13101,7 @@ function startDemo(park) {
   teams[0].ai = DIFF.normal; teams[1].ai = DIFF.normal; setCrewTeams(null);
   resetScores(); setupServe(); resetRec(); eventsReset(); G.replay = null;
   clearBags();   // v10.1: the AI's game behind the menus: no bags
+  syncTabs();   // (v12.2: the menus' tabs, now that it's the menus again)
 }
 const parkFor = (id) => (PARKS[id] ? id : 'hood');
 // A match on this device. opts: { kind: 'pickup' | 'story', diff, park, crew, setup } (setup: see buildTeams)
@@ -12600,13 +13230,14 @@ function rosterBlurb(d) {
   const ovr = STAT_KEYS.reduce((s, k) => s + d.stats[k], 0) / STAT_KEYS.length;
   return d.role.toUpperCase() + ' · OVR ' + ovr.toFixed(1).replace(/\.0$/, '') + ' · ' + STAT_INFO[best].label.slice(0, 3) + ' ' + d.stats[best];
 }
-const PANELS = ['menu', 'creator', 'legendPanel', 'storyPanel', 'rosterPanel', 'pickupPanel', 'scene', 'howPanel', 'settingsPanel', 'tricksPanel', 'onlinePanel', 'netHelpPanel', 'netTestPanel', 'pause', 'over',
+const PANELS = ['menu', 'courtsPanel', 'buttonsPanel', 'creator', 'legendPanel', 'storyPanel', 'rosterPanel', 'pickupPanel', 'scene', 'howPanel', 'settingsPanel', 'tricksPanel', 'onlinePanel', 'netHelpPanel', 'netTestPanel', 'pause', 'over',
   'friendsPanel', 'dogPanel', 'watchPanel', 'ballsPanel', 'tradePanel', 'practicePanel'];
 function showPanel(id) {
   for (const k of PANELS) $(k).hidden = k !== id;
   G.panel = id;
   G.showcase = id === 'creator' || id === 'legendPanel' || id === 'menu';   // your player, in 3D beside the court
   G.dogShow = id === 'dogPanel';   // your Watch Dog there instead
+  syncTabs();   // (v12.2: the tabs show under the menu screens)
 }
 function hideGameUi() { $('hud').hidden = true; $('controls').hidden = true; setHidden(callBar, true); setHidden($('hostPause'), true); $('prompt').hidden = true; $('tossMeter').hidden = true; $('replayTag').hidden = true; $('btnReplay').hidden = true; }
 function showMenu() {
@@ -12691,7 +13322,7 @@ function readStick() {
   const k = input.keys;
   const kx = (k.has('KeyD') || k.has('ArrowRight') ? 1 : 0) - (k.has('KeyA') || k.has('ArrowLeft') ? 1 : 0);
   const ky = (k.has('KeyS') || k.has('ArrowDown') ? 1 : 0) - (k.has('KeyW') || k.has('ArrowUp') ? 1 : 0);
-  let x = input.tjx + kx, y = input.tjy + ky;
+  let x = input.tjx + kx + (input.pjx || 0), y = input.tjy + ky + (input.pjy || 0);   // (v12.2: and a controller's stick)
   const m = Math.hypot(x, y);
   if (m > 1) { x /= m; y /= m; }
   if (m < 0.12) { x = 0; y = 0; }
@@ -12704,7 +13335,8 @@ const joy = $('joy'), knob = $('knob'), zone = $('stickZone');
 let joyId = null, joyBase = { x: 0, y: 0 };
 function joyPlace(e) {
   const p = appPoint(e.clientX, e.clientY), r = joy.offsetWidth / 2 || 60;
-  const x = clamp(p.x, r + 8, Math.max(r + 8, VIEW.w * 0.5 - r)), y = clamp(p.y, r + 8, VIEW.h - r - 8);
+  const R = JOY && JOY.side === 'R';   // (v12.2: the layout can put the stick on the right)
+  const x = R ? clamp(p.x, Math.min(VIEW.w - r - 8, VIEW.w * 0.5 + r), VIEW.w - r - 8) : clamp(p.x, r + 8, Math.max(r + 8, VIEW.w * 0.5 - r)), y = clamp(p.y, r + 8, VIEW.h - r - 8);
   joy.style.left = (x - r) + 'px'; joy.style.top = (y - r) + 'px'; joy.style.bottom = 'auto';
   joy.classList.add('live');
   joyBase = { x, y };
@@ -12717,7 +13349,7 @@ function joyMove(e) {
   input.tjx = dx / max; input.tjy = dy / max;
   knob.style.transform = `translate(${dx}px, ${dy}px)`;
 }
-function joyRest() { joy.classList.remove('live'); joy.style.left = joy.style.top = joy.style.bottom = ''; knob.style.transform = ''; }
+function joyRest() { joy.classList.remove('live'); knob.style.transform = ''; joyHome(); }   // (v12.2: back where the layout rests it)
 zone.addEventListener('pointerdown', (e) => {
   if (joyId !== null) return;
   joyId = e.pointerId; try { zone.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
@@ -12765,25 +13397,23 @@ window.addEventListener('keydown', (e) => {
   if (G.scene) { if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); if (!e.repeat) sceneNext(); } else if (e.code === 'Escape') endScene(); return; }
   const inMatch = !G.demo && G.phase !== 'over' && !G.paused;
   if (G.cut && !e.repeat && (e.code === 'Enter' || e.code === 'Space') && !$('gbSkip').hidden) { e.preventDefault(); cutSkip(); return; }   // v10.2
-  if (G.replay && !e.repeat) { endReplay(); if (KEYMAP[e.code] || MOVEKEYS.has(e.code)) e.preventDefault(); return; }
+  if (G.replay && !e.repeat) { endReplay(); if (keyAct(e.code) || MOVEKEYS.has(e.code)) e.preventDefault(); return; }
   if (e.code === 'Escape' || e.code === 'KeyP') {
-    if (['settingsPanel', 'tricksPanel', 'legendPanel', 'howPanel', 'rosterPanel', 'netHelpPanel', 'netTestPanel'].includes(G.panel) || (G.panel === 'creator' && !creatingLegend)) closePanel();
+    if (ED.on) { if (e.code === 'Escape') edClose(false); return; }   // (v12.2: out of EDIT LAYOUT, nothing saved)
+    if (['settingsPanel', 'tricksPanel', 'legendPanel', 'howPanel', 'rosterPanel', 'netHelpPanel', 'netTestPanel', 'buttonsPanel', 'courtsPanel'].includes(G.panel) || (G.panel === 'creator' && !creatingLegend)) closePanel();
     else togglePause();
     return;
   }
   if (!inMatch) return;
-  if (KEYMAP[e.code] || MOVEKEYS.has(e.code)) e.preventDefault();
+  const ka = keyAct(e.code);   // (v12.2: your keys, from SETTINGS > BUTTONS)
+  if (ka || MOVEKEYS.has(e.code)) e.preventDefault();
   if (e.repeat) return;
-  if (KEYMAP[e.code]) press(KEYMAP[e.code]);
-  else if (e.code === 'KeyE' || e.code === 'KeyQ') input.edge.switchDown = true;
-  else if (e.code === 'KeyG') gKeyT = performance.now();
-  else if (e.code === 'KeyR') playMyReplay();
-  else if (CALLKEYS[e.code]) pressCall(CALLKEYS[e.code]);
+  if (ka) actDown(ka, 'k');
   if (MOVEKEYS.has(e.code)) input.keys.add(e.code);
 });
 window.addEventListener('keyup', (e) => {
-  if (KEYMAP[e.code]) release(KEYMAP[e.code]);
-  if (e.code === 'KeyG' && gKeyT) { if (performance.now() - gKeyT > 600) input.edge.gbPocket = true; else input.edge.gbTap = true; gKeyT = 0; }
+  const ka = keyAct(e.code);
+  if (ka) actUp(ka, 'k');
   input.keys.delete(e.code);
 });
 window.addEventListener('blur', releaseAll);
@@ -13381,6 +14011,10 @@ function updateHud() {
     st = short ? short + ' · ' + tt : tt;
   }
   setText('status', st); setClass($('status'), 'hot', hot);
+  // v12.2: the touch count as three marks in the meter's box (the line under it keeps the words, for when it says more)
+  const tcOn = G.phase === 'live' && !!G.poss.team;
+  syncPips(tcOn ? G.poss.count : -1, tcOn && G.poss.team === myT);
+  setClass($('status'), 'tc', tcOn && !short);
   const lvl = gbLevel(myT), w = Math.round(myT.gb.active ? 100 : myT.style) + '%';
   if (hudCache.meterW !== w) { hudCache.meterW = w; $('meterFill').style.width = w; }
   setText('meterLabel', myT.gb.active ? 'GAMEBREAKER LIVE' : myT.style >= 100 ? (myT.gb.pocket ? 'GAMEBREAKER 2 READY' : 'GAMEBREAKER READY') : 'GAMEBREAKER');
@@ -13399,7 +14033,7 @@ function updateHud() {
   for (const k of Object.keys(btnEls)) setClass(btnEls[k], 'hint', cue.hints.includes(k));
   setText('bHit', defending ? 'BLOCK' : 'HIT'); setClass(btnEls.hit, 'block', !!defending);
   const holding = G.phase === 'serve' && G.server === h && G.servePhase === 'hold';
-  setText('bDig', holding ? 'TOSS' : 'DIG');
+  setText('bDig', holding ? 'TOSS' : 'DIG'); setClass(btnEls.dig, 'toss', holding);
   setText('bSet', holding ? 'HIGH\nTOSS' : 'SET'); setClass(btnEls.set, 'two', holding);
   // the call bar: whenever you've an AI teammate who can set you, from the serve until the point's over
   const callOn = !!(playing && !G.joust && h.team.players.some((q) => q !== h && aiControlled(q)));   // (v11.2: not during a joust)
@@ -13418,7 +14052,7 @@ function updateHud() {
 }
 // v10: practice: the drill and your streak up top, the call bar while you're up to hit, what to do next
 function practiceHud(h, cue) {
-  setHidden($('meter'), true); setHidden(gbBtn, true);
+  setHidden($('meter'), true); setHidden(gbBtn, true); setClass($('status'), 'tc', false);
   setText('status', DRILLS[PRAC.drill].name + (PRAC.drill === 'pass' ? ' · ' + (RECV[PRAC.recv] || RECV.mix).name : '') + ' · STREAK ' + PRAC.streak + ' · BEST ' + PRAC.best + ' · +' + (legend.prac ? legend.prac.pts : 0) + ' TODAY');
   const mine = !!h && PRAC.up === h, hitting = PRAC.drill === 'hit' && mine && (PRAC.st === 'ready' || PRAC.st === 'toss');
   setHidden(callBar, !hitting);
@@ -13442,7 +14076,7 @@ function practiceHud(h, cue) {
 
 // Watching a friend: the score's on Chai T's board; the buttons are your dog's
 function spectateHud() {
-  setHidden(callBar, true);
+  setHidden(callBar, true); setClass($('status'), 'tc', false); syncPips(-1, true);
   setHidden($('meter'), true); setHidden($('watching'), true); setHidden(gbBtn, true); setHidden($('prompt'), true); setHidden($('tossMeter'), true);
   const a = teams[0].score, b = teams[1].score, hi = Math.max(a, b);
   setText('status', G.phase === 'coach' ? 'Chai T has the ball' : hi >= WIN_AT - 1 && a !== b ? 'Match point · ' + (a > b ? 'home' : 'away') : hi >= WIN_AT - 1 ? 'Tied · win by 2' : 'First to 21 · win by 2');
@@ -13482,7 +14116,7 @@ function syncMenus() {
   });
   // the menu: your legend (or, until you make it, today's rookie)
   const made = legend.created;
-  $('lcName').textContent = '#' + profile.number + ' ' + profile.name;
+  $('lcName').textContent = profile.name;   // (v12.2: the number has its own block beside it)
   $('lcMeta').textContent = (made ? 'LEVEL ' + legendLevel() : 'ROOKIE') + ' · ' + fmtPts(legend.points) + ' PTS';
   $('btnLegendCard').classList.toggle('mastered', !!legend.mastery);
   $('btnLegendCard').disabled = !made;
@@ -13491,6 +14125,7 @@ function syncMenus() {
   $('storySub').textContent = !made ? 'MAKE YOUR LEGEND' : nc ? 'NEXT: ' + nc.name : 'STORY DONE · PLAY ANY CREW';
   $('saveWhere').textContent = Save.cloud ? 'Your legend saves to your Claude account' : 'Your legend saves on this device';
   syncBallPlate();
+  syncCards();   // (v12.2: PLAY's cards)
 }
 // The cloud save arrived (the owner's legend from another device): refresh whatever is open
 function onLegendChanged() {
@@ -13521,6 +14156,8 @@ function onPanelShown(id) {
   if (id === 'dogPanel') renderDogPanel();
   if (id === 'watchPanel') renderWatch();
   if (id === 'ballsPanel') renderBalls();
+  if (id === 'buttonsPanel') renderButtons();   // (v12.2)
+  if (id === 'howPanel') syncHowKeys();   // (v12.2: your keys)
   if (id === 'tradePanel') { renderTrade(); if (TR.st === 'off' && performance.now() - FR.pollT > 15000) friendsPoll(); }
   syncMenus(); syncCreator(); fadeSoon();
 }
@@ -14067,6 +14704,557 @@ onTap($('btnMenu'), () => togglePause(true));
 onTap($('btnResume'), () => togglePause(false));
 onTap($('btnQuit'), () => exitMatch());
 onTap($('btnExit'), () => exitMatch());
+// ---- v12.2: the tabs (Truss, part 3: "rethink the whole flow"; tabs instead of BACK buttons) ----
+// PLAY, COURTS, LEGEND, LOCKER (look, loot, tricks, stats), FRIENDS and SETTINGS (game, how to play, buttons) sit along the
+// bottom of every menu screen; the screens under them lose their DONE. Screens you go into from one of them (a quick
+// game's setup, practice, online, picking a teammate, trading) keep their BACK and hide the tabs. In a match (the pause
+// menu's TRICKS and SETTINGS) there are no tabs, and DONE takes you back.
+var TAB_OF = { menu: 'tabPlay', courtsPanel: 'tabCourts', storyPanel: 'tabLegend', creator: 'btnPlayer', ballsPanel: 'btnPlayer', tricksPanel: 'btnPlayer', legendPanel: 'btnPlayer', friendsPanel: 'btnFriends', settingsPanel: 'btnSettings', howPanel: 'btnSettings', buttonsPanel: 'btnSettings' };
+var LOCKER_OF = { creator: 'lkLook', ballsPanel: 'lkLoot', tricksPanel: 'btnTricks', legendPanel: 'btnMyLegend' };
+var SETTING_OF = { settingsPanel: 'stGame', howPanel: 'btnHow', buttonsPanel: 'stButtons' };
+function isCreating() { try { return !!creatingLegend; } catch (_) { return false; } }
+function tabsOn() { return !!(TAB_OF && G.demo && TAB_OF[G.panel] && !isCreating() && !G.scene); }
+function syncTabs() {
+  if (!TAB_OF) return;
+  const on = tabsOn(), app = $('app');
+  app.classList.toggle('mdt', on);   // (not 'tabs': the creator's and pickup's own .tabs rows use that)
+  app.classList.toggle('lk', on && !!LOCKER_OF[G.panel]);
+  app.classList.toggle('stg', on && !!SETTING_OF[G.panel]);
+  if (!on) return;
+  for (const b of $('tabbar').children) b.classList.toggle('on', b.id === TAB_OF[G.panel]);
+  for (const b of $('lockerTabs').children) b.classList.toggle('on', b.id === LOCKER_OF[G.panel]);
+  for (const b of $('settingTabs').children) b.classList.toggle('on', b.id === SETTING_OF[G.panel]);
+}
+// a tab is a top-level screen: nothing to go back to
+for (const id of ['tabbar', 'lockerTabs', 'settingTabs']) $(id).addEventListener('click', () => { panelStack.length = 0; syncTabs(); });
+function showTab(id) { panelStack.length = 0; showPanel(id); onPanelShown(id); }
+$('tabPlay').addEventListener('click', () => { playTap(); if (G.panel !== 'menu') showTab('menu'); });
+$('tabCourts').addEventListener('click', () => { playTap(); showTab('courtsPanel'); renderCourts(); });
+$('tabLegend').addEventListener('click', () => $('btnStory').click());
+$('lkLook').addEventListener('click', () => openPanel('creator'));
+$('lkLoot').addEventListener('click', () => $('btnBalls').click());
+$('stGame').addEventListener('click', () => openPanel('settingsPanel'));
+$('stButtons').addEventListener('click', () => { openPanel('buttonsPanel'); renderButtons(); });
+
+// ---- PLAY: the cards
+// Be a Legend's next game, straight from PLAY: unless a scene is owed first (the very start, a new chapter, a crew's
+// last word), which openStory plays before the ladder
+function storyDue() {
+  const S = legend.story;
+  return !legend.created || !S.seen.includes('parents') || !S.seen.includes('open')
+    || (S.beaten.includes('oldguard') && S.seen.includes('out:oldguard') && !S.seen.includes('ch2'))
+    || CREWS.some((c) => S.beaten.includes(c.id) && c.outro && !S.seen.includes('out:' + c.id));
+}
+$('upPlay').addEventListener('click', partyGuard(() => {
+  playTap();
+  const nc = nextCrew();
+  if (storyDue() || !nc) { openStory(); return; }
+  storyCrew = nc; storyCourt = nc.court; startStory(nc);
+}));
+$('qkPlay').addEventListener('click', partyGuard(() => { playTap(); startMatch(settings.pickupMode, { kind: 'pickup', diff: settings.difficulty, park: settings.pickupPark }); }));
+$('olHost').addEventListener('click', () => {
+  playTap();
+  if (inParty()) { openOnline('party'); return; }
+  NET.msg = ''; NET.story = null; openOnline('menu');
+  $('onCreate').click();
+});
+$('btnPractice').addEventListener('click', () => { playTap(); panelStack.length = 0; openPracticePanel(); });
+const DIFF_SHORT = { easy: 'EASY', normal: 'NORMAL', hard: 'HARD', veryhard: 'VERY HARD', impossible: 'IMPOSSIBLE' };
+const courtIx = (park) => Math.max(0, COURTS.findIndex((c) => c.park === parkFor(park)));
+function syncCards() {
+  const made = legend.created, nc = nextCrew(), ci = courtIx(settings.pickupPark), C = COURTS[ci];
+  $('mdWhere').textContent = C.name + ' · ' + C.where;
+  if (!made) { $('upKick').textContent = 'BE A LEGEND'; $('upHead').textContent = 'MAKE YOUR LEGEND'; $('upSub').textContent = 'YOUR STORY STARTS AT THE BLOCK'; }
+  else if (nc) {
+    const list = CREWS.filter((c) => c.court === nc.court), k = list.indexOf(nc) + 1;
+    $('upKick').textContent = 'BE A LEGEND · UP NEXT';
+    $('upHead').textContent = 'VS ' + nc.name;
+    $('upSub').textContent = COURTS[nc.court].name + ' · ' + (nc.boss ? 'THE BOSS' : 'CREW ' + k + ' OF ' + list.filter((c) => !c.boss).length) + ' · ' + (DIFF_NAME[nc.ai] || '');
+  } else { $('upKick').textContent = 'BE A LEGEND'; $('upHead').textContent = 'STORY DONE'; $('upSub').textContent = 'PLAY ANY CREW AGAIN ON LEGEND'; }
+  $('qkHead').textContent = settings.pickupMode + 'V' + settings.pickupMode + ' · ' + (DIFF_SHORT[settings.difficulty] || 'NORMAL');
+  $('qkSub').textContent = C.name + ' · YOU: ' + ROLE_NAME[settings.pickupMode][POS_ROLE[settings.pickupMode][posOf(settings.position)]];
+  const party = inParty();
+  $('olKick').textContent = party ? 'ONLINE · YOUR PARTY' : 'ONLINE';
+  $('olSub').textContent = party ? 'EVERYONE IN THE PARTY PLAYS ON THEIR OWN PHONE' : 'FRIENDS, EACH ON THEIR OWN PHONE';
+  $('olHost').textContent = party ? 'OPEN' : 'HOST';
+  $('btnMenuOnline').parentNode.classList.toggle('party', party);
+  const today = legend.prac && legend.prac.day === new Date().toISOString().slice(0, 10) ? legend.prac.pts : 0;
+  $('prSub').textContent = fmtPts(today) + ' / ' + PRAC_DAY + ' POINTS TODAY';
+  $('lcNum').textContent = '#' + profile.number;
+}
+
+// ---- COURTS: the six courts on a map. Pick one: a quick game there, its Be a Legend crews, or host a game there.
+const MAP_AT = [[200, 213, '#3fae5a'], [330, 126, '#ff7d33'], [490, 240, '#2ad1c3'], [418, 58, '#d14bff'], [95, 118, '#2f86e8'], [712, 66, '#ff5a3c']];   // (a 844 x 344 picture; COURTS order)
+const MAP = { sel: -1 };
+const MAP_ART = `<svg viewBox="0 0 844 344" preserveAspectRatio="none" aria-hidden="true">
+  <defs><pattern id="mdgd" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#9fb7e0" stroke-width="1" opacity=".07"/></pattern></defs>
+  <rect width="844" height="344" fill="#08152b"/>
+  <path d="M560 0c-20 70 30 120-10 190s20 110 0 154M590 0c-20 70 30 120-10 190s20 110 0 154M620 0c-20 70 30 120-10 190s20 110 0 154" fill="none" stroke="#2ad1c3" stroke-width="1" opacity=".1"/>
+  <path d="M0 0h512c-14 46 22 92-6 136s20 92-14 128-6 54-22 80H0z" fill="#12284a"/>
+  <path d="M512 0c-14 46 22 92-6 136s20 92-14 128-6 54-22 80" fill="none" stroke="#2ad1c3" stroke-width="2" opacity=".55"/>
+  <path d="M498 0c-14 46 22 92-6 136s20 92-14 128-6 54-22 80h-14c14-26 2-44 22-80s-14-84 14-128S486 46 484 0z" fill="#1d3557"/>
+  <g stroke="#2b4670" stroke-width="2" fill="none"><path d="M0 60h470M0 140h470M0 220h460M0 300h460M70 0v344M160 0v344M250 0v344M340 0v344M420 0v344"/></g>
+  <path d="M0 176h480M200 0v344" stroke="#35557f" stroke-width="4"/>
+  <rect x="164" y="190" width="72" height="46" rx="4" fill="#1d4d3d" stroke="#3fae5a" stroke-width="1.5" opacity=".9"/>
+  <rect x="296" y="104" width="68" height="44" rx="4" fill="#1d4d3d" stroke="#3fae5a" stroke-width="1.5" opacity=".9"/>
+  <path d="M370 24h96v58h-96z" fill="#2a1d4d" stroke="#d14bff" stroke-width="1.5" opacity=".9"/>
+  <rect x="62" y="96" width="66" height="44" rx="3" fill="#18375c" stroke="#2f86e8" stroke-width="1.5"/>
+  <path d="M480 238l86 10" stroke="#8aa0c0" stroke-width="5" stroke-linecap="round" opacity=".8"/>
+  <path d="M630 74c20-26 70-30 96-16s58 8 70 20-30 28-74 26-104-6-92-30z" fill="#163050" stroke="#2ad1c3" stroke-width="1.5" opacity=".9"/>
+  <path d="M700 74l14-34 14 34" fill="none" stroke="#ff8a5c" stroke-width="2"/><path d="M714 38c4-8 0-14 6-20" fill="none" stroke="#8aa0c0" stroke-width="2" opacity=".6"/>
+  <rect width="844" height="344" fill="url(#mdgd)"/>
+</svg>`;
+function courtCrew(i) {   // the crew you'd play there now: the next one if it's there, else the last one you can play
+  const list = CREWS.filter((c) => c.court === i), nc = nextCrew();
+  return list.find((c) => c === nc) || list.filter((c) => crewOpen(c)).pop() || null;
+}
+function renderCourts() {
+  const here = courtIx(settings.pickupPark);
+  if (MAP.sel < 0 || MAP.sel >= COURTS.length) MAP.sel = here;
+  const art = $('mapArt'); art.innerHTML = MAP_ART;
+  COURTS.forEach((c, i) => {
+    const [x, y, col] = MAP_AT[i], open = parkOpen(i), L = (x / 844 * 100) + '%', T = (y / 344 * 100) + '%';
+    const mk = document.createElement('button'); mk.type = 'button'; mk.className = 'mapmk' + (open ? '' : ' lock') + (i === MAP.sel ? ' sel' : '');
+    mk.style.cssText = `left:${L};top:${T};--c:${col}`; mk.setAttribute('aria-label', c.name);
+    const tg = document.createElement('button'); tg.type = 'button'; tg.className = 'maptag' + (open ? '' : ' lock') + (i === MAP.sel ? ' sel' : '');
+    tg.style.cssText = `left:${L};top:${T};--c:${col}`;
+    tg.innerHTML = (i === here ? '<span class="here">YOU\'RE HERE</span>' : '') + '<span class="tg"><b></b><small></small></span>';
+    tg.querySelector('b').textContent = c.name; tg.querySelector('small').textContent = c.where;
+    for (const el of [mk, tg]) el.addEventListener('click', () => { playTap(); MAP.sel = i; if (open) { settings.pickupPark = c.park; saveSettings(); syncMenus(); } renderCourts(); });
+    art.append(mk, tg);
+  });
+  // the selected court's panel
+  const i = MAP.sel, c = COURTS[i], open = parkOpen(i), crew = courtCrew(i), P = $('mapPanel');
+  P.style.setProperty('--c', MAP_AT[i][2]);
+  P.innerHTML = `<div class="ph"><span></span><b></b><small></small></div>
+    <div class="pr"><div class="t"><span>QUICK GAME</span><b id="mpQk"></b></div><button type="button" id="mpPlay">PLAY</button></div>
+    <div class="pr"><div class="t"><span>BE A LEGEND</span><b id="mpCrew"></b></div><button type="button" id="mpLegend">PLAY</button></div>
+    <div class="pr"><div class="t"><span>ONLINE</span><b>HOST A GAME HERE</b></div><button type="button" class="wh" id="mpHost">HOST</button></div>`;
+  P.querySelector('.ph span').textContent = c.where;
+  P.querySelector('.ph b').textContent = c.name;
+  P.querySelector('.ph small').textContent = open ? (i === here ? 'WHERE YOUR QUICK GAMES ARE' : 'TAP PLAY TO GO') : 'REACH IT IN BE A LEGEND';
+  $('mpQk').textContent = settings.pickupMode + 'V' + settings.pickupMode + ' · ' + (DIFF_SHORT[settings.difficulty] || 'NORMAL');
+  $('mpCrew').textContent = crew ? crew.name : open ? 'ALL BEATEN' : 'LOCKED';
+  $('mpPlay').disabled = $('mpHost').disabled = !open;
+  $('mpLegend').disabled = !crew;
+  $('mpPlay').addEventListener('click', partyGuard(() => { playTap(); settings.pickupPark = c.park; saveSettings(); startMatch(settings.pickupMode, { kind: 'pickup', diff: settings.difficulty, park: c.park }); }));
+  $('mpLegend').addEventListener('click', partyGuard(() => { playTap(); if (storyDue()) { openStory(); return; } storyCrew = crew; storyCourt = crew.court; startStory(crew); }));
+  $('mpHost').addEventListener('click', () => { playTap(); settings.pickupPark = c.park; saveSettings(); syncMenus(); $('olHost').click(); });
+}
+
+
+/* =====================================================================
+   v12.2 BUTTONS (Truss: "can you add button remapping in the settings"; SWITCH up top next to pause; the 12.1 layout
+   kept). Touch: four layouts or your own, made by dragging (anything but pause), with a size, how see-through it is,
+   and which of the four buttons does what. Keys: any key for any action. A controller (new): any button for any action,
+   the left stick moves. All of it is this phone's setting: nothing about it goes online, so older phones see no change.
+   ===================================================================== */
+var LAYOUTS = [['classic', 'CLASSIC', 'SWITCH UP TOP'], ['lefty', 'LEFT-HANDED', 'BUTTONS ON THE LEFT'], ['big', 'BIG BUTTONS', 'BIGGER TO HIT'], ['legacy', 'LEGACY', 'THE 12.1 LAYOUT'], ['custom', 'YOUR OWN', 'YOUR EDIT']];
+var LAY_KEYS = ['hit', 'dig', 'set', 'jump', 'sw', 'call', 'gb', 'joy'];   // (the order they're picked up in when they overlap: small ones first)
+var LAY_NAME = { hit: 'HIT', dig: 'DIG', set: 'SET', jump: 'JUMP', joy: 'STICK', sw: 'SWITCH', call: 'CALL BAR', gb: 'GAMEBREAKER' };
+var PAD4 = ['hit', 'dig', 'set', 'jump'];
+var KEY_ACTS = ['jump', 'dig', 'set', 'hit', 'switch', 'gb', 'replay', 'quick', 'high', 'back', 'sky', 'shoot', 'pipe'];
+var ACT_NAME = { jump: 'JUMP', dig: 'DIG', set: 'SET', hit: 'HIT / BLOCK', switch: 'SWITCH', gb: 'GAMEBREAKER', replay: 'REPLAY', quick: 'CALL QUICK', high: 'CALL HIGH', back: 'CALL BACK', sky: 'CALL SKY', shoot: 'CALL SHOOT', pipe: 'CALL PIPE', pause: 'PAUSE' };
+var KEYS_DEF = { Space: 'jump', KeyJ: 'dig', KeyK: 'set', KeyL: 'hit', KeyE: 'switch', KeyQ: 'switch', KeyG: 'gb', KeyR: 'replay', Digit1: 'quick', Digit2: 'high', Digit3: 'back', Digit4: 'sky', Digit5: 'shoot', Digit6: 'pipe' };
+// a controller's buttons (the standard layout): the four on its face match the four on the screen (top HIT, left DIG,
+// right SET, bottom JUMP); bumpers SWITCH and GAMEBREAKER; the d-pad and triggers call sets; START pauses
+var PAD_DEF = { 0: 'jump', 1: 'set', 2: 'dig', 3: 'hit', 4: 'switch', 5: 'gb', 6: 'shoot', 7: 'pipe', 8: 'replay', 9: 'pause', 12: 'high', 13: 'sky', 14: 'quick', 15: 'back' };
+var KEYS_FIXED = new Set(['Escape', 'KeyP', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Tab', 'MetaLeft', 'MetaRight']);
+var SW_W = 108, SW_H = 38, CB_W = 62, CB_H = 36, CB_GAP = 4, GB_W = 190, GB_H = 54, PZ_W = 42, PZ_H = 38;   // (their sizes in the sheet, at 100%)
+function layOk(c) {
+  if (!c || c.v !== 1 || !c.it || typeof c.it !== 'object') return false;
+  return LAY_KEYS.every((k) => { const o = c.it[k]; return o && [o.x, o.y, o.s, o.o].every((v) => typeof v === 'number' && isFinite(v)) && o.x >= 0 && o.x <= 1 && o.y >= 0 && o.y <= 1 && o.s >= 0.5 && o.s <= 1.8 && o.o >= 0.15 && o.o <= 1; });
+}
+(function cleanButtons() {   // saves from before 12.2 have none of these; a broken one goes back to the start
+  if (!LAYOUTS.some((l) => l[0] === settings.lay)) settings.lay = 'classic';
+  const okMap = (m, acts, keyOk) => !!m && typeof m === 'object' && !Array.isArray(m) && Object.keys(m).every((k) => keyOk(k) && acts.includes(m[k]));
+  if (!okMap(settings.keys, KEY_ACTS, (k) => k.length > 0 && k.length < 24 && !KEYS_FIXED.has(k))) settings.keys = Object.assign({}, KEYS_DEF);
+  if (!okMap(settings.pad, KEY_ACTS.concat('pause'), (k) => /^\d{1,2}$/.test(k))) settings.pad = Object.assign({}, PAD_DEF);
+  if (settings.layC && !layOk(settings.layC)) settings.layC = null;
+  if (settings.lay === 'custom' && !settings.layC) settings.lay = 'classic';
+})();
+
+// ---- where things sit. Everything is measured in the app's own pixels (landscape, even on an upright phone).
+function layMetrics() {   // the screen, its safe edges and the button sizes, read off a probe that uses the sheet's own numbers
+  // (made for the measuring and taken away again: left in, a full-screen layer under everything slowed the drawing)
+  const P = document.createElement('div'); P.id = 'layProbe'; P.setAttribute('aria-hidden', 'true');
+  P.innerHTML = '<i class="pa"></i><i class="pb"></i><i class="pc"></i>';
+  $('app').appendChild(P);
+  const a = P.children[0], b = P.children[1], c = P.children[2];
+  const W = VIEW.w || window.innerWidth, H = VIEW.h || window.innerHeight;
+  const M = { W, H, inL: a.offsetLeft, st: a.offsetTop, inR: W - a.offsetLeft - a.offsetWidth, inB: H - a.offsetTop - a.offsetHeight,
+    btn: b.offsetWidth || 60, jd: b.offsetHeight || 120, sr: W - c.offsetLeft - c.offsetWidth };
+  P.remove();
+  return M;
+}
+function laySize(k, o, M) {   // half its width and height
+  const s = o.s;
+  if (PAD4.includes(k)) return [M.btn * s / 2, M.btn * s / 2];
+  if (k === 'joy') return [M.jd * s / 2, M.jd * s / 2];
+  if (k === 'sw') return [SW_W * s / 2, SW_H * s / 2];
+  if (k === 'call') return [(4 * CB_W + 3 * CB_GAP) * s / 2, CB_H * s / 2];
+  return [GB_W * s / 2, GB_H * s / 2];
+}
+function layPreset(id, M) {
+  const { W, H, inL, inR, inB, st, btn, jd } = M, hudR = Math.max(16, M.sr), top = st + 8, it = {};
+  const one = (x, y, s) => ({ x, y, s: s || 1, o: 1 });
+  const P = 2.8 * btn, cbHalf = (4 * CB_W + 3 * CB_GAP) / 2;
+  const diamond = (right, bottom, s) => {   // HIT up top, DIG left, SET right, JUMP below, in a box this far in
+    const b = btn * s, Q = 2.8 * b;
+    it.hit = one(right - Q / 2, bottom - Q + b / 2, s); it.dig = one(right - Q + b / 2, bottom - Q / 2, s);
+    it.set = one(right - b / 2, bottom - Q / 2, s); it.jump = one(right - Q / 2, bottom - b / 2, s);
+  };
+  let e = 1;
+  if (id === 'lefty' || id === 'legacy') {   // 12.1's layout (SWITCH and the call bar over the buttons), or that mirrored
+    const L = id === 'lefty';
+    diamond(L ? inL + P : W - inR, H - inB, 1);
+    it.joy = one(L ? W - inR - jd / 2 : inL + jd / 2, H - inB - jd / 2);
+    it.sw = one(L ? inL + P / 2 : W - inR - P / 2, H - inB - P - 10 - SW_H / 2);
+    it.call = one(L ? inL + cbHalf : W - inR - cbHalf, H - inB - P - 54 - CB_H / 2);
+  } else {   // CLASSIC (12.2): SWITCH up top beside pause, the call bar under them; BIG: the same, bigger (as much as fits)
+    const s = id === 'big' ? clamp((H - inB - (top + PZ_H + 8 + CB_H * 1.1) - 10) / P, 1, 1.25) : 1, sj = 1 + (s - 1) * 0.6;
+    if (id === 'big') e = 1.1;
+    diamond(W - inR, H - inB, s);
+    it.joy = one(inL + jd * sj / 2, H - inB - jd * sj / 2, sj);
+    it.sw = one(W - hudR - PZ_W - 8 - SW_W * e / 2, top + PZ_H / 2, e);
+    it.call = one(W - hudR - cbHalf * e, top + PZ_H + 8 + CB_H * e / 2, e);
+  }
+  // GAMEBREAKER: bottom middle, moved clear of the buttons on a narrow screen
+  const gbHalf = GB_W * e / 2, pl = Math.min(it.dig.x, it.hit.x) - btn * it.dig.s / 2, pr = Math.max(it.set.x, it.hit.x) + btn * it.set.s / 2;
+  const gx = pl > W / 2 ? Math.min(W / 2, pl - gbHalf - 10) : Math.max(W / 2, pr + gbHalf + 10);
+  it.gb = one(gx, H - inB - 0.3 * btn - GB_H * e / 2, e);
+  return it;
+}
+var LAY = null;   // the layout in use (pixels)
+function layNow(M) {
+  M = M || layMetrics();
+  const it = layPreset(settings.lay === 'custom' ? 'classic' : settings.lay, M);
+  if (settings.lay === 'custom' && settings.layC) for (const k of LAY_KEYS) { const c = settings.layC.it[k]; if (c) it[k] = { x: c.x * M.W, y: c.y * M.H, s: c.s, o: c.o }; }
+  return it;
+}
+function layFit(it, M) {   // all of it on the screen, and none of it over pause (which stays put)
+  const pzL = M.W - Math.max(16, M.sr) - PZ_W - 6, pzB = M.st + 8 + PZ_H + 6;
+  for (const k of LAY_KEYS) {
+    const o = it[k], [hw, hh] = laySize(k, o, M);
+    o.x = clamp(o.x, hw + 4, Math.max(hw + 4, M.W - hw - 4)); o.y = clamp(o.y, hh + 4, Math.max(hh + 4, M.H - hh - 4));
+    if (o.x + hw > pzL && o.y - hh < pzB) { if (pzL - hw - 2 >= hw + 4) o.x = pzL - hw - 2; else o.y = pzB + hh + 2; }
+  }
+  return it;
+}
+var JOY = null;   // where the stick rests, and which side of the screen your thumb finds it on
+function joyHome() {
+  if (!JOY) { joy.style.left = joy.style.top = joy.style.bottom = ''; return; }
+  joy.style.left = (JOY.x - JOY.r) + 'px'; joy.style.top = (JOY.y - JOY.r) + 'px'; joy.style.bottom = 'auto';
+}
+function setAnchor(el, x, y, ax) { if (!el) return; el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.setProperty('--ax', ax); }
+function layStyle(it, M) {
+  const put = (el, o) => { const S = el.style; S.left = o.x + 'px'; S.top = o.y + 'px'; S.setProperty('--s', o.s.toFixed(3)); S.setProperty('--o', o.o.toFixed(2)); };
+  for (const k of PAD4) put(btnEls[k], it[k]);
+  put(swBtn, it.sw); put(gbBtn, it.gb);
+  const c = it.call, ax = c.x > M.W / 2 ? 1 : 0, half = (4 * CB_W + 3 * CB_GAP) * c.s / 2;   // (it grows inward from its outer end: SHOOT and PIPE join some games)
+  put(callBar, { x: c.x + (ax ? half : -half), y: c.y, s: c.s, o: c.o }); callBar.style.setProperty('--ax', ax);
+  const j = it.joy;
+  joy.style.setProperty('--s', j.s.toFixed(3)); joy.style.setProperty('--o', j.o.toFixed(2));
+  JOY = { side: j.x > M.W / 2 ? 'R' : 'L', x: j.x, y: j.y, r: M.jd * j.s / 2 };
+  if (joyId === null) joyHome();
+  const Z = zone.style;
+  Z.top = Math.max(0, Math.min(M.H * 0.24, j.y - JOY.r - 24)) + 'px'; Z.width = '46%';
+  if (JOY.side === 'R') { Z.left = 'auto'; Z.right = '0'; } else { Z.left = '0'; Z.right = 'auto'; }
+  // what to press now, and the dog's tricks: just above the buttons, on their outer side (beside SWITCH if it's there)
+  const half4 = (k) => M.btn * it[k].s / 2;
+  const pl = Math.min(...PAD4.map((k) => it[k].x - half4(k))), pr = Math.max(...PAD4.map((k) => it[k].x + half4(k))), pt = Math.min(...PAD4.map((k) => it[k].y - half4(k)));
+  const right = (pl + pr) / 2 > M.W / 2, sw = it.sw, [sw2, sh2] = laySize('sw', sw, M);
+  let px = right ? pr : pl;
+  if (Math.abs(sw.y - (pt - 24)) < sh2 + 14 && sw.x + sw2 > pl - 10 && sw.x - sw2 < pr + 10) px = right ? sw.x - sw2 - 8 : sw.x + sw2 + 8;
+  if (!right && JOY.side === 'R') setAnchor($('prompt'), j.x + JOY.r, j.y - JOY.r - 10, 1);   // (buttons on the left: the words go over the stick on the right, clear of Chai T's board)
+  else setAnchor($('prompt'), px, pt - 10, right ? 1 : 0);
+  setAnchor($('dogBar'), right ? pr : pl, pt - 12, right ? 1 : 0);
+}
+function applyLayout() {
+  if (!ED || !$('app') || !(VIEW.w > 0)) return;
+  const M = layMetrics(), it = ED.on ? ED.it : layNow(M);
+  layFit(it, M); layStyle(it, M);
+  LAY = it;
+}
+
+// ---- EDIT LAYOUT: drag anything but pause; tap one for its size, how see-through it is and (the four) what it does
+var ED = { on: false, it: null, sel: null, drag: null };
+const edEls = () => ({ hit: btnEls.hit, dig: btnEls.dig, set: btnEls.set, jump: btnEls.jump, sw: swBtn, call: callBar, gb: gbBtn, joy });
+function editLayout() {
+  const M = layMetrics(), cur = layFit(layNow(M), M);
+  ED.it = {}; for (const k of LAY_KEYS) ED.it[k] = Object.assign({}, cur[k]);
+  ED.sel = null; ED.drag = null; ED.on = true; KEYWAIT = PADWAIT = null;
+  edBuild(); $('layEdit').hidden = false;
+  $('app').classList.add('editing');
+  applyLayout(); edDraw();
+}
+function edClose(save) {
+  if (!ED.on) return;
+  if (save) {
+    const M = layMetrics(), C = { v: 1, it: {} };
+    for (const k of LAY_KEYS) { const o = ED.it[k]; C.it[k] = { x: +clamp(o.x / M.W, 0, 1).toFixed(4), y: +clamp(o.y / M.H, 0, 1).toFixed(4), s: +o.s.toFixed(2), o: +o.o.toFixed(2) }; }
+    settings.layC = C; settings.lay = 'custom'; saveSettings();
+  }
+  ED.on = false; ED.drag = null; ED.sel = null;
+  const L = $('layEdit'); if (L) L.hidden = true;
+  $('app').classList.remove('editing');
+  for (const el of Object.values(edEls())) el.classList.remove('edsel');
+  applyLayout(); renderButtons();
+}
+function edHit(cx, cy) {   // which piece is under a finger (screen points: works the same on an upright phone)
+  const els = edEls();
+  for (const k of LAY_KEYS) {
+    const r = els[k].getBoundingClientRect();
+    if (r.width > 0 && cx >= r.left - 6 && cx <= r.right + 6 && cy >= r.top - 6 && cy <= r.bottom + 6) return k;
+  }
+  return null;
+}
+function edBuild() {
+  if ($('layEdit')) return;
+  const L = document.createElement('div'); L.id = 'layEdit'; L.hidden = true;
+  L.innerHTML = '<div class="edbar"><div class="edt"><b>EDIT LAYOUT</b><small>DRAG TO MOVE · TAP TO CHANGE<br>PAUSE STAYS PUT</small></div>'
+    + '<button type="button" id="edAll">ALL</button><button type="button" id="edReset">RESET</button><button type="button" id="edCancel">CANCEL</button><button type="button" class="go" id="edDone">SAVE</button></div>'
+    + '<div class="edpop" id="edPop" hidden></div>';
+  $('app').appendChild(L);
+  L.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button, .edpop')) return;
+    e.preventDefault();
+    const k = edHit(e.clientX, e.clientY);
+    if (!k) { ED.sel = null; edDraw(); return; }
+    const p = appPoint(e.clientX, e.clientY), o = ED.it[k];
+    ED.sel = k; ED.drag = { k, id: e.pointerId, x0: p.x, y0: p.y, ox: o.x, oy: o.y, moved: false };
+    try { L.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+    edDraw();
+  });
+  L.addEventListener('pointermove', (e) => {
+    const d = ED.drag;
+    if (!d || e.pointerId !== d.id) return;
+    const p = appPoint(e.clientX, e.clientY), dx = p.x - d.x0, dy = p.y - d.y0;
+    if (!d.moved && Math.hypot(dx, dy) < 5) return;
+    if (!d.moved) { d.moved = true; $('edPop').hidden = true; }
+    const o = ED.it[d.k]; o.x = d.ox + dx; o.y = d.oy + dy;
+    applyLayout();
+  });
+  const up = (e) => { const d = ED.drag; if (!d || e.pointerId !== d.id) return; ED.drag = null; applyLayout(); edDraw(); };
+  ['pointerup', 'pointercancel'].forEach((ev) => L.addEventListener(ev, up));
+  $('edAll').addEventListener('click', () => { playTap(); ED.sel = ED.sel === 'all' ? null : 'all'; edDraw(); });
+  $('edReset').addEventListener('click', () => { playTap(); const M = layMetrics(), P = layPreset('classic', M); for (const k of LAY_KEYS) ED.it[k] = P[k]; ED.sel = null; applyLayout(); edDraw(); });
+  $('edCancel').addEventListener('click', () => { playTap(); edClose(false); });
+  $('edDone').addEventListener('click', () => { playTap(); edClose(true); });
+  $('edPop').addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b || !ED.sel) return;
+    playTap();
+    const keys = ED.sel === 'all' ? LAY_KEYS : [ED.sel];
+    if (b.dataset.d) {   // bigger / smaller, more / less see-through
+      const sgn = b.dataset.d[1] === '+' ? 1 : -1;
+      for (const k of keys) { const o = ED.it[k]; if (b.dataset.d[0] === 's') o.s = clamp(Math.round(o.s * 10 + sgn) / 10, 0.6, 1.6); else o.o = clamp(Math.round(o.o * 10 - sgn) / 10, 0.2, 1); }
+    } else if (b.dataset.a && PAD4.includes(ED.sel) && b.dataset.a !== ED.sel) {   // this spot does that now: the two swap spots (and sizes)
+      const a = b.dataset.a, t = ED.it[a]; ED.it[a] = ED.it[ED.sel]; ED.it[ED.sel] = t; ED.sel = a;
+    }
+    applyLayout(); edDraw();
+  });
+}
+function edDraw() {
+  const els = edEls();
+  for (const k of LAY_KEYS) els[k].classList.toggle('edsel', ED.sel === k || ED.sel === 'all');
+  $('edAll').classList.toggle('on', ED.sel === 'all');
+  const pop = $('edPop');
+  if (!ED.sel) { pop.hidden = true; return; }
+  const o = ED.it[ED.sel === 'all' ? 'hit' : ED.sel];
+  pop.innerHTML = '<b>' + (ED.sel === 'all' ? 'EVERYTHING' : LAY_NAME[ED.sel]) + '</b>'
+    + '<div class="edr"><span>SIZE</span><button type="button" data-d="s-" aria-label="Smaller">−</button><output>' + Math.round(o.s * 100) + '%</output><button type="button" data-d="s+" aria-label="Bigger">+</button></div>'
+    + '<div class="edr"><span>SEE-THROUGH</span><button type="button" data-d="o-" aria-label="Less see-through">−</button><output>' + Math.round((1 - o.o) * 100) + '%</output><button type="button" data-d="o+" aria-label="More see-through">+</button></div>'
+    + (PAD4.includes(ED.sel) ? '<div class="edr does"><span>THIS BUTTON DOES</span>' + PAD4.map((a) => '<button type="button" data-a="' + a + '"' + (a === ED.sel ? ' class="on"' : '') + '>' + LAY_NAME[a] + '</button>').join('') + '</div>' : '');
+  pop.hidden = false;
+  edPlace();
+}
+function edPlace() {   // the little panel goes beside what you picked, where it covers the least
+  const pop = $('edPop'), M = layMetrics(), pw = pop.offsetWidth || 262, ph = pop.offsetHeight || 130, bar = $('layEdit').querySelector('.edbar');
+  const boxes = LAY_KEYS.map((k) => { const o = ED.it[k], [hw, hh] = laySize(k, o, M); return [o.x - hw - 8, o.y - hh - 8, o.x + hw + 8, o.y + hh + 8]; });
+  boxes.push([bar.offsetLeft, bar.offsetTop, bar.offsetLeft + bar.offsetWidth, bar.offsetTop + bar.offsetHeight + 6]);
+  boxes.push([M.W - Math.max(16, M.sr) - PZ_W - 8, 0, M.W, M.st + 8 + PZ_H + 8]);
+  const c = [], sel = ED.sel !== 'all' ? ED.it[ED.sel] : null;
+  if (sel) { const [hw, hh] = laySize(ED.sel, sel, M); c.push([sel.x - hw - 18 - pw, sel.y - ph / 2], [sel.x + hw + 18, sel.y - ph / 2], [sel.x - pw / 2, sel.y - hh - 18 - ph], [sel.x - pw / 2, sel.y + hh + 18]); }
+  c.push([M.W / 2 - pw / 2, M.H * 0.45 - ph / 2], [M.W / 2 - pw / 2, M.H * 0.2], [M.W * 0.3 - pw / 2, M.H / 2 - ph / 2], [M.W * 0.7 - pw / 2, M.H / 2 - ph / 2], [M.W / 2 - pw / 2, M.H - ph - 10]);
+  let best = c[0], bestA = Infinity;
+  for (let [x, y] of c) {
+    x = clamp(x, 8, Math.max(8, M.W - pw - 8)); y = clamp(y, 8, Math.max(8, M.H - ph - 8));
+    let a = 0;
+    for (const b of boxes) a += Math.max(0, Math.min(x + pw, b[2]) - Math.max(x, b[0])) * Math.max(0, Math.min(y + ph, b[3]) - Math.max(y, b[1]));
+    if (a < bestA - 1) { bestA = a; best = [x, y]; }
+  }
+  pop.style.left = best[0] + 'px'; pop.style.top = best[1] + 'px';
+}
+
+// ---- keys and controller buttons, in a match
+const keyAct = (code) => (settings.keys && settings.keys[code]) || null;
+const GBT = { k: 0, p: 0 };   // GAMEBREAKER from a key or a controller: let go within 0.6 s fires it, hold longer pockets it
+function actDown(a, src) {
+  if (btnEls[a]) press(a);
+  else if (a === 'switch') input.edge.switchDown = true;
+  else if (a === 'gb') GBT[src || 'k'] = performance.now();
+  else if (a === 'replay') playMyReplay();
+  else if (CALL_TYPES.includes(a)) pressCall(a);
+}
+function actUp(a, src) {
+  if (btnEls[a]) release(a);
+  else if (a === 'gb') { const t = GBT[src || 'k']; if (t) { if (performance.now() - t > 600) input.edge.gbPocket = true; else input.edge.gbTap = true; GBT[src || 'k'] = 0; } }
+}
+// ---- a controller (the Gamepad API: a Bluetooth controller on a phone or tablet, any controller on a computer).
+// A browser only shows one after a button on it is pressed with the page open.
+var PAD = { on: false, id: '', ps: false, prev: [], used: 0, blocked: false };
+var KEYWAIT = null, PADWAIT = null;   // an action waiting for its new key / button (SETTINGS > BUTTONS)
+function padRead() {
+  if (PAD.blocked) return null;
+  try { const L = navigator.getGamepads ? navigator.getGamepads() : null; if (L) for (const p of L) if (p && p.connected !== false && p.buttons && p.buttons.length) return p; }
+  catch (_) { PAD.blocked = true; }   // (a page inside another site may not be allowed controllers: stop asking)
+  return null;
+}
+function padTick() {
+  const gp = padRead();
+  if (!gp) { if (PAD.on) { PAD.on = false; PAD.prev = []; input.pjx = input.pjy = 0; releaseAll(); $('app').classList.remove('padon'); padStatus(); } return; }
+  if (!PAD.on || PAD.id !== gp.id) { PAD.on = true; PAD.id = gp.id; PAD.ps = /054c|playstation|dualshock|dualsense/i.test(gp.id); PAD.prev = []; padStatus(); }
+  const B = gp.buttons, n = Math.min(B.length, 20), now = [];
+  for (let i = 0; i < n; i++) { const b = B[i]; now[i] = !!b && (b.pressed || b.value > 0.5); }
+  const was = PAD.prev; PAD.prev = now;
+  if (PADWAIT) {   // the next button pressed is the new one
+    if (G.panel !== 'buttonsPanel') PADWAIT = null;
+    else for (let i = 0; i < n; i++) if (now[i] && !was[i]) { padAssign(i); break; }
+    input.pjx = input.pjy = 0;
+    return;
+  }
+  const ax = gp.axes || [], sx = Math.abs(ax[0] || 0) > 0.22 ? ax[0] : 0, sy = Math.abs(ax[1] || 0) > 0.22 ? ax[1] : 0;
+  if (sx || sy || now.some(Boolean)) { PAD.used = performance.now(); if (!G.demo) $('app').classList.add('padon'); }
+  for (let i = 0; i < n; i++) {
+    if (now[i] && !was[i]) padDown(settings.pad[i], i);
+    else if (!now[i] && was[i] && settings.pad[i]) actUp(settings.pad[i], 'p');
+  }
+  const live = !G.demo && G.phase !== 'over' && !G.paused && !G.scene && !G.replay;
+  input.pjx = live ? sx : 0; input.pjy = live ? sy : 0;
+}
+function padDown(a, i) {
+  if (G.scene) { if (i === 0 || a === 'pause') sceneNext(); return; }
+  if (!$('confirm').hidden) return;
+  if (G.cut && !$('gbSkip').hidden && (i === 0 || a === 'pause')) { cutSkip(); return; }
+  if (G.replay) { endReplay(); return; }
+  if (a === 'pause') {
+    if (G.demo || G.phase === 'over') return;
+    if (G.panel && G.panel !== 'pause') closePanel(); else togglePause();
+    return;
+  }
+  if (!a || G.demo || G.phase === 'over' || G.paused) return;
+  actDown(a, 'p');
+}
+document.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') $('app').classList.remove('padon'); }, true);
+// the key you press next is the new one (Esc: never mind)
+window.addEventListener('keydown', (e) => {
+  if (!KEYWAIT) return;
+  if (G.panel !== 'buttonsPanel') { KEYWAIT = null; return; }
+  e.preventDefault(); e.stopImmediatePropagation();
+  if (e.repeat) return;
+  const a = KEYWAIT;
+  if (e.code === 'Escape' || !e.code) { KEYWAIT = null; renderMapLists(); return; }
+  if (KEYS_FIXED.has(e.code)) { renderMapLists(e.code); return; }
+  const K = settings.keys, old = Object.keys(K).find((c) => K[c] === a), other = K[e.code];
+  for (const c of Object.keys(K)) if (K[c] === a) delete K[c];
+  if (other && other !== a && old && old !== e.code) K[old] = other;   // (the key's last action takes your old key: a swap)
+  K[e.code] = a; KEYWAIT = null; saveSettings(); renderMapLists();
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();   // (so SPACE or a letter doesn't also press a button)
+}, true);
+function padAssign(i) {
+  const a = PADWAIT, P = settings.pad, old = Object.keys(P).find((b) => P[b] === a), other = P[i];
+  for (const b of Object.keys(P)) if (P[b] === a) delete P[b];
+  if (other && other !== a && old != null && +old !== i) P[old] = other;
+  P[i] = a; PADWAIT = null; saveSettings(); renderMapLists();
+}
+
+// ---- SETTINGS > BUTTONS
+function keyName(code) {
+  if (!code) return '—';
+  if (/^Key[A-Z]$/.test(code)) return code.slice(3);
+  if (/^Digit\d$/.test(code)) return code.slice(5);
+  if (/^Numpad/.test(code)) return 'NUM ' + code.slice(6).toUpperCase();
+  const N = { Space: 'SPACE', ShiftLeft: 'L SHIFT', ShiftRight: 'R SHIFT', ControlLeft: 'L CTRL', ControlRight: 'R CTRL', AltLeft: 'L ALT', AltRight: 'R ALT', Backspace: 'BACKSPACE', CapsLock: 'CAPS',
+    Semicolon: ';', Quote: '\'', Comma: ',', Period: '.', Slash: '/', Backslash: '\\', BracketLeft: '[', BracketRight: ']', Minus: '-', Equal: '=', Backquote: '`', Escape: 'ESC' };
+  return N[code] || code.replace(/([a-z])([A-Z0-9])/g, '$1 $2').toUpperCase();
+}
+var PAD_XBOX = ['A', 'B', 'X', 'Y', 'LB', 'RB', 'LT', 'RT', 'VIEW', 'MENU', 'L STICK', 'R STICK', 'D-UP', 'D-DOWN', 'D-LEFT', 'D-RIGHT', 'HOME'];
+var PAD_PS = ['✕', '○', '□', '△', 'L1', 'R1', 'L2', 'R2', 'CREATE', 'OPTIONS', 'L3', 'R3', 'D-UP', 'D-DOWN', 'D-LEFT', 'D-RIGHT', 'PS'];
+const padName = (i) => (PAD.ps ? PAD_PS : PAD_XBOX)[i] || 'BUTTON ' + i;
+function padStatus() {
+  const el = $('padState');
+  if (el) { el.textContent = PAD.on ? 'CONNECTED · ' + (PAD.id.split(' (')[0] || 'CONTROLLER').toUpperCase().slice(0, 34) : 'NONE YET · PRESS A BUTTON ON YOURS'; el.classList.toggle('on', PAD.on); }
+  if (G.panel === 'buttonsPanel') renderMapLists();
+}
+function renderMapLists(badKey) {
+  const kl = $('keyList'), pl = $('padList');
+  if (!kl || !pl) return;
+  const row = (a, label, keys, wait, list, flag) => {
+    const b = document.createElement('button'); b.type = 'button'; b.dataset.a = a;
+    if (wait) b.classList.add('wait');
+    if (flag) b.classList.add('bad');
+    const s = document.createElement('span'); s.textContent = label;
+    const k = document.createElement('kbd'); k.textContent = wait ? (flag ? 'THAT ONE\'S FIXED' : list === kl ? 'PRESS A KEY' : 'PRESS A BUTTON') : keys;
+    b.append(s, k); list.append(b);
+  };
+  kl.textContent = ''; pl.textContent = '';
+  for (const a of KEY_ACTS) row(a, ACT_NAME[a], Object.keys(settings.keys).filter((c) => settings.keys[c] === a).map(keyName).join(' / ') || '—', KEYWAIT === a, kl, KEYWAIT === a && !!badKey);
+  for (const a of KEY_ACTS.concat('pause')) row(a, ACT_NAME[a], Object.keys(settings.pad).filter((i) => settings.pad[i] === a).map((i) => padName(+i)).join(' / ') || '—', PADWAIT === a, pl, false);
+}
+function renderButtons() {
+  const C = $('btnsCard');
+  if (!C) return;
+  KEYWAIT = PADWAIT = null;
+  const hasC = !!settings.layC;
+  C.innerHTML = '<h2 class="h2">BUTTONS</h2>'
+    + '<div class="bsec"><div class="bhead"><b>TOUCH</b><small>WHERE THE BUTTONS SIT · PAUSE STAYS TOP RIGHT</small></div>'
+    + '<div class="lyrow" id="layRow"></div>'
+    + '<div class="row left"><button type="button" class="big alt" id="btnEditLay">EDIT LAYOUT</button></div></div>'
+    + '<div class="bsec"><div class="bhead"><b>CONTROLLER</b><small class="padstate" id="padState"></small><button type="button" class="chip" id="btnPadReset">RESET</button></div>'
+    + '<div class="maplist" id="padList"></div><p class="sub small left">THE LEFT STICK MOVES. TAP ONE, THEN PRESS A BUTTON ON THE CONTROLLER.</p></div>'
+    + '<div class="bsec"><div class="bhead"><b>KEYBOARD</b><small>TAP ONE, THEN PRESS A KEY · MOVE: WASD OR ARROWS · PAUSE: ESC OR P</small><button type="button" class="chip" id="btnKeysReset">RESET</button></div>'
+    + '<div class="maplist" id="keyList"></div></div>'
+    + '<div class="row"><button class="tabdone big" id="buttonsDone" type="button">DONE</button></div>';
+  const row = $('layRow');
+  for (const [id, nm, sub] of LAYOUTS) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'lypick'; b.dataset.lay = id;
+    b.setAttribute('aria-pressed', String(settings.lay === id));
+    b.disabled = id === 'custom' && !hasC;
+    b.append(nm); const s = document.createElement('small'); s.textContent = id === 'custom' && !hasC ? 'MAKE ONE: EDIT LAYOUT' : sub; b.append(s);
+    b.addEventListener('click', () => { playTap(); settings.lay = id; saveSettings(); applyLayout(); renderButtons(); });
+    row.append(b);
+  }
+  $('btnEditLay').addEventListener('click', () => { playTap(); editLayout(); });
+  $('btnKeysReset').addEventListener('click', () => { playTap(); settings.keys = Object.assign({}, KEYS_DEF); KEYWAIT = null; saveSettings(); renderMapLists(); });
+  $('btnPadReset').addEventListener('click', () => { playTap(); settings.pad = Object.assign({}, PAD_DEF); PADWAIT = null; saveSettings(); renderMapLists(); });
+  $('keyList').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; playTap(); PADWAIT = null; KEYWAIT = KEYWAIT === b.dataset.a ? null : b.dataset.a; renderMapLists(); });
+  $('padList').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; playTap(); KEYWAIT = null; PADWAIT = PADWAIT === b.dataset.a ? null : b.dataset.a; renderMapLists(); });
+  $('buttonsDone').addEventListener('click', () => { playTap(); closePanel(); });
+  padStatus(); renderMapLists();
+}
+
+// the touch count: three marks in the meter's box (yours white, theirs grey)
+function syncPips(n, mine) {
+  const key = n + (mine ? 'm' : 't');
+  if (hudCache.pips === key) return;
+  hudCache.pips = key;
+  const el = $('tPips');
+  if (!el) return;
+  el.hidden = n < 0; el.classList.toggle('their', !mine);
+  el.querySelectorAll('i').forEach((d, i) => d.classList.toggle('on', i < n));
+}
+// SETTINGS in a match (no tabs there): BUTTONS from a row of its own
+if ($('btnsGo')) $('btnsGo').addEventListener('click', () => { playTap(); openPanel('buttonsPanel'); });
+// HOW TO PLAY shows your keys
+function syncHowKeys() {
+  const of = (a) => Object.keys(settings.keys).filter((c) => settings.keys[c] === a).map(keyName);
+  document.querySelectorAll('#howPanel kbd[data-k]').forEach((k) => {
+    const a = k.dataset.k;
+    k.textContent = a === 'calls' ? ['quick', 'high', 'back', 'sky'].map((c) => of(c)[0] || '—').join(' ') : of(a).join(' / ') || '—';
+  });
+}
+
 let lastWon = false;
 onTap($('btnAgain'), () => {   // (a thumb's often still down when a match ends)
   const M = G.match || {};
@@ -14903,6 +16091,7 @@ function layout() {
   camera.aspect = VIEW.w / VIEW.h;
   camera.fov = settings.camera === 'broadcast' && !G.demo ? (camera.aspect < 1 ? 62 : 46) : camera.aspect < 0.8 ? 70 : camera.aspect < 1.3 ? 62 : 55;
   camera.updateProjectionMatrix();
+  applyLayout();   // (v12.2: the buttons, where your layout puts them on this screen)
 }
 window.addEventListener('resize', layout);
 window.addEventListener('orientationchange', () => setTimeout(layout, 120));
@@ -14987,6 +16176,7 @@ function frame(now) {
     palPump(dt);
     if (WATCH.room || G.spectate) watchPump(dt);
     if (G.countdown) updateCountdown();
+    padTick();   // (v12.2: a controller)
     if (!G.paused && G.phase !== 'over' && !G.replay && (!G.showcase || G.demo) && !(G.scene && !G.scene.live)) {
       if (hitStop > 0) { hitStop -= dt; acc = 0; }
       else {
@@ -17363,6 +18553,7 @@ function dogStep() {
   d.state = d.rag ? 'rag' : d.busy || (d.y > 0.02 ? 'jump' : d.sit ? 'sit' : hs > 4.8 ? 'run' : hs > 0.3 ? 'walk' : 'stand');
 }
 function syncDogControls(on) {
+  $('controls').classList.toggle('dog', !!on);   // (v12.2: SPRINT, SIT, FETCH: no volleyball icons)
   $('bSwitch').hidden = on; $('dogBar').hidden = !on;
   if (on) {
     $('bHit').textContent = 'SPRINT'; $('bDig').textContent = 'SIT'; $('bSet').textContent = 'FETCH'; $('bJump').textContent = 'JUMP';
@@ -19435,6 +20626,7 @@ window.__grass = {
   hotdogRain, knockDownBy, goatReset, get goatM() { return goatM; }, hotdogNear, digHeight, PASS_H, sendDump, chooseType,
   get SURF() { return SURF; }, SURFACES, setSurface, courtMesh, apronMesh, COURT, courtStart, courtStage, courtStageCheck, parkLook, ROOF_Y,   // (v11)
   FX2, fxKick, fxFlash,   // (v12.1)
+  LAYOUTS, applyLayout, layNow, layMetrics, layPreset, layFit, editLayout, edClose, renderButtons, keyAct, actDown, actUp, padTick, padRead, KEYS_DEF, PAD_DEF, syncPips, get LAY() { return LAY; }, get PAD() { return PAD; }, get ED() { return ED; }, gameOver,   // (v12.2)
   renderRaw() { sky.position.copy(camera.position); renderer.render(scene, camera); },
   info: () => Object.assign({}, renderer.info.render, { geometries: renderer.info.memory.geometries, programs: renderer.info.programs.length }),
 };
