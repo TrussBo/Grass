@@ -1535,6 +1535,19 @@ button:focus-visible, input:focus-visible { outline: 2px solid #fff; outline-off
 #btnsRow .chip { white-space: nowrap; }
 #app.mdt #btnsRow { display: none; }
 @media (max-height: 360px) { .card.buttons { gap: 8px; } .maplist button { padding: 4px 9px; } }
+/* v12.3: the Level 2 bar (a Gamebreaker in your pocket) and the GAMEBREAKER 2 button */
+.meter.lv2 .meter-bar i { background: linear-gradient(90deg, #3f7bff, #b45cff); box-shadow: 0 0 8px rgba(150, 110, 255, 0.75); }
+.meter.lv2.full .meter-bar i { background: linear-gradient(90deg, #b45cff, #ff4df0); }
+.meter.lv2 #meterLabel { color: #d6c6ff; }
+.meter.lv2.full #meterLabel { color: #fff; }
+#bGB.lv2 { background: linear-gradient(100deg, #7a5cff, #ff4df0); color: #fff; box-shadow: 0 6px 18px rgba(170, 80, 255, 0.45); }
+#bGB.lv2 i { background: #fff; }
+/* v12.3: HOW TO PLAY's air combos heading */
+.keys .khead { margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.18); color: #fff; font-style: normal; }
+.keys dd.khead { color: #9fb0c9; font-size: 0.9em; }
+/* v12.3: LOOK's celebration moments */
+.seg.celfor { margin-bottom: 6px; }
+.seg.celfor button { font-size: 13px; padding: 6px 10px; }
 </style>
 </head>
 <body>
@@ -1729,17 +1742,24 @@ button:focus-visible, input:focus-visible { outline: 2px solid #fff; outline-off
         <dt>MOVE</dt><dd>Put your thumb down anywhere on the stick's side of the screen: the stick follows it <kbd>WASD</kbd></dd>
         <dt>JUMP</dt><dd>Tap to hop, hold to go higher. Steer in the air <kbd data-k="jump">Space</kbd></dd>
         <dt>HIT</dt><dd>Swings when you press; keep holding and it fires as the ball arrives. Stick aims, pull back to tip <kbd data-k="hit">L</kbd></dd>
-        <dt>BLOCK</dt><dd>On defense HIT turns into BLOCK. Tap it at the net as they swing <kbd data-k="hit">L</kbd></dd>
+        <dt>BLOCK</dt><dd>On defense HIT turns into BLOCK. Press it at the net as they swing; hold it to reach higher. At the top of your jump is best <kbd data-k="hit">L</kbd></dd>
         <dt>DIG</dt><dd>Pass. Hold it while you run. Double-tap to dive the way you're pushing <kbd data-k="dig">J</kbd></dd>
         <dt>SET</dt><dd>Hold as it drops. Stick: side, up quick, down sky <kbd data-k="set">K</kbd></dd>
         <dt>CALL</dt><dd>Tap QUICK, HIGH, BACK or SKY on the call bar for the set you want <kbd data-k="calls">1-4</kbd></dd>
         <dt>SERVE</dt><dd>Back up, hold TOSS or HIGH TOSS, run in, jump before the line, HIT</dd>
         <dt>SWITCH</dt><dd>Take over a teammate. Auto-switch (Settings) can do it for you <kbd data-k="switch">E</kbd></dd>
-        <dt>GAMEBREAKER</dt><dd>When the meter is full: tap to fire, hold to pocket <kbd data-k="gb">G</kbd></dd>
+        <dt>GAMEBREAKER</dt><dd>When the meter is full: tap to fire, hold to pocket it. Pocketed, the meter fills again as LEVEL 2: full, it's GAMEBREAKER 2 <kbd data-k="gb">G</kbd></dd>
         <dt>REPLAY</dt><dd>After your big play, tap REPLAY to watch it again <kbd data-k="replay">R</kbd></dd>
         <dt>WATCHING</dt><dd>A friend's game, as your dog: the stick runs, hold SPRINT, tap SIT, FETCH or JUMP</dd>
         <dt>PAUSE</dt><dd>Top right. QUIT is in there (it leaves the match and full screen) <kbd>Esc</kbd></dd>
         <dt>BUTTONS</dt><dd>Move them, size them, swap what they do, or pick a layout: SETTINGS, BUTTONS. A controller works too</dd>
+        <dt class="khead">AIR COMBOS</dt><dd class="khead">In the air, for everyone</dd>
+        <dt>HANG TIME</dt><dd>JUMP, then JUMP again on the way up: hang at the top while their block comes down</dd>
+        <dt>DOUBLE CLUTCH</dt><dd>SET, then HIT: show them a set, then swing. A block that bites goes up early</dd>
+        <dt>FAKE SPIKE</dt><dd>HIT + DIG together: the full swing, then a soft roll shot over the block, deep</dd>
+        <dt>AIR STEP</dt><dd>Flick the stick left or right + JUMP: a quick step sideways, round their block (or over to the hitter)</dd>
+        <dt>REACH OVER</dt><dd>Blocking, HIT again: your hands press over the net. More roofs, less width</dd>
+        <dt>SOFT BLOCK</dt><dd>Blocking, SET + DIG together: it comes off soft, a slow lob up to your team</dd>
       </dl>
       <div class="row"><button class="tabdone big" id="howDone" type="button">DONE</button></div>
     </div>
@@ -1801,7 +1821,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid #fff; outline-off
             <div class="hrow"><div class="stepper"><button type="button" id="htDown" aria-label="Shorter">−</button><output id="pHeight">6'2"</output><button type="button" id="htUp" aria-label="Taller">+</button></div><span class="hint" id="htHint"></span></div>
           </div>
           <div class="field wide"><span class="lbl">BUILD</span><div class="chipset" data-chips="build"></div><span class="hint" id="buildHint"></span></div>
-          <div class="field wide"><span class="lbl">CELEBRATION <small>after your kills, aces and blocks</small></span><div class="chipset" data-chips="celebrate"></div></div>
+          <div class="field wide"><span class="lbl">CELEBRATIONS <small>one for each moment: pick the moment, then the move</small></span><div class="seg celfor" id="celebFor" role="tablist" aria-label="Celebration moments"><button type="button" data-m="kill">KILL</button><button type="button" data-m="ace">ACE</button><button type="button" data-m="block">BLOCK</button><button type="button" data-m="win">MATCH WIN</button></div><div class="chipset" data-chips="celebrate"></div></div>
           <div class="field wide"><span class="lbl">WAITING <small>while you wait for the serve</small></span><div class="chipset" data-chips="idle"></div></div>
         </div>
       </div>
@@ -2057,7 +2077,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid #fff; outline-off
 (() => {
 'use strict';
 // The version: shown in SETTINGS and on the cover of the guide book. Raise it with every update, then rebuild the guide.
-const VERSION = '12.2';
+const VERSION = '12.3';
 const $ = (id) => document.getElementById(id);
 const errBox = $('err');
 function showError(msg) { errBox.textContent = msg; errBox.hidden = false; }
@@ -2100,6 +2120,11 @@ const SLEEVES = ['none', 'one', 'both'];
 const BUILDS = ['slim', 'athletic', 'strong'];
 const CELEBRATIONS = ['flex', 'point', 'roof', 'spin', 'fist', 'guitar', 'bow', 'shimmy', 'pushups',   // v9: five more (add new ones at the end)
   'dab', 'lap', 'moonwalk'];   // v11: Nick's dab, Chrome's victory lap, Sky-Kai's moonwalk
+// v12.3: a celebration for each moment (KILL is `celebrate`, the one older phones know); G.celebM says which it is
+const CELEB_MOMENTS = ['', 'kill', 'ace', 'block', 'win'];
+const CELEB_FIELD = { kill: 'celebrate', ace: 'celAce', block: 'celBlock', win: 'celWin' };
+const CELEB_FIT = { ace: ['point', 'dab', 'roof', 'guitar', 'spin', 'fist', 'flex'], block: ['flex', 'pushups', 'roof', 'shimmy', 'fist'], win: ['lap', 'moonwalk', 'bow', 'spin', 'guitar', 'roof', 'fist', 'flex'] };
+var celebFor = 'kill';   // (the moment LOOK is showing)
 // v11: chains round your neck, earbuds, and what you do while you wait for the serve
 const CHAINS = ['none', 'gold', 'chrome'];
 const EARS = ['none', 'earbuds', 'pods', 'phones'];   // v11.1: wireless earbuds, headphones
@@ -2145,6 +2170,7 @@ const DEFAULT_LOOK = {
   chain: 'none', ears: 'none', idle: 'mix',   // v11
   hoodUp: false, hatCol: -1, earCol: 0, chainCol: 0, trimCol: -1,   // v11.1
   shirtCol: -1,   // v11.1.1: your shirt's colour (-1: your team's)
+  celAce: '', celBlock: '', celWin: '',   // v12.3: your ACE, BLOCK and MATCH WIN celebrations ('': one that fits, from yours)
 };
 function cleanLook(src) {
   const L = Object.assign({}, DEFAULT_LOOK, src && typeof src === 'object' ? src : {});
@@ -2167,6 +2193,7 @@ function cleanLook(src) {
   L.hoodUp = L.hoodUp === true; L.hatCol = cx(L.hatCol, -1, ITEM_COLORS.length); L.earCol = cx(L.earCol, 0, ITEM_COLORS.length);
   L.chainCol = cx(L.chainCol, 0, METAL_COLORS.length); L.trimCol = cx(L.trimCol, -1, ITEM_COLORS.length);
   L.shirtCol = cx(L.shirtCol, -1, ITEM_COLORS.length);   // (v11.1.1)
+  for (const k of ['celAce', 'celBlock', 'celWin']) L[k] = CELEBRATIONS.includes(L[k]) ? L[k] : '';   // (v12.3)
   L.height = clamp(Math.round(Number(L.height) || 0), -2, 3);   // (3: Sky-Kai, the tallest there is; the creator stops at 2)
   L.knees = L.knees === true; L.bands = L.bands !== false;
   L.name = String(L.name || 'YOU').toUpperCase().replace(/[^A-Z0-9 .'-]/g, '').slice(0, 10).trim() || 'YOU';
@@ -2843,7 +2870,7 @@ function touchQ(d, reach, p) {
   const sweet = REACH.human.sweet * up(p, 'control', 0.8);
   return clamp(1 - 0.85 * down(p, 'control', 0.4) * clamp((d - sweet) / Math.max(0.05, reach - sweet), 0, 1), 0, 1);
 }
-const blockV = (p) => BLOCK_V * up(p, 'block', 0.12) * SURF.jump;
+const blockV = (p) => BLOCK_V * up(p, 'block', 0.24) * SURF.jump;   // (v12.3: Blocking counts twice what it did)
 // Tricks belong to the person steering the player (each person's own unlocks)
 const canTrick = (p, id) => { const c = p && p.ctl; return !!(c && c.tricks && c.tricks.has(id)); };
 const SPIKE_H = 2.85;              // sets come down through this height near the net
@@ -5094,6 +5121,7 @@ function fxPart(x, y, z, vx, vy, vz, life, s0, s1, hex, a, grav, drag, rest) {
 // a kick of the ground at (x, z): k how hard (0-1+), (dx, dz) the way it's thrown (0, 0: all round)
 function fxKick(x, z, k, dx, dz, ring) {
   const S = FX_SURF[SURF && SURF.id] || FX_SURF.grass, wet = !!(SURF && SURF.rain) || S.water;
+  if (wet) { fxSplash(x, z, k, dx, dz, ring); return; }   // (v12.3: water has its own, smaller)
   const nd = Math.ceil((2 + S.n * 0.5) * k + 0.5);
   for (let i = 0; i < nd; i++) {   // dust: soft puffs that rise a little and spread
     const a = FX2.rnd() * 6.283, sp = fxR(0.3, 1.0) * (0.6 + k);
@@ -5108,6 +5136,174 @@ function fxKick(x, z, k, dx, dz, ring) {
   }
   if (wet && k > 0.3) for (let i = 0; i < Math.ceil(5 * k); i++) { const a = FX2.rnd() * 6.283, sp = fxR(0.6, 1.8); fxPart(x, 0.05, z, Math.cos(a) * sp, fxR(2.2, 4.2) * k, Math.sin(a) * sp, fxR(0.3, 0.55), 0.05, 0.03, 0xe8f2ff, 0.9, 13, 0.2, true); }
   if (ring || (wet && k > 0.25)) fxRing(x, z, 0.4 + k * 0.9, wet ? 0xd8e6ff : S.dust, wet ? 0.6 : 0.35);
+}
+// v12.3: a kick of a wet court: a little splash (a few drops and a faint mist), much more in a puddle; a ring only
+// for a big landing or a slide, or in a puddle
+const WET_DROP = [0xe8f2ff, 0xc8daf6, 0xffffff];
+function fxSplash(x, z, k, dx, dz, ring) {
+  const pud = puddleAt(x, z), n = Math.ceil((pud ? 5 : 2) * k + (pud ? 2 : 0.2));
+  for (let i = 0; i < n; i++) {
+    const a = FX2.rnd() * 6.283, sp = fxR(0.4, 1.5) * (0.5 + k) * (pud ? 1.15 : 0.8), up = fxR(1.4, 3.2) * (0.45 + k * 0.6) * (pud ? 1.25 : 0.85);
+    fxPart(x, 0.05, z, Math.cos(a) * sp + dx * sp * 0.6, up, Math.sin(a) * sp + dz * sp * 0.6, fxR(0.3, 0.55), 0.055, 0.03, WET_DROP[Math.floor(FX2.rnd() * 3)], 0.9, 13, 0.25, true);
+  }
+  if (k > 0.45 || pud) fxPart(x, 0.07, z, dx * 0.6, 0.35, dz * 0.6, fxR(0.4, 0.6), 0.18, 0.45 + 0.3 * k, 0xeef4ff, 0.22 + (pud ? 0.12 : 0), -0.3, 2.4);   // a faint mist
+  if (ring || pud > 0.2 || k > 0.6) fxRing(x, z, (pud ? 0.35 : 0.25) + k * (pud ? 0.8 : 0.55), 0xd8e6ff, pud ? 0.55 : 0.4);
+}
+// ---- puddles: where they are this match (and this stage of DOKJA), how big they've grown. All of them are one mesh
+// (one draw call), its circles rewritten as they grow; the rain's dimples on them are one more.
+const PUD_N = 8, PUD_SEG = 20, RIP_N = 10, RIP_SEG = 16;
+const PUD = { list: [], key: '', wetT: 0, ripT: 0, ripples: [], mesh: null, rmesh: null, shapeT: 0 };
+function puddleTex() {
+  return canvasTex2(128, 128, (g, w, h) => {
+    g.clearRect(0, 0, w, h);
+    let sd = 911; const r = () => { sd = (Math.imul(sd, 1664525) + 1013904223) >>> 0; return sd / 4294967296; };
+    for (let i = 0; i < 10; i++) {   // soft blobs make an uneven puddle
+      const cx = 64 + (r() - 0.5) * 56, cy = 64 + (r() - 0.5) * 50, rr = 15 + r() * 17;
+      const gr = g.createRadialGradient(cx, cy, rr * 0.25, cx, cy, rr);
+      gr.addColorStop(0, 'rgba(14,18,40,0.6)'); gr.addColorStop(0.7, 'rgba(18,24,50,0.48)'); gr.addColorStop(1, 'rgba(18,24,50,0)');
+      g.fillStyle = gr; g.beginPath(); g.ellipse(cx, cy, rr, rr * (0.7 + r() * 0.3), r() * 3, 0, Math.PI * 2); g.fill();
+    }
+    g.globalCompositeOperation = 'lighter';   // the light caught in it: a thin pale glint off to one side
+    g.strokeStyle = 'rgba(170,185,255,0.13)'; g.lineWidth = 3; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(40, 50); g.quadraticCurveTo(60, 40, 84, 46); g.stroke();
+    g.globalCompositeOperation = 'destination-in';   // nothing past the round edge
+    const m = g.createRadialGradient(64, 64, 40, 64, 64, 63); m.addColorStop(0, 'rgba(0,0,0,1)'); m.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = m; g.fillRect(0, 0, w, h);
+  });
+}
+function puddleBuild() {
+  const nv = PUD_SEG + 2, pos = new Float32Array(PUD_N * nv * 3), uv = new Float32Array(PUD_N * nv * 2), idx = [];
+  for (let i = 0; i < PUD_N; i++) {
+    const o = i * nv;
+    uv[o * 2] = 0.5; uv[o * 2 + 1] = 0.5;
+    for (let k = 0; k <= PUD_SEG; k++) { const a = (k / PUD_SEG) * Math.PI * 2; uv[(o + 1 + k) * 2] = 0.5 + 0.5 * Math.cos(a); uv[(o + 1 + k) * 2 + 1] = 0.5 + 0.5 * Math.sin(a); }
+    for (let k = 0; k < PUD_SEG; k++) idx.push(o, o + 1 + k, o + 2 + k);
+    PUD.list.push({ x: 0, z: 0, r: 0, max: 1, sx: 1, sz: 1, rot: 0 });
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); geo.setIndex(idx);
+  const mat = new THREE.MeshBasicMaterial({ map: puddleTex(), transparent: true, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, fog: true });
+  PUD.mesh = new THREE.Mesh(geo, mat); PUD.mesh.frustumCulled = false; PUD.mesh.renderOrder = 1; PUD.mesh.visible = false; scene.add(PUD.mesh);
+  // the dimples: rings, each fading as it spreads (its own see-through on each corner)
+  const rv = (RIP_SEG + 1) * 2, rpos = new Float32Array(RIP_N * rv * 3), ral = new Float32Array(RIP_N * rv), ridx = [];
+  for (let i = 0; i < RIP_N; i++) {
+    const o = i * rv;
+    for (let k = 0; k < RIP_SEG; k++) { const a = o + k * 2, b = a + 2; ridx.push(a, a + 1, b, a + 1, b + 1, b); }
+    PUD.ripples.push({ t: 9, x: 0, z: 0 });
+  }
+  const rg = new THREE.BufferGeometry();
+  rg.setAttribute('position', new THREE.BufferAttribute(rpos, 3)); rg.setAttribute('alpha', new THREE.BufferAttribute(ral, 1)); rg.setIndex(ridx);
+  const rm = new THREE.ShaderMaterial({
+    uniforms: { col: { value: new THREE.Color(0xdfe9ff) } },
+    vertexShader: 'attribute float alpha; varying float vA; void main() { vA = alpha; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: 'uniform vec3 col; varying float vA; void main() { if (vA < 0.01) discard; gl_FragColor = vec4(col, vA); }',
+    transparent: true, depthWrite: false, side: THREE.DoubleSide,
+  });
+  PUD.rmesh = new THREE.Mesh(rg, rm); PUD.rmesh.frustumCulled = false; PUD.rmesh.renderOrder = 2; PUD.rmesh.visible = false; scene.add(PUD.rmesh);
+}
+function puddleShape() {   // each puddle's circle (where, how big, stretched, turned) into the one mesh
+  const A = PUD.mesh.geometry.attributes.position, nv = PUD_SEG + 2;
+  PUD.list.forEach((P, i) => {
+    const o = i * nv, c = Math.cos(P.rot), sn = Math.sin(P.rot);
+    A.setXYZ(o, P.x, 0.012, P.z);
+    for (let k = 0; k <= PUD_SEG; k++) {
+      const a = (k / PUD_SEG) * Math.PI * 2, lx = Math.cos(a) * P.r * P.sx, lz = Math.sin(a) * P.r * P.sz;
+      A.setXYZ(o + 1 + k, P.x + lx * c - lz * sn, 0.012, P.z + lx * sn + lz * c);
+    }
+  });
+  A.needsUpdate = true;
+}
+function puddleReset() {
+  if (!PUD.mesh) puddleBuild();
+  PUD.wetT = 0; PUD.shapeT = 0;
+  for (const P of PUD.list) { P.x = fxR(-11, 11); P.z = fxR(-6.5, 6.5); P.max = fxR(0.9, 1.9); P.sx = fxR(0.75, 1.3); P.sz = fxR(0.75, 1.3); P.r = 0; P.rot = fxR(0, 3.1); }
+  for (const R of PUD.ripples) R.t = 9;
+  PUD.mesh.visible = false; PUD.rmesh.visible = false;
+}
+// how far into a puddle (x, z) is: 0 (not in one) to 1 (the middle)
+function puddleAt(x, z) {
+  if (!PUD.mesh || !PUD.mesh.visible) return 0;
+  let best = 0;
+  for (const P of PUD.list) {
+    if (P.r < 0.3) continue;
+    const c = Math.cos(-P.rot), sn = Math.sin(-P.rot), wx = x - P.x, wz = z - P.z;
+    const dx = (wx * c - wz * sn) / (P.r * P.sx), dz = (wx * sn + wz * c) / (P.r * P.sz), d = Math.hypot(dx, dz);
+    if (d < 0.85) best = Math.max(best, 1 - d / 0.85);
+  }
+  return best;
+}
+function puddleStep(dt) {
+  const rainy = !!(COURT.rain && PARKS[G.park] && PARKS[G.park].rainy) && !G.demo;
+  const key = rainy ? [G.park, G.matchId || 0, COURT.stage].join(':') : '';
+  if (key !== PUD.key) { PUD.key = key; if (key || PUD.mesh) puddleReset(); }
+  if (!key) return;
+  if (!G.replay && !G.paused) PUD.wetT += dt;
+  PUD.shapeT -= dt;
+  if (PUD.shapeT <= 0 || !PUD.mesh.visible) {   // (they grow slowly: four times a second is plenty)
+    PUD.shapeT = 0.25;
+    const grow = 1 - Math.exp(-PUD.wetT / 75);   // most of the way there in about four minutes of rain
+    for (const P of PUD.list) P.r = 0.2 + (P.max - 0.2) * grow;
+    puddleShape(); PUD.mesh.visible = true;
+  }
+  PUD.ripT -= dt;   // the rain dimpling them
+  if (PUD.ripT <= 0) {
+    PUD.ripT = 0.07 + FX2.rnd() * 0.12;
+    const P = PUD.list[Math.floor(FX2.rnd() * PUD.list.length)], R = PUD.ripples.reduce((m, q) => (q.t > m.t ? q : m), PUD.ripples[0]);
+    const a = FX2.rnd() * 6.283, d = Math.sqrt(FX2.rnd()) * 0.7 * P.r;
+    R.t = 0; R.x = P.x + Math.cos(a) * d * P.sx; R.z = P.z + Math.sin(a) * d * P.sz;
+  }
+  const A = PUD.rmesh.geometry.attributes.position, L = PUD.rmesh.geometry.attributes.alpha, rv = (RIP_SEG + 1) * 2;
+  let any = false;
+  PUD.ripples.forEach((R, i) => {
+    const o = i * rv;
+    if (R.t < 0.6) R.t += dt;
+    const f = Math.min(1, R.t / 0.6), on = R.t < 0.6, rad = 0.04 + 0.22 * f, al = on ? 0.5 * (1 - f) : 0;
+    any = any || on;
+    for (let k = 0; k <= RIP_SEG; k++) {
+      const a = (k / RIP_SEG) * Math.PI * 2, cx = Math.cos(a), cz = Math.sin(a);
+      A.setXYZ(o + k * 2, R.x + cx * rad * 0.75, 0.02, R.z + cz * rad * 0.75); A.setXYZ(o + k * 2 + 1, R.x + cx * rad, 0.02, R.z + cz * rad);
+      L.setX(o + k * 2, al); L.setX(o + k * 2 + 1, al);
+    }
+  });
+  A.needsUpdate = true; L.needsUpdate = true; PUD.rmesh.visible = any;
+}
+// ---- water off the players and the ball, in the rain
+const WET = { ballT: 0, serial: -1, run: new Map() };
+function wetStep(dt) {
+  if (!(COURT.rain && PARKS[G.park] && PARKS[G.park].rainy) || G.demo || G.replay || dt <= 0) { WET.serial = G.touchSerial; return; }
+  // the ball: a trail of drops in flight, a spray off it when it's hit
+  const bs = ball.v.length();
+  if (!ball.held && ball.p.y > 0.6 && bs > 6) {
+    WET.ballT -= dt;
+    if (WET.ballT <= 0) {
+      WET.ballT = 0.035;
+      fxPart(ball.p.x, ball.p.y, ball.p.z, ball.v.x * 0.25 + fxR(-0.4, 0.4), ball.v.y * 0.25 + fxR(-0.2, 0.5), ball.v.z * 0.25 + fxR(-0.4, 0.4), fxR(0.35, 0.6), 0.05, 0.03, 0xe0ecff, 0.75, 10, 0.6);
+    }
+  }
+  if (G.touchSerial !== WET.serial) {
+    WET.serial = G.touchSerial;
+    if (G.phase === 'live' && !ball.held) for (let i = 0; i < 10; i++) {
+      const a = FX2.rnd() * 6.283, e = fxR(-0.6, 0.9), sp = fxR(1.6, 3.6);
+      fxPart(ball.p.x, ball.p.y, ball.p.z, Math.cos(a) * Math.cos(e) * sp, Math.sin(e) * sp + 0.8, Math.sin(a) * Math.cos(e) * sp, fxR(0.4, 0.7), 0.06, 0.03, WET_DROP[i % 3], 0.9, 11, 0.4);
+    }
+  }
+  // the players: shaken off a shoulder on the run, thrown off the body when they land
+  for (const p of allPlayers) {
+    if (!p || !p.rig || !p.rig.root.visible) continue;
+    const sp = Math.hypot(p.vel.x, p.vel.z), h = 1.45 * (p.reachK || 1);
+    let t = (WET.run.get(p) || 0) - dt;
+    if (p.grounded && sp > 4.5 && t <= 0) {
+      t = fxR(0.25, 0.45);
+      const side = FX2.rnd() < 0.5 ? -1 : 1, fx = Math.sin(p.face), fz = Math.cos(p.face);
+      fxPart(p.pos.x + fz * 0.2 * side, p.pos.y + h, p.pos.z - fx * 0.2 * side, -p.vel.x * 0.3 + fz * side * fxR(0.6, 1.4), fxR(0.8, 1.8), -p.vel.z * 0.3 - fx * side * fxR(0.6, 1.4), fxR(0.35, 0.55), 0.05, 0.03, 0xe8f2ff, 0.8, 12, 0.3);
+    }
+    WET.run.set(p, t);
+  }
+}
+function wetLand(p) {   // (from fx2Step: a real landing, seen on this phone)
+  if (!(COURT.rain && PARKS[G.park] && PARKS[G.park].rainy) || G.demo || G.replay) return;
+  const h = 1.45 * (p.reachK || 1);
+  for (let i = 0; i < 6; i++) { const a = FX2.rnd() * 6.283, v = fxR(1.2, 2.6); fxPart(p.pos.x, h * fxR(0.55, 0.95), p.pos.z, Math.cos(a) * v, fxR(1.0, 2.4), Math.sin(a) * v, fxR(0.35, 0.55), 0.05, 0.03, WET_DROP[i % 3], 0.85, 12, 0.3); }
 }
 function fxRing(x, z, s, hex, a) {
   const R = FX2.rings.reduce((m, r) => (r.t > m.t ? r : m), FX2.rings[0]);
@@ -5130,6 +5326,7 @@ function fx2Step(dt) {
       const mx = p.pos.x - s.x, mz = p.pos.z - s.z, sp = Math.hypot(mx, mz) / dt, vy = (p.pos.y - s.y) / dt;
       const ground = p.pos.y < 0.03;
       if (ground && s.y > 0.15) fxKick(p.pos.x, p.pos.z, clamp(-s.vy / 7, 0.35, 1.2), 0, 0, -s.vy > 5);   // a landing
+      if (ground && s.y > 0.15 && -s.vy > 3.5) wetLand(p);   // (v12.3: in the rain, water off them)
       else if (ground && sp > 2.6 && sp < 14) {
         s.d += sp * dt;
         if (s.d > 0.8 + sp * 0.06) {
@@ -5151,6 +5348,7 @@ function fx2Step(dt) {
     if (B.dy < -2.5 && dy >= -0.2 && ball.p.y < 0.5) fxKick(ball.p.x, ball.p.z, clamp(-B.dy / 12, 0.25, 1.1), 0, 0, -B.dy > 8);
     B.dy = dy; B.y = ball.p.y;
   }
+  puddleStep(dt); wetStep(dt);   // (v12.3)
   // move them all on and draw
   const A = FX2.pos, C = FX2.col, Z = FX2.size;
   let any = false;
@@ -6044,7 +6242,7 @@ function buildGym2() {
     murmur.t -= dt;
     if (murmur.t <= 0) { murmur.t = 2.2 + Math.random(); if (!G.demo && G.phase !== 'over') sfx('crowd', 0.18, true); }
   };
-  return { group, loop, walkers: 0, dogs: [], seats, crowd, tick, indoor: true, real: [] };
+  return { group, loop, walkers: 0, dogs: [], seats, crowd, tick, indoor: true, real: [], camBox: { x: CUR - 0.55, z: HZ - 0.6 } };   // (v12.3: where the camera can go)
 }
 
 // ======== DOKJA (v12.1), Neon City: three stages, each rebuilt round where its watchers stand. The rooftop under a
@@ -7265,13 +7463,14 @@ function voicePlay(n, kind) {
       if (!buf) { if (kind) synthVoice(kind); return; }
       voiceStop();
       const src = actx.createBufferSource(), g = actx.createGain();
-      src.buffer = buf; g.gain.value = 0.85; src.connect(g); g.connect(master); src.start();
+      src.buffer = buf; src.playbackRate.value = NICK_RATE; g.gain.value = 0.85; src.connect(g); g.connect(master); src.start();
       voiceSrc = src; src.onended = () => { if (voiceSrc === src) voiceSrc = null; };
     });
     return;
   }
   if (kind) synthVoice(kind);
 }
+const NICK_RATE = 1.5;   // v12.3 (Truss): his lines sped up, so they come out quicker and higher
 function nickSays(text) { const n = NICK_SAID[voiceKey(text)]; if (n != null) voicePlay(n); }
 function synthVoice(kind) {
   if (!actx || !settings.sound || actx.state !== 'running') return;   // (the stand-in: a little synth voice, up and down)
@@ -7692,10 +7891,10 @@ rainGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(RAIN
 const rainLines = new THREE.LineSegments(rainGeo, new THREE.LineBasicMaterial({ color: 0xaab4e8, transparent: true, opacity: 0.45, depthWrite: false }));
 rainLines.frustumCulled = false; rainLines.visible = false; scene.add(rainLines);
 const rainPts = Array.from({ length: RAIN_N }, () => ({ x: rand(-26, 26), y: rand(0, 22), z: rand(-18, 18), l: rand(0.5, 0.9) }));
-let rainHiss = 0;
 function rainDraw(dt) {
-  const on = COURT.rain && PARKS[G.park] && PARKS[G.park].rainy && !G.replay;
-  rainLines.visible = !!on;
+  const wet = !!(COURT.rain && PARKS[G.park] && PARKS[G.park].rainy), on = wet && !G.replay;
+  rainSound(dt, wet && !G.demo);   // (v12.3: the sound keeps going through a replay)
+  rainLines.visible = on;
   if (!on) return;
   const A = rainGeo.attributes.position, cx = camera.position.x * 0.5, cz = camera.position.z * 0.5;
   rainPts.forEach((q, j) => {
@@ -7704,10 +7903,87 @@ function rainDraw(dt) {
     A.setXYZ(j * 2, q.x, q.y, q.z); A.setXYZ(j * 2 + 1, q.x - 0.06, q.y + q.l, q.z);
   });
   A.needsUpdate = true;
-  rainHiss -= dt;
-  if (rainHiss <= 0) { rainHiss = 1.0; if (!G.demo) noiseHiss(); }
 }
-function noiseHiss() { if (actx && settings.sound && actx.state === 'running') noise('highpass', 3200, 0.3, 1.3, 0.035, actx.currentTime); }
+// v12.3: rain to fall asleep to (Truss: "soft steady rain"): a steady hush (pink noise, rounded off, swelling a little
+// now and then), a few soft drops close by, and every half a minute or so thunder far away. Its own dice, so nothing
+// here moves the game's (and nothing runs while the sound's off or not started).
+const RAIN_SND = { src: null, g: null, lp: null, k: 0, quiet: 0, dropT: 0.5, thunT: 14, swellT: 0, buf: null, brown: null, seed: 0x2f6e2b1 };
+function rsRand() { let x = RAIN_SND.seed; x ^= x << 13; x ^= x >>> 17; x ^= x << 5; RAIN_SND.seed = x >>> 0; return RAIN_SND.seed / 4294967296; }
+function rainBuffers() {
+  if (RAIN_SND.buf) return;
+  const sr = actx.sampleRate, n = Math.floor(sr * 3), f = Math.floor(sr * 0.3), tmp = new Float32Array(n + f);
+  let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0, ss = 0;
+  for (let i = 0; i < n + f; i++) {   // pink noise (Paul Kellet's filter)
+    const w = rsRand() * 2 - 1;
+    b0 = 0.99886 * b0 + w * 0.0555179; b1 = 0.99332 * b1 + w * 0.0750759; b2 = 0.969 * b2 + w * 0.153852;
+    b3 = 0.8665 * b3 + w * 0.3104856; b4 = 0.55 * b4 + w * 0.5329522; b5 = -0.7616 * b5 - w * 0.016898;
+    tmp[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362; b6 = w * 0.115926;
+  }
+  const b = actx.createBuffer(1, n, sr), d = b.getChannelData(0);
+  for (let i = 0; i < n; i++) { d[i] = i < f ? tmp[i] * (i / f) + tmp[n + i] * (1 - i / f) : tmp[i]; ss += d[i] * d[i]; }   // (the end runs into the start: no click on the loop)
+  const g = 0.25 / Math.sqrt(ss / n);
+  for (let i = 0; i < n; i++) d[i] *= g;
+  RAIN_SND.buf = b;
+  const m = Math.floor(sr * 7), bb = actx.createBuffer(1, m, sr), e = bb.getChannelData(0);   // brown noise for the thunder
+  let last = 0, mx = 1e-6;
+  for (let i = 0; i < m; i++) { last = (last + 0.02 * (rsRand() * 2 - 1)) / 1.02; e[i] = last; mx = Math.max(mx, Math.abs(last)); }
+  for (let i = 0; i < m; i++) e[i] /= mx;
+  RAIN_SND.brown = bb;
+}
+function rainSound(dt, on) {
+  const R = RAIN_SND, live = actx && settings.sound && actx.state === 'running';
+  if (!live) { if (R.src) rainBedStop(); return; }
+  if (on) R.quiet = 0; else R.quiet += dt;
+  if (!on && !R.src) return;
+  const t = actx.currentTime;
+  if (!R.src && on) {   // the hush comes in over two seconds
+    rainBuffers();
+    const s = actx.createBufferSource(), hp = actx.createBiquadFilter(), lp = actx.createBiquadFilter(), g = actx.createGain();
+    s.buffer = R.buf; s.loop = true;
+    hp.type = 'highpass'; hp.frequency.value = 240; hp.Q.value = 0.5;
+    lp.type = 'lowpass'; lp.frequency.value = 2100; lp.Q.value = 0.4;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.13, t + 2);
+    s.connect(hp).connect(lp).connect(g).connect(master); s.start(t, rsRand() * 2.5);
+    R.src = s; R.g = g; R.lp = lp; R.swellT = 3; R.dropT = 0.4; R.thunT = 10 + rsRand() * 16;
+  }
+  if (!on) {   // the rain's stopped (another court, a replay): fade it out, then let it go
+    if (R.quiet < dt * 1.5) { R.g.gain.cancelScheduledValues(t); R.g.gain.setValueAtTime(R.g.gain.value, t); R.g.gain.linearRampToValueAtTime(0.0001, t + 0.8); }
+    if (R.quiet > 1.2) rainBedStop();
+    return;
+  }
+  R.swellT -= dt;   // it swells a little now and then, like a gust passing over
+  if (R.swellT <= 0) {
+    R.swellT = 3 + rsRand() * 5;
+    R.g.gain.setTargetAtTime(0.1 + rsRand() * 0.06, t, 1.6);
+    R.lp.frequency.setTargetAtTime(1800 + rsRand() * 700, t, 2);
+  }
+  R.dropT -= dt;   // soft drops, close by (on the court, a bag, a shoulder)
+  while (R.dropT <= 0) {
+    R.dropT += 0.06 + rsRand() * 0.22;
+    const s = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain(), w = t + rsRand() * 0.05, v = 0.006 + rsRand() * 0.016;
+    s.buffer = noiseBuf; f.type = 'bandpass'; f.frequency.value = 1700 + rsRand() * 2600; f.Q.value = 2.2 + rsRand() * 2;
+    g.gain.setValueAtTime(v, w); g.gain.exponentialRampToValueAtTime(0.0004, w + 0.025 + rsRand() * 0.03);
+    s.connect(f).connect(g).connect(master); s.start(w, rsRand() * 0.3); s.stop(w + 0.08);
+  }
+  R.thunT -= dt;   // thunder, far away: a slow low roll (sometimes rolling twice)
+  if (R.thunT <= 0) {
+    R.thunT = 24 + rsRand() * 32;
+    const rolls = rsRand() < 0.4 ? 2 : 1;
+    for (let i = 0; i < rolls; i++) {
+      const w = t + i * (1.1 + rsRand() * 0.9), dur = 3.2 + rsRand() * 2.8, pk = (0.1 + rsRand() * 0.07) * (i ? 0.7 : 1);
+      const s = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+      s.buffer = R.brown; f.type = 'lowpass'; f.frequency.value = 110 + rsRand() * 90; f.Q.value = 0.7;
+      g.gain.setValueAtTime(0.0001, w); g.gain.linearRampToValueAtTime(pk, w + 0.5 + rsRand() * 0.7); g.gain.exponentialRampToValueAtTime(0.0006, w + dur);
+      s.connect(f).connect(g).connect(master); s.start(w, rsRand() * 1.5); s.stop(w + dur + 0.1);
+    }
+  }
+}
+function rainBedStop() {
+  const R = RAIN_SND;
+  try { R.src.stop(); } catch (_) { /* already */ }
+  try { R.src.disconnect(); R.g.disconnect(); } catch (_) { /* fine */ }
+  R.src = null; R.g = null; R.lp = null;
+}
 function hotdogDraw(dt) {
   const H = EV.hd;
   hotdogs.forEach((m, i) => {
@@ -9810,7 +10086,22 @@ function lookFromProfile(L, color) {
     hoodUp: L.hoodUp, hatColor: L.hatCol >= 0 ? ITEM_COLORS[L.hatCol] : null, earColor: ITEM_COLORS[L.earCol] != null ? ITEM_COLORS[L.earCol] : ITEM_COLORS[0],   // v11.1
     chainColor: METAL_COLORS[L.chainCol] != null ? METAL_COLORS[L.chainCol] : METAL_COLORS[0], trimColor: L.trimCol >= 0 ? ITEM_COLORS[L.trimCol] : null,
     shirtColor: L.shirtCol >= 0 ? ITEM_COLORS[L.shirtCol] : null,   // v11.1.1 (null: the team's colour, `color`)
+    celAce: celebSlot(L, 'ace'), celBlock: celebSlot(L, 'block'), celWin: celebSlot(L, 'win'),   // v12.3
   };
+}
+// v12.3: the celebration for a moment: the one picked, or one of yours that fits it (not your kill one if there's
+// another). A look from another phone comes with all four filled in.
+function celebSlot(L, m) {
+  if (m === 'kill' || !CELEB_FIELD[m]) return L.celebrate;
+  const v = L[CELEB_FIELD[m]];
+  if (CELEBRATIONS.includes(v)) return v;
+  for (const c of CELEB_FIT[m]) if (c !== L.celebrate && hasGear('celebrate', c)) return c;
+  return L.celebrate;
+}
+// ...and the one a player does right now (G.celebM: the moment; anyone without their own four: their one)
+function celebOf(p) {
+  const L = p.look || {}, m = CELEB_MOMENTS[G.celebM | 0], v = m && m !== 'kill' ? L[CELEB_FIELD[m]] : null;
+  return CELEBRATIONS.includes(v) ? v : p.celebration;
 }
 function customLook() { return Object.assign(lookFromProfile(profile), { custom: true }); }
 // `stats` are levels (0-5, a mastered one 6); players without them play at level 3
@@ -10150,7 +10441,7 @@ function endRally(winner, reason) {
   if (lgb) loser.gb.active = 0;
   G.cutAsk = null;
   winner.score += pts;
-  G.phase = 'dead'; G.deadT = 0; G.rallyWinner = winner; G.ptCount++; G.celebrate = null;
+  G.phase = 'dead'; G.deadT = 0; G.rallyWinner = winner; G.ptCount++; G.celebrate = null; G.celebM = 0;
   const trickBy = G.trickSerial === G.touchSerial ? G.trickBy : null; G.trickBy = trickBy;   // (v11: whose trick it was, if the last touch was one)
   maybeDogRun();
   if (G.serving !== winner) { G.serving = winner; winner.serveIdx++; }
@@ -10178,7 +10469,7 @@ function endRally(winner, reason) {
       if (reason === 'KILL') { addStyle(winner, 10); flash(G.bigPlay === 'trick' ? 'NASTY!' : 'KILL!'); }
       else if (reason === 'ACE') { addStyle(winner, 14); flash('ACE!'); G.bigPlay = G.bigPlay || 'ace'; }
       else { addStyle(winner, 12); flash('STUFFED!'); G.bigPlay = 'block'; }
-      G.celebrate = lt;   // your player's celebration plays while the point sinks in
+      G.celebrate = lt; G.celebM = reason === 'KILL' ? 1 : reason === 'ACE' ? 2 : 3;   // your player's celebration (for the moment) plays while the point sinks in
     } else if (G.bigPlay !== 'gb') G.bigPlay = G.bigPlay === 'trick' && youScored ? 'trick' : null;
     if (lt && lt.team === winner && !teamCtls(winner).length && (reason === 'KILL' || reason === 'ACE' || reason === 'BLOCK')) addStyle(winner, reason === 'ACE' ? 14 : reason === 'BLOCK' ? 12 : 10);   // v10.2: an AI team's meter
     if (ballLook === 'slapme' && (reason === 'KILL' || reason === 'BLOCK' || reason === 'ACE')) { voiceT = -9; ballVoice('point'); }   // (v11)
@@ -10195,8 +10486,17 @@ function endRally(winner, reason) {
     G.bigPlay = null;
   }
   if (winner.score >= WIN_AT && winner.score - loser.score >= 2) G.matchWinner = winner;
+  if (G.matchWinner === winner && !G.demo) matchCeleb(winner);   // (v12.3)
 }
 
+// v12.3: the match-winning point: one of the winning team's people does their MATCH WIN celebration (whoever scored it
+// if it was one of them, otherwise you, or the first of them). An AI team's boss still has their own.
+function matchCeleb(winner) {
+  const people = winner.players.filter((q) => q.isHuman);
+  if (!people.length) return;
+  const lt = G.lastToucher, who = lt && lt.team === winner && lt.isHuman ? lt : people.find((q) => q.ctl && q.ctl.local) || people[0];
+  G.celebrate = who; G.celebM = 4;
+}
 function onLand() {
   if (PRAC.on) { practiceLand(); return; }   // v10: practice judges its own reps
   if (G.phase === 'serve') { endRally(other(G.serving), 'SERVICE FAULT'); return; }
@@ -10366,8 +10666,9 @@ function checkBlock() {
     if (ball.v.x * s <= 0) continue;                       // only balls heading toward the blocker's side
     // One hand reaches further to the side and a little higher but covers less; a backward block covers less.
     // Blocking widens the hands.
-    const a = p.act, one = !!a.hand, W = (one ? 0.34 : a.back ? 0.4 : 0.48) * up(p, 'block', 0.3) * (a.swing ? 1.3 : 1);   // (v11.2: a swing block spreads wider)
-    const hx = s * 0.2, hy = p.pos.y + (one ? 1.8 : 1.72) * (p.reachK || 1) + (a.swing ? 0.06 : 0), hz = p.pos.z + (one ? a.hand * 0.42 : 0);
+    const rch = cmbHas(p, 'reach'), dodged = ball.dodge === G.touchSerial;   // (v12.3: REACH OVER; an AIR STEP round the block)
+    const a = p.act, one = !!a.hand, W = (one ? 0.34 : a.back ? 0.4 : 0.48) * up(p, 'block', 0.3) * (a.swing ? 1.3 : 1) * (rch ? 0.85 : 1) * (dodged ? 0.65 : 1);   // (v11.2: a swing block spreads wider)
+    const hx = s * (rch ? -0.12 : 0.2), hy = p.pos.y + (one ? 1.8 : 1.72) * (p.reachK || 1) + (a.swing ? 0.06 : 0) + (rch ? 0.04 : 0), hz = p.pos.z + (one ? a.hand * 0.42 : 0);
     if (ball.poke && ball.poke.serial === G.touchSerial && ball.poke.blocker === p) continue;   // (v11.2: a knuckle poke goes just over these fingers)
     const tool = ball.tool && ball.tool.serial === G.touchSerial && ball.tool.blocker === p ? 1 : 0;   // aimed at these hands
     const hits = (x, y, z) => Math.abs(x - hx) < 0.32 + PLAY_R + 0.1 * tool && Math.abs(y - hy) < 0.32 + PLAY_R * 0.7 + 0.35 * tool && Math.abs(z - hz) < W + PLAY_R * 0.6 + 0.45 * tool;
@@ -10390,18 +10691,27 @@ function doBlock(p, dz, dy, W) {
   // Trick blocks stuff less often (riskier), but a stuff with one is worth a lot more. Blocking makes stuffs likelier
   // and trick blocks less risky; the hitter's Hitting beats the block more often.
   const hitter = G.lastToucher && G.lastToucher.team !== p.team ? G.lastToucher : null;
-  const edge = 0.25 * (sv(hitter, 'hit') - 0.6) - 0.25 * (sv(p, 'block') - 0.6), risk = trick ? down(p, 'block', 1.25) : 0;
-  let outcome = q > 0.45 + 0.15 * risk + edge && dy < 0.2 - 0.08 * risk ? 'stuff' : q > 0.18 + 0.1 * risk + edge * 0.6 ? 'soft' : 'tool';
+  const risk = trick ? down(p, 'block', 1.25) : 0;
+  // v12.3: the block's quality: square on the hands (q), the timing (tim: 1 at the top of the jump), and Blocking. Only
+  // the edge of the hands gets wiped (wider when it's mistimed, narrower with Blocking); a good block stuffs it, the rest
+  // go up soft (the pace taken off: see below). The hitter's Hitting beats the block more often.
+  const v0 = (a && a.v0) || blockV(p), tim = 1 - clamp(Math.abs(p.vy) / (0.8 * v0), 0, 1), bs = clamp(sv(p, 'block'), 0, 1.2);
+  const rch = cmbHas(p, 'reach'), sft = cmbHas(p, 'soft');   // (v12.3: REACH OVER roofs more; SOFT BLOCK always comes off soft)
+  const Qb = 0.55 * q + 0.27 * tim + 0.18 * bs + (rch ? 0.12 : 0), edgeHit = 0.22 * (sv(hitter, 'hit') - 0.6);
+  const toolEdge = 0.15 + 0.12 * (1 - tim) + 0.5 * edgeHit - 0.12 * (bs - 0.6) + 0.06 * risk - (rch ? 0.04 : 0);
+  let outcome = q < toolEdge ? 'tool' : Qb > 0.58 + edgeHit + 0.12 * risk && dy < 0.22 - 0.08 * risk ? 'stuff' : 'soft';
+  if (sft) outcome = 'soft';
   const T = ball.tool && ball.tool.serial === G.touchSerial && ball.tool.blocker === p ? ball.tool : null;
   // v11: MISTER MONSTER: a one-hander right at the top of the jump, the ball square on the hand
   if (a && a.hand && outcome !== 'tool' && ((p.ctl && !aiControlled(p) && canTrick(p, 'monster') && q > 0.7 && Math.abs(p.vy) < 1.4) || (aiControlled(p) && p.monsterTry === G.touchSerial && Math.random() < 0.55 + 0.3 * (p.team.ai.block || 0.5)))) outcome = 'monster';
-  if (T) {   // a tool shot: Hitting wipes it off their hands more often; Blocking reads it and stuffs it
-    const pTool = clamp(0.8 + 0.4 * (sv(T.by, 'hit') - 0.6) - 0.3 * (sv(p, 'block') - 0.6) + 0.1 * (T.q - 0.5), 0.5, 0.95);
-    outcome = Math.random() < pTool ? 'tool' : 'stuff';
+  if (T) {   // a tool shot: Hitting wipes it off their hands more often; a block on time (and Blocking) stops it: stuffed, or soft
+    const Rb = 0.6 * tim + 0.4 * bs;   // (v12.3: it's aimed at the edge, so how square it is doesn't come into it)
+    const pTool = clamp(0.92 + 0.35 * (sv(T.by, 'hit') - 0.6) + 0.1 * (T.q - 0.5) - 0.55 * Rb, 0.15, 0.88) * (sft ? 0.5 : 1);
+    outcome = Math.random() < pTool ? 'tool' : Rb > 0.72 && dy < 0.3 && !sft ? 'stuff' : 'soft';
     ball.tool = null;
   }
   const mine = (q) => !aiControlled(q) && canTrick(q, 'joust');
-  if (outcome === 'soft' && !T && hitter && !hitter.grounded && Math.abs(hitter.pos.x) < 1.6 && (mine(hitter) || mine(p) || Math.random() < 0.55) && joustStart(hitter, p)) return;   // (v11.2: JOUST)
+  if (outcome === 'soft' && !T && !sft && hitter && !hitter.grounded && Math.abs(hitter.pos.x) < 1.6 && (mine(hitter) || mine(p) || Math.random() < 0.55) && joustStart(hitter, p)) return;   // (v11.2: JOUST)
   if (outcome === 'monster') {   // (v11) slammed straight down, right at the net, faster than anyone can get to
     ball.p.x = -s * (BALL_R + 0.06);
     ball.v.set(-s * 0.5, -15, ball.v.z * 0.08);
@@ -10409,14 +10719,17 @@ function doBlock(p, dz, dy, W) {
     ball.p.x = -s * (BALL_R + 0.08);   // stuffed straight down on the hitter's side, close to the net
     ball.v.set(-s * (1.4 + spd * 0.12), -(6.5 + Math.abs(ball.v.y) * 0.3), ball.v.z * 0.2 + rand(-0.8, 0.8));
   } else if (outcome === 'soft') {
+    // v12.3: the pace comes off it: up into the middle of our court for a teammate, slower and higher the better the block
+    const k = sft ? 1 : clamp((Qb - 0.3) / 0.5, 0, 1);
     ball.p.x = s * Math.max(Math.abs(ball.p.x), BALL_R + 0.08);
-    ball.v.set(s * rand(0.8, 2.2), rand(4.2, 6.2), ball.v.z * 0.25 + rand(-0.8, 0.8));
+    ball.v.set(s * lerp(2.6, 1.6, k) * rand(0.85, 1.15), lerp(4.6, 7.0, k) * rand(0.92, 1.06), ball.v.z * lerp(0.25, 0.08, k) - ball.p.z * lerp(0.1, 0.3, k) + rand(-0.5, 0.5));
   } else {
     ball.p.x = s * Math.max(Math.abs(ball.p.x), BALL_R + 0.08);
     const dir = (T && T.out) || Math.sign(dz || 1);   // a tool shot goes off the outside hand, toward the sideline
-    ball.v.set(s * spd * 0.45, rand(2, 4), dir * rand(5, 8));
+    ball.v.set(s * spd * 0.3, rand(1.6, 3.2), dir * rand(3.6, 5.6));   // (v12.3: two thirds as far as it went)
   }
   STATS.blocks[outcome] = (STATS.blocks[outcome] || 0) + 1;
+  G.lastBlock = { outcome, q, tim, Qb, by: p, tool: !!T };   // (v12.3: for the tests)
   // A block is a touch for out-of-bounds purposes. Whether it uses one of the team's 3 touches is a setting.
   G.lastToucher = p; G.touchSerial++; G.rallyTouches++; markTouch(p, 'block');
   ball.lastKind = 'block'; ball.serveFlight = false; ball.wobble = 0; ball.curve = null;
@@ -10434,6 +10747,7 @@ function doBlock(p, dz, dy, W) {
     if (G.demo) { /* */ } else if (aiControlled(p)) aiFlourish(p, 'MISTER MONSTER!', 18); else { flash('MISTER MONSTER!', false, true); addStyle(p.team, 18); bigTrick(); }
     return;
   }
+  if (rch || sft) comboBlocked(p, rch ? 'reach' : 'soft', outcome);   // (v12.3)
   if (G.trace) G.trace.push(`${G.time.toFixed(2)} BLOCK ${outcome} by ${p.team.name}${p.role[0]}`);
   if (!G.demo && p.isHuman && trick && outcome !== 'tool') {
     flash(a.back ? (outcome === 'stuff' ? 'NO-LOOK ROOF!' : 'NO-LOOK BLOCK!') : outcome === 'stuff' ? 'ONE-HAND ROOF!' : 'ONE-HANDER!', false, outcome === 'stuff');
@@ -11291,12 +11605,13 @@ function jump(p, charge) {
 function blockJump(p, style) {
   if (!p.grounded) return;
   const s = p.team.side, toNet = Math.abs(p.pos.x) - 0.45;
-  p.vy = blockV(p); p.grounded = false; p.jumpCharge = 0;
+  const run = Math.hypot(p.vel.x, p.vel.z), runK = run > 2.6 ? 0.95 : run < 0.6 ? 1.04 : 1;   // (v12.3: planted, or thrown up on the move)
+  p.vy = blockV(p) * runK; p.grounded = false; p.jumpCharge = 0;
   sfx('jump', p.isHuman ? 0.7 : 0.35);
   // A short hop toward the net if you're close to it (Blocking: from further out, and quicker)
   p.vel.x = toNet < 2.4 * up(p, 'block', 0.5) ? -s * clamp(toNet / 0.33, 0, 4.5 * up(p, 'block', 0.4)) : p.vel.x * 0.3;
   p.vel.z *= 0.3;
-  p.act = { kind: 'block', t: 0, dur: 3, hand: 0, back: false };
+  p.act = { kind: 'block', t: 0, dur: 3, hand: 0, back: false, v0: p.vy, runK };   // (v12.3: v0, how fast it left the ground: the timing's judged on it)
   if (style === 'left' || style === 'right') p.act.hand = (style === 'right' ? -s : s);   // world z the hand reaches toward
   else if (style === 'back') { p.act.back = true; p.face = Math.atan2(s, 0); p.yawFx = Math.PI; }
   p.windup = false; p.charging = false;
@@ -11304,7 +11619,7 @@ function blockJump(p, style) {
 // v11.2: SWING BLOCK: off a run along the net: up higher, the hands spread wider, still drifting the way you were going
 function swingBlock(p, vz) {
   if (!p.act || p.act.kind !== 'block') return;
-  p.vy *= 1.12; p.vel.z = clamp(vz, -5, 5) * 0.7; p.act.swing = true;
+  p.vy = p.act.v0 = (p.vy / (p.act.runK || 1)) * 1.12; p.vel.z = clamp(vz, -5, 5) * 0.7; p.act.swing = true;
   if (aiControlled(p)) return;
   flash('SWING BLOCK!', true); addStyle(p.team, 3);
 }
@@ -11339,6 +11654,7 @@ function physicsPlayer(p) {
   if (!p.grounded) {
     let g = p.spin && p.spin.t < 0.34 ? G_PLAYER * 0.3 : p.tornado && p.tornado.t < 0.3 ? G_PLAYER * 0.5 : G_PLAYER;   // spinning spike: hang in the air (v11.2: a tornado serve, a little)
     if (p.tornado) p.tornado.t += DT;
+    g = comboGrav(p, g);   // (v12.3: HANG TIME, AIR STEP)
     if (Math.abs(p.vy) < 2.2) g *= down(p, 'hops', 0.35);              // Hops: hang time at the top
     p.pos.y += p.vy * DT - 0.5 * g * DT * DT; p.vy -= g * DT;
     if (p.spin) p.spin.t += DT;
@@ -11347,7 +11663,7 @@ function physicsPlayer(p) {
       p.landT = G.time; p.landK = clamp(-p.vy / 9, 0.35, 1);
       if (p.vy < -5) p.landSlowT = G.time + 0.12 * down(p, 'hops', 1.6);   // Hops: back on your feet sooner after a big jump
       const keepV = lerp(0.35, 0.82, 1 - SURF.grip);   // (v11: a slippery court keeps you sliding)
-      p.pos.y = 0; p.vy = 0; p.grounded = true; p.vel.x *= keepV; p.vel.z *= keepV; p.spin = null; p.windT = 0; p.tornado = null;
+      p.pos.y = 0; p.vy = 0; p.grounded = true; p.vel.x *= keepV; p.vel.z *= keepV; p.spin = null; p.windT = 0; p.tornado = null; p.cmb = null;
       if (p.act && (p.act.kind === 'windup' || p.act.kind === 'block')) p.act = null;
     }
   }
@@ -11698,6 +12014,7 @@ function aiAttack(p, tk) {
     if (!p.act) { p.act = { kind: 'windup', t: 0, dur: 2 }; p.prevD = 99; }
     if (tr === 'spin' && !p.spin && p.vy < 1.2 && G.phase === 'live') p.spin = { t: 0 };   // hang up there, then whip it
     if (tr === 'tornado' && serve && !p.tornado && p.vy < 2.4) p.tornado = { t: 0 };   // (v11.2) the spin, near the top
+    if (!serve) aiAttackAir(p, tk);   // (v12.3: HANG TIME)
     if (p.act.kind === 'windup') aiSwing(p, tk);
   }
 }
@@ -11722,7 +12039,8 @@ function aiSwing(p, tk) {
   if (p.atk.roll) { sendTip(p, q, false, p.atk.aim); return; }
   // their block's up in front of them: a smart hitter (or a crew that knows it) wipes it off their hands
   const blk = !p.grounded ? toolBlocker(p) : null;
-  if (blk && !G.demo && Math.random() < clamp(0.45 * smarts(p, 'hit') - 0.1, 0, 0.5) + (p.team.ai.trick || 0) * (crewTrick(p.team) === 'tool' ? 3 : 1)) {
+  if (blk && !G.demo && Math.random() < clamp((p.team.ai.trick || 0) * 0.6, 0, 0.2)) { sendFake(p, q); return; }   // (v12.3: FAKE SPIKE)
+  if (blk && !G.demo && Math.random() < clamp(0.25 * smarts(p, 'hit') - 0.04, 0, 0.22) + (p.team.ai.trick || 0) * (crewTrick(p.team) === 'tool' ? 1.5 : 0.4)) {   // (v12.3: about half as often)
     sendTool(p, q, rand(0.6, 0.95), blk);
     return;
   }
@@ -11748,14 +12066,17 @@ function aiSwing(p, tk) {
 function aiBlock(p, tk) {
   const s = p.team.side, bp = p.team.blockPlan, tUp = blockV(p) / G_PLAYER;
   faceToward(p, -s, 0, 0.35);
-  if (!p.grounded) return;
+  if (!p.grounded) { aiBlockAir(p, tk); return; }   // (v12.3)
   if (!p.blockFrom || p.blockFrom.serial !== tk.serial) p.blockFrom = { serial: tk.serial, z: p.pos.z };   // (v11.2: where it set off from)
   // (v11.0.2: a beaten block: up and back down before the hit, or still on the way up as it goes by; a small hop if late)
-  const jumpAt = tk.fake === 'early' ? tk.t - 2 * tUp - 0.08 : tk.fake === 'late' ? tk.t - 0.03 : tk.t + 0.06 - tUp + (bp ? bp.err : 0);
+  const bit = !!(bp && bp.bit === tk.serial && !tk.fake);   // (v12.3: it bit on a DOUBLE CLUTCH: up now, beaten)
+  const jumpAt = bit ? -1 : tk.fake === 'early' ? tk.t - 2 * tUp - 0.08 : tk.fake === 'late' ? tk.t - 0.03 : tk.t + 0.06 - tUp + (bp ? bp.err : 0);
   if (jumpAt <= 0 && Math.abs(p.pos.x) < 1.3 && p.react <= 0) {
     const gap = tk.c.z - p.pos.z, sty = tk.fake ? null : aiBlockStyle(p), vz0 = p.vel.z;
     blockJump(p, sty);
+    if (p.act && p.act.kind === 'block' && !tk.fake) { p.vy *= (bp && bp.late ? 0.92 : 1) * rand(0.97, 1.05) * (1 + 0.08 * (smarts(p, 'block') - 0.4)); p.act.v0 = p.vy; }   // (v12.3)
     if (tk.fake && p.act) { p.act.fake = true; if (tk.fake === 'late') p.vy *= 0.7; }
+    if (bit && p.act) p.act.fake = true;
     else if (!sty) {   // (v11.2) a long run along the net to get there (or still on the move): the swing block
       const run = p.pos.z - p.blockFrom.z;
       if ((Math.abs(run) > 1.4 || Math.abs(vz0) > 2.2) && aiPick(p, ['swingblock']) === 'swingblock') swingBlock(p, Math.abs(vz0) > 2.2 ? vz0 : Math.sign(run) * 2.2);
@@ -11768,6 +12089,183 @@ function aiBlock(p, tk) {
 /* =====================================================================
    YOU: the controlled player
    ===================================================================== */
+/* =====================================================================
+   v12.3: AIR COMBOS (Truss: "more mid air button combos", using all four kinds of press). Six of them, in the air,
+   for everyone (nothing to unlock):
+   on the attack
+     HANG TIME      JUMP, then JUMP again on the way up: you hang at the top for a beat (their block comes down first,
+                    so it's weaker when you hit)
+     DOUBLE CLUTCH  SET, then HIT: you show them a set, then swing (an AI block that bites goes up early, beaten)
+     FAKE SPIKE     HIT + DIG together: the full swing, then a soft roll shot up over the block into the deep open spot
+                    (their diggers, set for a hard one, are late to it)
+     AIR STEP       flick the stick left or right + JUMP: a quick step sideways in the air: around their block (it covers
+                    less of you), or, blocking, over to where the hitter is swinging
+   on the block
+     REACH OVER     HIT again in the air: your hands press over the net (it roofs more, but covers less width)
+     SOFT BLOCK     SET + DIG together: hands back: it comes off soft every time, a slow lob up to your team
+   The AI uses them too (more the better the team): hang time when it jumped early, fake spikes into a block, and up on
+   a block it reaches over, softens it or steps across. Online, a guest's page does its own (it reports them with its
+   buttons) and the host does the rest; a guest only does them with a host from 12.3 on (an older host wouldn't know).
+   ===================================================================== */
+const COMBO_NAMES = { hang: 'HANG TIME!', clutch: 'DOUBLE CLUTCH!', fake: 'FAKE SPIKE!', step: 'AIR STEP!', reach: 'REACH OVER!', soft: 'SOFT BLOCK!' };
+const COMBO_BITS = { hang: 1, clutch: 2, fake: 4, step: 8, reach: 16, soft: 32, shown: 64 };
+const COMBO_V = 123;   // (a host from 12.3 on says so in its snapshots)
+const combosOn = () => !G.client || (NET.hostV || 0) >= COMBO_V;
+// This jump's combos (a new one each time you leave the ground; gone when you land)
+function cmbState(p) {
+  if (p.grounded) return null;
+  if (!p.cmb) p.cmb = { t0: G.time, hang: 0, hangT: 0, step: 0, stepT: -9, stepDir: 0, vz0: 0, clutch: 0, shown: 0, fake: 0, reach: 0, soft: 0, ai: false, paid: false };
+  return p.cmb;
+}
+// Is this one on? (a guest's player on the host: from what their page reported)
+function cmbHas(p, k) {
+  if (p.cmb) return !!p.cmb[k];
+  return !!(p.ctl && !p.ctl.local && ((p.cmbNet | 0) & COMBO_BITS[k]));
+}
+function cmbBits(p) {
+  const C = p.cmb;
+  if (!C) return p.ctl && !p.ctl.local ? p.cmbNet | 0 : 0;   // (a guest's, on the host: what they said)
+  let b = 0;
+  for (const k in COMBO_BITS) if (C[k] && !(k === 'hang' && C.hang === 2 && C.hangT >= 0.32) && !(k === 'step' && G.time - C.stepT > 0.5)) b |= COMBO_BITS[k];
+  return b;
+}
+// The buttons: called from humanStep, before the presses do their usual things (some are used up here)
+function comboInput(p, E, held) {
+  const now = G.time, T = p.cmbT || (p.cmbT = { jump: -9, hit: -9, dig: -9, set: -9 });
+  const c = p.ctl, wz = c ? c.wz || 0 : 0, F = p.cmbF || (p.cmbF = { low: -9, t: -9, dir: 0 });
+  // a flick: the stick snapped hard to one side, from near the middle, in under 0.15 s
+  if (Math.abs(wz) < 0.35) F.low = now;
+  else if (Math.abs(wz) > 0.8 && now - F.low < 0.15 && now - F.t > 0.3) { F.t = now; F.dir = Math.sign(wz); }
+  if (!p.grounded && combosOn() && (G.phase === 'live' || (PRAC.on && G.phase === 'drill'))) {
+    const C = cmbState(p), blocking = !!(p.act && p.act.kind === 'block');
+    const both = (a, b) => !!((E[a + 'Down'] && (E[b + 'Down'] || now - T[b] < 0.12)) || (E[b + 'Down'] && now - T[a] < 0.12));
+    if (blocking) {
+      if (!C.soft && both('set', 'dig')) { C.soft = 1; comboDone(p, 'soft'); }
+      else if (!C.reach && !C.soft && E.hitDown && p.act.t > 0.04) { C.reach = 1; comboDone(p, 'reach'); }
+      E.setDown = false; E.hitDown = false;   // (a set or a swing mid-block would drop the block)
+    } else {
+      if (!C.fake && both('hit', 'dig')) C.fake = 1;   // (named when it goes over: see sendFake)
+      if (E.setDown && !C.shown && G.poss.team === p.team) { C.shown = 1; if (!G.client) clutchFake(p); }   // the set they see
+      if (!C.clutch && E.hitDown && C.shown && now - T.set < 0.4) C.clutch = 1;
+    }
+    if (E.jumpDown) {
+      if (!C.step && now - F.t < 0.25 && F.dir) { airStep(p, F.dir); E.jumpDown = false; }
+      else if (!C.hang && !blocking && p.vy > 0.3 && now - C.t0 < 0.45) { C.hang = 1; E.jumpDown = false; }
+    }
+  }
+  for (const k of ['jump', 'hit', 'dig', 'set']) if (E[k + 'Down']) T[k] = now;
+}
+function comboDone(p, k) {
+  STATS.combos = STATS.combos || {};
+  STATS.combos[k] = (STATS.combos[k] || 0) + 1;
+  if (G.demo) return;
+  if (p.ctl && p.ctl.local && !aiControlled(p)) flash(COMBO_NAMES[k], true, false, true);   // (yours: on your screen)
+}
+// AIR STEP: a quick step sideways (0.16 s at speed, about 0.8 m)
+function airStep(p, dir) {
+  const C = cmbState(p);
+  if (!C || C.step || !dir) return;
+  C.step = 1; C.stepT = G.time; C.stepDir = dir; C.vz0 = p.vel.z;
+  p.vel.z = clamp(dir * 5.2, -6.5, 6.5);
+  burst(new V3(p.pos.x, p.pos.y + 0.9, p.pos.z), 0xffffff, 0.45, false);
+  comboDone(p, 'step');
+}
+// In the air each step (physicsPlayer): the hang at the top, the end of a step. Returns the gravity to use.
+function comboGrav(p, g) {
+  const C = p.cmb;
+  if (!C) return g;
+  if (C.hang === 1 && p.vy < 0.7) {
+    C.hang = 2; C.hangT = 0; comboDone(p, 'hang');
+    burst(new V3(p.pos.x, Math.max(0.1, p.pos.y), p.pos.z), 0xdff4ff, 0.6, false);
+  }
+  if (C.hang === 2 && C.hangT < 0.32) { C.hangT += DT; g = Math.min(g, G_PLAYER * 0.28); }
+  if (C.step === 1 && G.time - C.stepT >= 0.16) { C.step = 2; p.vel.z = C.vz0 * 0.5; }
+  return g;
+}
+// DOUBLE CLUTCH: the set they showed. Their AI block may bite: up it goes now, early (and it's beaten)
+function clutchFake(p) {
+  const opp = other(p.team), b = opp.blocker, bp = opp.blockPlan;
+  if (!b || !aiControlled(b) || !b.grounded || !bp || bp.serial !== G.touchSerial || bp.bit != null || G.demo) return;
+  bp.bit = Math.random() < 0.75 - 0.6 * clamp(smarts(b, 'block'), 0, 1) ? G.touchSerial : -1;   // (aiBlock: up it goes)
+}
+// FAKE SPIKE: the swing, then a soft roll shot up over the block, deep into the open spot
+function sendFake(p, q) {
+  const opp = other(p.team), so = opp.side, c = openSpot(opp, true, ball.p, 6, 0.4);
+  const tgt = scatter(c, (1 - q) * 0.8 * down(p, 'control', 1.1));
+  tgt.x = so * clamp(Math.abs(tgt.x), 3.4, 7.3); tgt.z = clamp(tgt.z, -3.9, 3.9);
+  const v = solveApex(ball.p, tgt.x, tgt.z, BALL_R, Math.max(ball.p.y + 0.9, NET_TOP + 1.7));
+  if (!contact(p, 'attack', v)) return;
+  for (const r of opp.players) if (aiControlled(r)) r.react = Math.max(r.react, 0) + 0.35;   // set for a hard one: late to it
+  comboShow(p, 'fake', 9);
+}
+// A combo that went over the net: everyone hears it, and the meter
+function comboShow(p, k, style) {
+  STATS.combos = STATS.combos || {};
+  STATS.combos[k + '!'] = (STATS.combos[k + '!'] || 0) + 1;
+  if (G.demo) return;
+  if (aiControlled(p)) aiFlourish(p, COMBO_NAMES[k], style);
+  else { flash(COMBO_NAMES[k], false, true); addStyle(p.team, style); bigTrick(); }
+}
+// After an attack (yours, or a guest's on the host): the clutch is named; a step just before it gets round their block
+function comboAfterAttack(p, serving) {
+  if (serving || G.lastToucher !== p) return;
+  if (cmbHas(p, 'clutch')) comboShow(p, 'clutch', 9);
+  const C = p.cmb, stepped = C ? C.step && G.time - C.stepT < 0.5 : cmbHas(p, 'step');
+  if (stepped) ball.dodge = G.touchSerial;
+  if ((stepped || cmbHas(p, 'hang')) && !aiControlled(p) && !G.demo && !(C && C.paid)) { addStyle(p.team, 3); if (C) C.paid = true; }
+}
+// A block with a combo on it touched the ball
+function comboBlocked(p, k, outcome) {
+  STATS.combos = STATS.combos || {};
+  STATS.combos[k + '!'] = (STATS.combos[k + '!'] || 0) + 1;
+  if (G.demo) return;
+  if (aiControlled(p)) { if (k === 'reach' && outcome === 'stuff') aiFlourish(p, COMBO_NAMES[k], 4); }
+  else addStyle(p.team, k === 'reach' ? 4 : 3);
+}
+// ---- the AI
+// Attacking, in the air: jumped a little early? Hang at the top (the better the team, the more often)
+function aiAttackAir(p, tk) {
+  const C = cmbState(p);
+  if (!C || C.ai || G.demo || G.phase !== 'live' || p.vy > 0.9) return;
+  C.ai = true;   // (decided once a jump, near the top)
+  contactPoint(p, PT.hit, _cp);
+  const d = _cp.distanceTo(ball.p), closing = (ball.p.x - p.pos.x) * ball.v.x + (ball.p.z - p.pos.z) * ball.v.z < 0;
+  if (closing && d > reachOf(p, 'hit') * 1.5 && Math.random() < clamp((p.team.ai.trick || 0) * 2.2, 0, 0.5)) C.hang = 1;
+}
+// Blocking, in the air: step across to the hitter's line, reach over a tight one, or soften it
+function aiBlockAir(p, tk) {
+  const C = cmbState(p);
+  if (!C || C.ai || !p.act || p.act.kind !== 'block' || p.act.fake || G.demo) return;
+  C.ai = true;
+  const tr = p.team.ai.trick || 0, oc = other(p.team).contact;
+  if (oc && oc.c) {
+    const off = oc.c.z - p.pos.z;
+    if (Math.abs(off) > 0.45 && Math.random() < clamp(tr * 2.4, 0, 0.6)) airStep(p, Math.sign(off));
+    if (Math.abs(oc.c.x) < 1.3 && Math.random() < clamp(tr * 1.2, 0, 0.35)) { C.reach = 1; comboDone(p, 'reach'); return; }
+  }
+  if (Math.random() < clamp(tr * 0.7, 0, 0.22)) { C.soft = 1; comboDone(p, 'soft'); }
+}
+// ---- how it looks: tucked at the top of a hang, leaning into a step, hands over the net or tipped back
+function comboPose(p, o) {
+  const C = p.cmb || p.cmbView;
+  if (!C || p.grounded) return;
+  if (C.hang === 2 && C.hangT < 0.4) { o.thL -= 0.35; o.thR -= 0.25; o.knL += 0.5; o.knR += 0.45; }
+  if (C.step && G.time - C.stepT < 0.32) { const k = 1 - (G.time - C.stepT) / 0.32; o.roll = (o.roll || 0) - 0.32 * k * C.stepDir * p.team.side; o.thL += 0.15 * k; o.thR += 0.15 * k; }
+  const a = p.act;
+  if (a && a.kind === 'block') {
+    if (C.reach) { o.lean = 0.3; o.shLx = o.shRx = -2.5; o.elL = o.elR = 0; o.headX = 0.08; }
+    else if (C.soft) { o.lean = -0.2; o.shLx = o.shRx = -3.32; o.elL = o.elR = -0.3; o.headX = -0.25; }
+  }
+}
+// Online, on a guest: everyone else's combos come from the host, as bits (for how they look)
+function cmbViewOf(p, bits) {
+  bits |= 0;
+  if (!bits) { p.cmbView = null; return; }
+  const V = p.cmbView || (p.cmbView = { hang: 0, hangT: 0, step: 0, stepT: -9, stepDir: 0, reach: 0, soft: 0 });
+  V.hang = bits & 1 ? 2 : 0; V.hangT = 0; V.reach = bits & 16 ? 1 : 0; V.soft = bits & 32 ? 1 : 0;
+  if (bits & 8) { if (!V.step) { V.step = 1; V.stepT = G.time; V.stepDir = Math.sign(p.vel.z || 1); } } else V.step = 0;
+}
+
 function isDefending(team) {
   return G.phase === 'live' && G.poss.team === other(team) && ball.p.x * team.side < 0 && ball.lastKind !== 'serve' && ball.lastKind !== 'block';
 }
@@ -11797,6 +12295,7 @@ function humanStep(p) {
     p.act = null; p.recover = 0; p.trick = { kind: 'combatroll', t: 0 }; p.vel.x *= 0.5; p.vel.z *= 0.5; E.jumpDown = false;
     flash('COMBAT ROLL!', true); addStyle(p.team, 4);
   }
+  comboInput(p, E, held);   // v12.3: air combos (some presses are used up here)
   const locked = (p.act && (p.act.kind === 'dive' || p.act.kind === 'slip')) || p.recover > 0;   // (v11: down on a hotdog, or the goat got you)
   const landing = p.grounded && G.time < (p.landSlowT || 0);   // just landed from a big jump
   const defending = isDefending(p.team);
@@ -11833,6 +12332,7 @@ function humanStep(p) {
       if (facingAway && G.phase === 'live' && canTrick(p, '180')) { p.trick180 = true; p.face = Math.atan2(-s, 0); p.yawFx = Math.PI; }
     }
   }
+  if (p.act && p.act.kind === 'block' && !p.grounded && p.vy > 0 && held.hit && p.act.t < 0.32) p.vy += G_PLAYER * 0.2 * DT;   // v12.3: holding BLOCK: reaching higher
   const sw = p.act && p.act.kind === 'swing' ? p.act : null;
   if (sw && !sw.done) {
     const hitHeld = sw.hybrid ? held.set : held.hit;
@@ -12009,6 +12509,7 @@ function humanTouch(p) {
     let trick = null, risk = 0;
     const rk = down(p, 'control', 1.25);
     const blk = !serving && !p.grounded ? toolBlocker(p) : null;   // a block up in front of you: wipe it off their hands
+    if (!serving && !p.grounded && cmbHas(p, 'fake')) { sendFake(p, q); comboAfterAttack(p, false); return; }   // v12.3: FAKE SPIKE
     if (serving) {
       const st = stickOf(p);
       if (!p.grounded && p.tornado && canTrick(p, 'tornado')) { trick = 'TORNADO SERVE!'; power = Math.min(1.4, power + 0.16); risk = (0.25 + 1.1 * Math.max(0, 0.7 - q)) * rk; }   // (v11.2) the timing's tighter
@@ -12032,6 +12533,7 @@ function humanTouch(p) {
     else if (trick === 'TOOL SHOT!') sendTool(p, q, power, blk);
     else if (trick === 'KNUCKLE POKE!') sendPoke(p, q, blk);   // (v11.2)
     else sendAttack(p, q, true, aim, power, trick, risk);
+    comboAfterAttack(p, serving);   // (v12.3)
     return;
   }
   if (a.kind === 'kick') {   // KICK SERVE: off the foot as your toss drops
@@ -12129,7 +12631,7 @@ function autoSwitchCtl(c) {
    ===================================================================== */
 function gbLevel(team) {
   if (team.style >= 100) return team.gb.pocket ? 2 : 1;
-  return team.gb.pocket ? 1 : 0;
+  return 0;   // v12.3: a pocket on its own doesn't fire: it waits for the meter to fill again (Level 2)
 }
 function gbActivate(team) {
   const lvl = gbLevel(team);
@@ -13441,12 +13943,14 @@ onTap($('btnReplay'), (e) => { e.stopPropagation(); playMyReplay(); });
 /* =====================================================================
    SOUND: synthesized hits, digs, sets, blocks, bounces and net (no audio files)
    ===================================================================== */
-// Phones only let a page start sound from a finished tap (touchend / click) or a key, and an iPhone on silent mutes
-// web audio unless the page plays as media. So: ask for media playback, and (re)start the sound on every such gesture
-// until it's running (it also stops when the app goes to the background or a call comes in).
+// Phones only let a page start sound from a finished tap (touchend / click) or a key, so the sound is (re)started on
+// every such gesture until it's running (it also stops when the app goes to the background or a call comes in).
+// v12.3: the game's sound mixes in with whatever else is playing (your music keeps going): the page asks for 'ambient'.
+// Until 12.2 it asked to play as media ('playback'), which stopped your music; on an iPhone the silent switch now mutes
+// the game, as it does other games that mix in.
 let actx = null, master = null, noiseBuf = null, audioPoked = false;
 function audioInit() {
-  try { const S = navigator.audioSession; if (S && S.type !== 'playback') S.type = 'playback'; } catch (_) { /* not on this browser */ }
+  try { const S = navigator.audioSession; if (S && S.type !== 'ambient') S.type = 'ambient'; } catch (_) { /* not on this browser */ }
   if (!actx) {
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
@@ -14017,16 +14521,18 @@ function updateHud() {
   setClass($('status'), 'tc', tcOn && !short);
   const lvl = gbLevel(myT), w = Math.round(myT.gb.active ? 100 : myT.style) + '%';
   if (hudCache.meterW !== w) { hudCache.meterW = w; $('meterFill').style.width = w; }
-  setText('meterLabel', myT.gb.active ? 'GAMEBREAKER LIVE' : myT.style >= 100 ? (myT.gb.pocket ? 'GAMEBREAKER 2 READY' : 'GAMEBREAKER READY') : 'GAMEBREAKER');
+  setText('meterLabel', myT.gb.active ? 'GAMEBREAKER LIVE' : myT.style >= 100 ? (myT.gb.pocket ? 'GAMEBREAKER 2 READY' : 'GAMEBREAKER READY') : myT.gb.pocket ? 'LEVEL 2' : 'GAMEBREAKER');
   setClass($('meter'), 'full', myT.style >= 100); setClass($('meter'), 'fire', !!myT.gb.active);
+  setClass($('meter'), 'lv2', !!myT.gb.pocket && !myT.gb.active);   // (v12.3: filling the Level 2 bar)
   setHidden($('pocket'), !myT.gb.pocket);
   const h = G.human, playing = h && (!G.paused || G.testHud) && (G.phase === 'live' || G.phase === 'serve');
   // Gamebreaker button
   const gbShow = !!(playing && lvl && !myT.gb.active);
   setHidden(gbBtn, !gbShow);
   if (gbShow) {
-    setText('gbLabel', lvl === 2 && myT.style >= 100 ? 'GAMEBREAKER 2' : 'GAMEBREAKER');
-    setText('gbSub', myT.style >= 100 && !myT.gb.pocket ? 'TAP · HOLD TO POCKET' : 'TAP TO FIRE');
+    setText('gbLabel', lvl === 2 ? 'GAMEBREAKER 2' : 'GAMEBREAKER');
+    setText('gbSub', lvl === 1 ? 'TAP · HOLD TO POCKET' : 'TAP TO FIRE');
+    setClass(gbBtn, 'lv2', lvl === 2);
   }
   const cue = playing ? cues(h) : NO_CUE, defending = h && isDefending(h.team);
   setText('prompt', cue.text); setHidden($('prompt'), !cue.text); setClass($('prompt'), 'now', cue.now);
@@ -15319,7 +15825,7 @@ document.querySelectorAll('[data-chips]').forEach((el) => {
     const b = document.createElement('button');
     b.type = 'button'; b.dataset.v = v; b.textContent = LABELS[v] || v.toUpperCase();
     b.addEventListener('click', () => pickLook(key, v, () => {
-      profile[key] = v;
+      if (key === 'celebrate') profile[CELEB_FIELD[celebFor]] = v; else profile[key] = v;   // (v12.3: the moment that's picked)
       if (key === 'celebrate') { creatorChanged(false); showAnim.t = SHOW_IDLE; }   // play it right away on the model
       else if (key === 'idle') { creatorChanged(); showAnim.t = 0; showAnim.idle = true; }   // (v11: and your waiting move)
       else creatorChanged();
@@ -15327,6 +15833,8 @@ document.querySelectorAll('[data-chips]').forEach((el) => {
     el.appendChild(b);
   });
 });
+document.querySelectorAll('#celebFor button').forEach((b) => b.addEventListener('click', () => { celebFor = b.dataset.m; syncCreator(); showAnim.t = SHOW_IDLE; }));   // (v12.3)
+function celebNow() { return celebSlot(profile, celebFor); }
 document.querySelectorAll('[data-toggle] button').forEach((b) => b.addEventListener('click', () => {
   const key = b.parentElement.dataset.toggle, v = b.dataset.v === 'true';
   pickLook(key, v, () => { profile[key] = v; creatorChanged(); });
@@ -15367,7 +15875,8 @@ function syncCreator() {
     if (locked) b.dataset.price = fmtPts(gearPrice(key, v)); else delete b.dataset.price;
   };
   document.querySelectorAll('[data-sw]').forEach((el) => [...el.children].forEach((b) => { const i = Number(b.dataset.i); b.setAttribute('aria-pressed', String(i === profile[el.dataset.sw])); lockUp(b, el.dataset.sw, i); }));
-  document.querySelectorAll('[data-chips]').forEach((el) => [...el.children].forEach((b) => { b.setAttribute('aria-pressed', String(b.dataset.v === profile[el.dataset.chips])); lockUp(b, el.dataset.chips, b.dataset.v); }));
+  document.querySelectorAll('[data-chips]').forEach((el) => [...el.children].forEach((b) => { b.setAttribute('aria-pressed', String(b.dataset.v === (el.dataset.chips === 'celebrate' ? celebNow() : profile[el.dataset.chips]))); lockUp(b, el.dataset.chips, b.dataset.v); }));
+  document.querySelectorAll('#celebFor button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.m === celebFor)));   // (v12.3)
   document.querySelectorAll('[data-toggle]').forEach((el) => [...el.children].forEach((b) => { b.setAttribute('aria-pressed', String(String(profile[el.dataset.toggle]) === b.dataset.v)); lockUp(b, el.dataset.toggle, b.dataset.v); }));
   document.querySelectorAll('.sw.team').forEach((b) => { b.style.background = hexCss(TEAM_COLORS[profile.color]); });
   $('eye2Field').hidden = !profile.hetero;
@@ -15416,7 +15925,7 @@ function updateShowcase(dt) {
   let hop = 0, spin = 0;
   if (ct < 0 && profile.idle && profile.idle !== 'mix' && showAnim.idle) { Object.assign(o, BASE_POSE); idleMove(o, profile.idle, Math.sin(clamp(showAnim.t / SHOW_IDLE, 0, 1) * Math.PI), G.time * 7, showAnim.t / SHOW_IDLE * 0.62); showAnim.yaw += dt * 0.3; }   // (v11)
   else if (ct < 0) { readyPose(o, G.time, 0); showAnim.yaw += dt * 0.6; }
-  else { const c = celebratePose(o, profile.celebrate, ct); hop = c.hop; spin = c.spin; showAnim.yaw += (Math.atan2(Math.sin(-showAnim.yaw), Math.cos(-showAnim.yaw))) * Math.min(1, dt * 5); }
+  else { const c = celebratePose(o, celebNow(), ct); hop = c.hop; spin = c.spin; showAnim.yaw += (Math.atan2(Math.sin(-showAnim.yaw), Math.cos(-showAnim.yaw))) * Math.min(1, dt * 5); }
   const k = 1 - Math.exp(-dt * 16), P = showcase.pose;
   for (const key in o) P[key] += (o[key] - P[key]) * k;
   showcase.root.position.set(SHOW_AT.x, hop, SHOW_AT.z);
@@ -15621,7 +16130,7 @@ function poseTarget(p, o) {
       if (p === G.lastToucher) { o.shLx = o.shRx = -2.75; o.elL = o.elR = -2.35; o.shLz = 0.55; o.shRz = -0.55; }
       return o;
     }
-    if (G.celebrate === p && G.deadT > CELEB_DELAY && p.grounded) { celebratePose(o, p.celebration, G.deadT - CELEB_DELAY); return o; }
+    if (G.celebrate === p && G.deadT > CELEB_DELAY && p.grounded) { celebratePose(o, celebOf(p), G.deadT - CELEB_DELAY); return o; }
     if (!G.rallyWinner && G.phase === 'dead') { o.shLx = o.shRx = -0.2; o.elL = o.elR = -0.3; o.shLz = 0.2; o.shRz = -0.2; o.headX = 0.1; crouch(o, 0.04, 0.1); return o; }
     if (p.team === G.rallyWinner) { o.shLx = o.shRx = -2.8; o.elL = o.elR = -0.25; o.shLz = 0.55; o.shRz = -0.55; o.headX = -0.2; }
     else { o.lean = 0.7; crouch(o, 0.12); o.shLx = o.shRx = -0.95; o.elL = o.elR = -0.1; o.headX = 0.35; }
@@ -15800,6 +16309,7 @@ function updateRig(p, dt) {
   p.stride += sp * dt * (p.charging ? 2.9 : 2.4);
   if (p.trick) { p.trick.t += dt; if (p.trick.t > (p.trick.kind === 'bicycle' ? 0.7 : 0.5)) p.trick = null; }
   poseTarget(p, TMP_POSE);
+  comboPose(p, TMP_POSE);   // (v12.3)
   if (r.v2) poseMore(p, TMP_POSE, dt);   // (v12)
   // Each joint follows its target like a lightly damped spring: moves ease in, and a swing or a landing carries
   // through a touch past where it's headed. Swings and blocks use a stiffer spring so they still snap.
@@ -15818,7 +16328,7 @@ function updateRig(p, dt) {
   let hop = dead && p.team === G.rallyWinner && (!r.v2 || (p.mv && (p.mv.kind === 'arms' || (p.mv.kind === 'five' && !p.mv.who)) && G.deadT > 0.2)) ? Math.abs(Math.sin(G.time * 8 + p.idx)) * 0.22 : 0, yaw = p.face + p.yawFx;
   let cx = 0, cz = 0;
   if (dead && G.celebrate === p && G.deadT > CELEB_DELAY && p.grounded) {
-    const c = celebratePose(TMP_POSE, p.celebration, G.deadT - CELEB_DELAY);
+    const c = celebratePose(TMP_POSE, celebOf(p), G.deadT - CELEB_DELAY);
     hop = c.hop;
     // turn to face the camera, then any spin on top
     const want = Math.atan2(camera.position.x - p.pos.x, camera.position.z - p.pos.z);
@@ -15983,6 +16493,7 @@ function render(dt) {
   updateHud();
   gbHoldTick();
   if (!replaying) updateCamera(dt);
+  camBoxClamp();   // v12.3
   if (shakeT > 0.001) {
     const k = shakeT * shakeT, w = performance.now() / 1000;
     camera.position.x += Math.sin(w * 41) * k * 0.22; camera.position.y += Math.cos(w * 33) * k * 0.12; camera.position.z += Math.sin(w * 27) * k * 0.16;
@@ -16063,6 +16574,23 @@ function updateCamera(dt) {
   const kq = G.showcase || G.dogShow ? 1 - Math.exp(-dt * 6) : kc;
   camPos.lerp(_tp, kq); camLook.lerp(_tl, kq);
   camera.position.copy(camPos); camera.lookAt(camLook);
+}
+// v12.3: a court with a box for the camera (VEGAS UNITED: inside the curtains and the walls) keeps it in there. It looks
+// at the same spot it was going to (camLook, or straight ahead when it was pointed somewhere else), and rises a little
+// as it's pushed in, so whoever it's behind stays on screen.
+const _cbD = new V3(), _cbA = new V3();
+function camBoxClamp() {
+  const g = PARKS[G.park] && PARKS[G.park].g, B = g && g.camBox;
+  if (!B) return;
+  const P = camera.position, x = clamp(P.x, -B.x, B.x), z = clamp(P.z, -B.z, B.z);
+  if (x === P.x && z === P.z) return;
+  camera.getWorldDirection(_cbD);
+  _cbA.copy(camLook).sub(P);
+  const d = _cbA.length();
+  if (d > 0.5 && _cbA.dot(_cbD) > 0.995 * d) _cbA.copy(camLook); else _cbA.copy(P).addScaledVector(_cbD, 12);
+  const push = Math.abs(P.x - x) + Math.abs(P.z - z);
+  P.x = x; P.z = z; P.y += Math.min(1.6, push * 0.3);
+  camera.lookAt(_cbA);
 }
 // The point the locked camera follows: tight on your player, gliding over when control moves to someone else
 const camFocus = new V3(-6, 0, 0);
@@ -17037,9 +17565,9 @@ const LUCKY_KINDS = ['', 'tape', 'roll', 'gone'];
 const NET_CTYPES = ['', 'pass', 'set', 'bumpset', 'attack', 'free', 'serve'];
 const NET_SETS = ['high', 'quick', 'sky', 'back', 'shoot', 'pipe'];   // (v11: shoot; v11.2: pipe; an older phone reads them as high)
 // Snapshot player fields
-const PX = { x: 0, y: 1, z: 2, vx: 3, vz: 4, vy: 5, face: 6, gr: 7, act: 8, at: 9, ad: 10, aid: 11, ft: 12, st: 13, hand: 14, back: 15, fl: 16, ch: 17, spin: 18, tk: 19, tt: 20, jc: 21, tp: 22, slot: 23 };
+const PX = { x: 0, y: 1, z: 2, vx: 3, vz: 4, vy: 5, face: 6, gr: 7, act: 8, at: 9, ad: 10, aid: 11, ft: 12, st: 13, hand: 14, back: 15, fl: 16, ch: 17, spin: 18, tk: 19, tt: 20, jc: 21, tp: 22, slot: 23, cb: 24 };   // (v12.3: cb, air combos)
 // Guest body report fields
-const BX = { x: 0, y: 1, z: 2, vx: 3, vz: 4, vy: 5, face: 6, gr: 7, act: 8, at: 9, ad: 10, aid: 11, dur: 12, hand: 13, back: 14, fl: 15, ch: 16, spin: 17, jc: 18, tov: 19, t180: 20, rec: 21, tp: 22, sb: 23 };
+const BX = { x: 0, y: 1, z: 2, vx: 3, vz: 4, vy: 5, face: 6, gr: 7, act: 8, at: 9, ad: 10, aid: 11, dur: 12, hand: 13, back: 14, fl: 15, ch: 16, spin: 17, jc: 18, tov: 19, t180: 20, rec: 21, tp: 22, sb: 23, cb: 24 };   // (v12.3: cb, air combos)
 const pidx = (p) => (p ? allPlayers.indexOf(p) : -1);
 const pAt = (i) => (Number.isInteger(i) && i >= 0 ? allPlayers[i] || null : null);
 const num = (v, lo, hi) => clamp(Number(v) || 0, lo, hi);
@@ -17058,13 +17586,15 @@ function packLook(L) {
     // v11.1
     HEADWEAR.indexOf(L.head), SHIRTS.indexOf(L.shirt), L.hoodUp ? 1 : 0, L.hatCol, L.earCol, L.chainCol, L.trimCol,
     // v11.1.1
-    L.shirtCol == null ? -1 : L.shirtCol]
+    L.shirtCol == null ? -1 : L.shirtCol,
+    // v12.3: ACE, BLOCK and MATCH WIN, filled in
+    CELEBRATIONS.indexOf(celebSlot(L, 'ace')), CELEBRATIONS.indexOf(celebSlot(L, 'block')), CELEBRATIONS.indexOf(celebSlot(L, 'win'))]
     .map((v, i) => (i === 6 ? lookOldHead(L) : i === 21 ? lookOldShirt(L) : v));
 }
 const OLD_HEADS = 8, OLD_SHIRTS = 6;   // (what a v11.0 phone has)
 const lookOldHead = (L) => (L.shirt === 'hoodie' && L.hoodUp ? HEADWEAR.indexOf('hood') : Math.max(0, HEADWEAR.indexOf(L.head)) < OLD_HEADS ? Math.max(0, HEADWEAR.indexOf(L.head)) : 0);
 const lookOldShirt = (L) => { const i = SHIRTS.indexOf(L.shirt); return i >= 0 && i < OLD_SHIRTS ? i : SHIRTS.indexOf('longsleeve'); };
-const LOOK_LEN = 38;
+const LOOK_LEN = 41;   // (v12.3: 38 until 12.2)
 // A packed look back into the option form `profile` uses (cleaned), and into a look to build a rig from
 function unpackProfile(a) {
   a = Array.isArray(a) ? a : [];
@@ -17077,6 +17607,8 @@ function unpackProfile(a) {
     chain: a.length > 27 ? of(CHAINS, 27) : 'none', ears: a.length > 28 ? of(EARS, 28) : 'none', idle: a.length > 29 ? of(IDLE_MOVES, 29) : 'mix',   // (v11)
     ...(a.length > 36 ? { head: of(HEADWEAR, 30), shirt: of(SHIRTS, 31), hoodUp: !!a[32], hatCol: n(33), earCol: n(34), chainCol: n(35), trimCol: n(36) } : {}),   // (v11.1)
     shirtCol: a.length > 37 ? n(37) : -1,   // (v11.1.1)
+    ...(a.length > 40 ? { celAce: of(CELEBRATIONS, 38), celBlock: of(CELEBRATIONS, 39), celWin: of(CELEBRATIONS, 40) }
+      : { celAce: of(CELEBRATIONS, 15), celBlock: of(CELEBRATIONS, 15), celWin: of(CELEBRATIONS, 15) }),   // (v12.3; from an older phone: their one for all four)
   });
 }
 function unpackLook(a, team) { return lookFromProfile(unpackProfile(a), team.color); }
@@ -17363,7 +17895,7 @@ function netSnapshot() {
     return [r2(p.pos.x), r2(p.pos.y), r2(p.pos.z), r2(p.vel.x), r2(p.vel.z), r2(p.vy), r3(p.face + p.yawFx + (p.cutYaw || 0)), p.grounded ? 1 : 0,
       a ? Math.max(0, NET_ACTS.indexOf(a.kind)) : 0, a ? r2(a.t) : 0, a && a.done ? 1 : 0, a && a.id != null ? a.id : -1, a && a.fireT != null ? r2(a.fireT) : -1,
       a ? Math.max(0, NET_STYLES.indexOf(a.style || '')) : 0, a && a.hand ? a.hand : 0, a && a.back ? 1 : 0,
-      fl, r2(p.charge), p.spin ? r2(p.spin.t) : p.tornado ? r2(p.tornado.t) : -1, p.trick ? Math.max(0, NET_TRICKS.indexOf(p.trick.kind)) : 0, p.trick ? r2(p.trick.t) : 0, r2(p.jumpCharge), p.tp || 0, p.ctl ? p.ctl.slot : -1];
+      fl, r2(p.charge), p.spin ? r2(p.spin.t) : p.tornado ? r2(p.tornado.t) : -1, p.trick ? Math.max(0, NET_TRICKS.indexOf(p.trick.kind)) : 0, p.trick ? r2(p.trick.t) : 0, r2(p.jumpCharge), p.tp || 0, p.ctl ? p.ctl.slot : -1, cmbBits(p)];
   });
   const T = teams.map((t) => {
     const c = t.contact, sp = t.setPlan, call = t.call, bs = t.blockSpot;
@@ -17382,7 +17914,7 @@ function netSnapshot() {
       Math.max(0, BALLS.findIndex((b) => b.id === G.ballLook)), practicePack(),
       G.cut ? [GB_IDS.indexOf(G.cut.id), G.cut.lvl, G.cut.team.id, pidx(G.cut.by), G.cut.n, r3(G.cut.t)] : 0,   // (v10.2: a Gamebreaker play: an older phone just sees a rally)
       G.joust ? [pidx(G.joust.p[0]), pidx(G.joust.p[1]), G.joust.taps[0], G.joust.taps[1], r2(G.joust.t)] : 0,   // (v11.2)
-      NET.f % 16 === 0 ? netPings() : 0],   // (v11.3: each guest's round trip, about twice a second, for their own screen; v12: every 16th snapshot, not every 15th: see the note in the design doc)
+      NET.f % 16 === 0 ? netPings() : 0, G.celebM || 0, COMBO_V],   // (v12.3: the celebration's moment; the host's version, for air combos)   // (v11.3: each guest's round trip, about twice a second, for their own screen; v12: every 16th snapshot, not every 15th: see the note in the design doc)
     B: [r3(ball.p.x), r3(ball.p.y), r3(ball.p.z), r3(ball.v.x), r3(ball.v.y), r3(ball.v.z), pidx(ball.held), r2(ball.wobble), Math.max(0, NET_KINDS.indexOf(ball.lastKind || '')), ball.curve ? r2(ball.curve.az || 0) : 0, ball.curve ? r2(ball.curve.dy || 0) : 0],
     P, T, E: NET.ev,
   };
@@ -17502,6 +18034,10 @@ function netTakeReport(p, B) {
   p.jumpCharge = num(B[BX.jc], 0, 1); p.takeoffV = num(B[BX.tov], 0, 12); p.trick180 = !!B[BX.t180];
   p.recover = num(B[BX.rec], 0, 1); p.setStyle = B[BX.sb] ? 'back' : null;
   p.fresh = true;   // a real position this step (foot faults are only called on these)
+  const cb0 = p.cmbNet | 0;   // v12.3: their air combos (a 12.2 phone sends none); the set they showed, for a clutch
+  p.cmbNet = B.length > BX.cb ? B[BX.cb] | 0 : 0;
+  if ((p.cmbNet & COMBO_BITS.shown) && !(cb0 & COMBO_BITS.shown)) clutchFake(p);
+  cmbViewOf(p, p.cmbNet);
 }
 
 // ---- Guest: run your own player, report it, and draw everyone else from the host ----
@@ -17542,7 +18078,7 @@ function netReport() {
     B: p ? [r2(p.pos.x), r2(p.pos.y), r2(p.pos.z), r2(p.vel.x), r2(p.vel.z), r2(p.vy), r3(p.face), p.grounded ? 1 : 0,
       a ? Math.max(0, NET_ACTS.indexOf(a.kind)) : 0, a ? r2(a.t) : 0, a && a.done ? 1 : 0, a ? a.id : -1, a ? r2(a.dur) : 0, a && a.hand ? a.hand : 0, a && a.back ? 1 : 0,
       (p.charging ? 1 : 0) | (p.windup ? 2 : 0) | (p.approached ? 4 : 0) | (a && a.hybrid ? 8 : 0) | (p.tornado ? 16 : 0) | (a && a.swing ? 32 : 0), r2(p.charge), p.spin ? r2(p.spin.t) : -1, r2(p.jumpCharge), r2(p.takeoffV), p.trick180 ? 1 : 0,
-      r2(p.recover), p.tpSeen || 0, p.setStyle === 'back' ? 1 : 0] : null,
+      r2(p.recover), p.tpSeen || 0, p.setStyle === 'back' ? 1 : 0, cmbBits(p)] : null,
   };
 }
 function netTakeBody(p, a) {   // adopt the host's copy (a new rally, or control just moved to this player)
@@ -17580,6 +18116,7 @@ function netApplySnap(S, at) {
   G.lastToucher = pAt(g[7]); G.touchSerial = g[8] | 0;
   if (wasJ && !G.joust && localCtl && wasJ.p.includes(localCtl.p) && !G.demo) { if (G.lastToucher === localCtl.p) { flash('JOUST WON!', false, true, true); bigTrick(); } else flash('JOUST LOST', true, false, true); }   // (v11.2: how yours went)
   G.rallyWinner = g[9] === 0 || g[9] === 1 ? teams[g[9]] : null; G.celebrate = pAt(g[10]); G.deadT = num(g[11], 0, 30);
+  G.celebM = clamp(g[26] | 0, 0, CELEB_MOMENTS.length - 1);   // (v12.3: the celebration's moment; an older host: 0, everyone's one)
   G.matchWinner = g[12] === 0 || g[12] === 1 ? teams[g[12]] : null;
   // lucky moments: everyone stares together, and a dog in the park chases the ball here too
   const lk = LUCKY_KINDS[g[13] | 0] || '';
@@ -17647,6 +18184,7 @@ function netApplySnap(S, at) {
     p.charge = num(a[PX.ch], 0, 1); p.jumpCharge = num(a[PX.jc], 0, 1);
     const sp = Number(a[PX.spin]); p.spin = sp >= 0 ? { t: clamp(sp, 0, 3) } : null;
     p.trick = a[PX.tk] ? { kind: NET_TRICKS[a[PX.tk] | 0] || 'head', t: num(a[PX.tt], 0, 1) } : null;
+    cmbViewOf(p, a[PX.cb]);   // (v12.3)
   });
   // Call-outs, sounds and shakes from the host, each once
   const E = Array.isArray(S.E) ? S.E : [];
@@ -17674,6 +18212,7 @@ function netApplySnap(S, at) {
   setHidden($('hostPause'), !(pz === 1 && !G.spectate));
   if (Number.isInteger(g[21]) && BALLS[g[21]]) { G.ballLook = BALLS[g[21]].id; setBallLook(G.ballLook); }
   if (!G.spectate) practiceUnpack(g[22]);
+  NET.hostV = Number(g[27]) || 0;   // (v12.3: 0 from an older host: no air combos with it)
   netCutUnpack(g[23], Math.max(0, (performance.now() - now) / 1000));   // v10.2   // v10: a practice drill   // v10: the ball in play (an older host: the classic)
   if (Array.isArray(g[17])) {   // people walking past: where the host has them
     const pk = PARKS[G.park] && PARKS[G.park].g;
@@ -18285,7 +18824,7 @@ function palPump(dt) {
 // Who's playing (looks and names), for a watcher to build the same match
 const RIG_KEYS = ['color', 'skin', 'hair', 'hairColor', 'number', 'face', 'eyes', 'head', 'accent', 'sleeves', 'knees', 'bands', 'shoe', 'shorts', 'height', 'build', 'celebrate',
   'burns', 'eyeShape', 'eyeColor', 'eyeColor2', 'shirt', 'shirtNum', 'pants', 'shoeType', 'tatArm', 'tatLeg',
-  'chain', 'ears', 'idle', 'hoodUp', 'hatColor', 'earColor', 'chainColor', 'trimColor', 'shirtColor'];   // (v11.1, v11.1.1)
+  'chain', 'ears', 'idle', 'hoodUp', 'hatColor', 'earColor', 'chainColor', 'trimColor', 'shirtColor', 'celAce', 'celBlock', 'celWin'];   // (v11.1, v11.1.1, v12.3)
 const packRig = (L) => RIG_KEYS.map((k) => (L[k] === undefined ? null : L[k]));
 function unpackRig(a) {
   a = Array.isArray(a) ? a : [];
@@ -18300,6 +18839,7 @@ function unpackRig(a) {
     chain: of(CHAINS, 27, 'none'), ears: of(EARS, 28, 'none'), idle: of(IDLE_MOVES, 29, 'mix'), hoodUp: a[30] === true,   // (v11.1)
     hatColor: a[31] == null ? null : col(31, 0), earColor: col(32, ITEM_COLORS[0]), chainColor: col(33, METAL_COLORS[0]), trimColor: a[34] == null ? null : col(34, 0),
     shirtColor: a[35] == null ? null : col(35, 0),   // (v11.1.1)
+    celAce: of(CELEBRATIONS, 36, null), celBlock: of(CELEBRATIONS, 37, null), celWin: of(CELEBRATIONS, 38, null),   // (v12.3)
   };
 }
 function palConfig() {
@@ -20626,6 +21166,8 @@ window.__grass = {
   hotdogRain, knockDownBy, goatReset, get goatM() { return goatM; }, hotdogNear, digHeight, PASS_H, sendDump, chooseType,
   get SURF() { return SURF; }, SURFACES, setSurface, courtMesh, apronMesh, COURT, courtStart, courtStage, courtStageCheck, parkLook, ROOF_Y,   // (v11)
   FX2, fxKick, fxFlash,   // (v12.1)
+  cmbState, cmbHas, cmbBits, comboInput, sendFake, airStep, clutchFake, COMBO_NAMES, COMBO_BITS, combosOn, blockV, aiBlock, camBoxClamp, RAIN_SND, rainSound, NICK_RATE, get camPos() { return camPos; }, get camLook() { return camLook; },   // (v12.3)
+  celebSlot, celebOf, matchCeleb, CELEB_MOMENTS, get celebFor() { return celebFor; }, syncCreator, packLook, PUD, puddleAt, fxSplash, puddleStep,   // (v12.3)
   LAYOUTS, applyLayout, layNow, layMetrics, layPreset, layFit, editLayout, edClose, renderButtons, keyAct, actDown, actUp, padTick, padRead, KEYS_DEF, PAD_DEF, syncPips, get LAY() { return LAY; }, get PAD() { return PAD; }, get ED() { return ED; }, gameOver,   // (v12.2)
   renderRaw() { sky.position.copy(camera.position); renderer.render(scene, camera); },
   info: () => Object.assign({}, renderer.info.render, { geometries: renderer.info.memory.geometries, programs: renderer.info.programs.length }),
