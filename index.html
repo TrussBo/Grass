@@ -1701,22 +1701,24 @@ button:focus-visible, input:focus-visible { outline: 2px solid #fff; outline-off
 /* ---------- v12.5: team logos ---------- */
 #logoPick { position: absolute; inset: 0; z-index: 47; display: grid; place-items: center; padding: calc(10px + var(--st)) max(12px, var(--sr)) calc(10px + var(--sb)) max(12px, var(--sl)); background: rgba(5, 11, 24, 0.66); }
 .lgcard { width: min(860px, 100%); max-height: 100%; min-height: 0; display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 6px; padding: 12px 16px 14px; }
-.lgcard .ctop { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.lgcard .ctop { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; }
+.lgcard .ctop .h2 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lgbtns { display: flex; align-items: center; gap: 8px; flex: none; }   /* (PRINT IT up here: on screen whatever the height) */
+.lgbtns .big { margin: 0; padding: 6px 16px; font-size: clamp(15px, 3.8vmin, 19px); }
 .lgcols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(170px, 230px); gap: 14px; min-height: 0; }
 .lggrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px; overflow-y: auto; min-height: 0; padding: 3px; overscroll-behavior: contain; touch-action: pan-y; align-content: start; }
 .lgt { display: grid; justify-items: center; gap: 1px; padding: 4px 2px 3px; border: 0; border-radius: 4px; background: var(--md-soft); color: #dbe4f3; cursor: pointer; }
 .lgt canvas { width: 100%; max-width: 64px; height: auto; aspect-ratio: 1; }
 .lgt span { font: italic 800 10.5px var(--font-ui); letter-spacing: 0.08em; }
 .lgt[aria-pressed="true"] { background: rgba(255, 255, 255, 0.16); box-shadow: inset 0 0 0 2px var(--md-gold); color: #fff; }
-.lgside { display: grid; align-content: start; justify-items: center; gap: 4px; min-width: 0; overflow-y: auto; }
+.lgside { display: grid; align-content: start; justify-items: center; gap: 4px; min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
 .lgside canvas { width: min(150px, 26vh); height: auto; aspect-ratio: 1; }
 .lgname { font: italic 800 18px var(--font-ui); letter-spacing: 0.1em; color: #fff; }
 .lgside .lbl { justify-self: start; }
 .lgsw { display: flex; flex-wrap: wrap; gap: 5px; justify-content: flex-start; }
 .lgsw .sw { width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.25); padding: 0; cursor: pointer; }
 .lgsw .sw[aria-pressed="true"] { border-color: #fff; box-shadow: 0 0 0 2px var(--md-gold); }
-.lgside .big { margin-top: 6px; justify-self: stretch; }
-@media (max-height: 420px) { .lgside canvas { width: min(110px, 24vh); } .lgcard { gap: 4px; padding: 8px 12px 10px; } }
+@media (max-height: 420px) { .lgside canvas { width: min(110px, 22vh); } .lgcard { gap: 4px; padding: 8px 12px 10px; } .lgsw .sw { width: 20px; height: 20px; } }
 .mdname .lclogo { display: flex; align-items: center; padding: 0 2px 0 8px; background: var(--md-navy); }
 .mdname .lclogo[hidden] { display: none; }
 .mdname .lclogo canvas { width: 34px; height: 34px; transform: skewX(12deg); }
@@ -2356,7 +2358,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid #fff; outline-off
   <!-- v12.5: your team logo: Unknown's sticker printer -->
   <div id="logoPick" hidden>
     <div class="card lgcard">
-      <div class="ctop"><h2 class="h2" id="lgTitle">YOUR TEAM LOGO</h2><button type="button" class="chip" id="lgClose">CANCEL</button></div>
+      <div class="ctop"><h2 class="h2" id="lgTitle">YOUR TEAM LOGO</h2><span class="lgbtns"><button type="button" class="chip" id="lgClose">CANCEL</button><button type="button" class="big" id="lgGo">PRINT IT</button></span></div>
       <p class="sub left small" id="lgSub">Pick one, then its colours.</p>
       <div class="lgcols">
         <div class="lggrid" id="lgGrid"></div>
@@ -2365,7 +2367,6 @@ button:focus-visible, input:focus-visible { outline: 2px solid #fff; outline-off
           <b class="lgname" id="lgName"></b>
           <span class="lbl">MAIN COLOUR</span><div class="swatches lgsw" id="lgA"></div>
           <span class="lbl">SECOND COLOUR</span><div class="swatches lgsw" id="lgB"></div>
-          <button type="button" class="big" id="lgGo">PRINT IT</button>
         </div>
       </div>
     </div>
@@ -2396,7 +2397,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid #fff; outline-off
 (() => {
 'use strict';
 // The version: shown in SETTINGS and on the cover of the guide book. Raise it with every update, then rebuild the guide.
-const VERSION = '12.5.1';
+const VERSION = '12.5.2';
 const $ = (id) => document.getElementById(id);
 const errBox = $('err');
 function showError(msg) { errBox.textContent = msg; errBox.hidden = false; }
@@ -15852,7 +15853,11 @@ document.addEventListener('touchend', (e) => {
 document.addEventListener('dblclick', (e) => e.preventDefault());
 document.addEventListener('touchmove', (e) => {
   const t = e.target;
-  if (e.cancelable && !(t && t.closest && t.closest('.overlay, input, textarea'))) e.preventDefault();
+  if (!e.cancelable || (t && t.closest && t.closest('.overlay, input, textarea'))) return;
+  for (let el = t; el && el.nodeType === 1 && el !== document.body; el = el.parentElement) {   // (v12.5.2: a list that scrolls, scrolls)
+    if (el.scrollHeight > el.clientHeight + 1) { const o = getComputedStyle(el).overflowY; if (o === 'auto' || o === 'scroll') return; }
+  }
+  e.preventDefault();
 }, { passive: false });
 for (const ev of ['gesturestart', 'gesturechange']) document.addEventListener(ev, (e) => { const vv = window.visualViewport; if (!vv || vv.scale <= 1.01) e.preventDefault(); });
 // v12.4: iPhones (iOS 26 on, and the Home Screen app most of all) can leave the page shifted once the keyboard goes
@@ -25894,7 +25899,7 @@ window.addEventListener('keydown', (e) => {
 }, true);
 window.__grass = {
   G, teams, ball, STATS, input, press, release, settings, profile, VIEW,
-  HOME, openHome, homeOff, homeArrive, homeFrame, homeAct, homeWipe, homeWallDraw, homePress, homeChoose, homeCardEnd, homeStylePick, hsDone, HS, HM_STYLES, logoPick, lpDone, LP, STICKERS, drawSticker, packLook, unpackProfile, packRig, unpackRig, LOOK_LEN, openStory, get legendRef() { return legend; },
+  HOME, openHome, homeOff, homeArrive, homeFrame, homeAct, homeWipe, homeWallDraw, homeCard, homeChoice, homePress, homeChoose, homeCardEnd, homeStylePick, hsDone, HS, HM_STYLES, logoPick, lpDone, LP, STICKERS, drawSticker, packLook, unpackProfile, packRig, unpackRig, LOOK_LEN, openStory, get legendRef() { return legend; },
   get players() { return allPlayers; },
   start(n, opts) { startMatch(n); if (opts && opts.autoplay) G.autoplay = true; },
   menu: showMenu,
